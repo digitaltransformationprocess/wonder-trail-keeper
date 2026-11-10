@@ -14,7 +14,63 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      news_items: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          published_at: string
+          solution_slug: string | null
+          source_url: string
+          summary: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind?: string
+          published_at?: string
+          solution_slug?: string | null
+          source_url: string
+          summary: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          published_at?: string
+          solution_slug?: string | null
+          source_url?: string
+          summary?: string
+          title?: string
+        }
+        Relationships: []
+      }
+      watch_state: {
+        Row: {
+          id: string
+          last_result: string | null
+          last_run_at: string | null
+          locked_until: string | null
+          paused_reason: string | null
+        }
+        Insert: {
+          id: string
+          last_result?: string | null
+          last_run_at?: string | null
+          locked_until?: string | null
+          paused_reason?: string | null
+        }
+        Update: {
+          id?: string
+          last_result?: string | null
+          last_run_at?: string | null
+          locked_until?: string | null
+          paused_reason?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
