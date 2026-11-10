@@ -6,7 +6,7 @@ export interface Match { solution: Solution; score: number; reasons: string[]; }
 export function extractConstraints(q: string): Constraints {
   const t = q.toLowerCase();
   return {
-    free: /\b(free|gratuit|gratuite|sans payer)\b/.test(t),
+    free: /\b(free|gratuit|gratuite|gratuitement|sans payer)\b/.test(t),
     openSource: /open.?source|libre/.test(t),
     api: /\bapi\b/.test(t),
     local: /\b(local|offline|hors.?ligne|self.?host)/.test(t),
