@@ -2,7 +2,11 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { z } from "zod";
 import { SiteShell, SolutionCard } from "@/components/SiteShell";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { discover, extractConstraints } from "@/lib/discover";
+import { aiDiscover } from "@/lib/ai-discover.functions";
+import { getSolution } from "@/data/catalog";
 
 export const Route = createFileRoute("/")({
   validateSearch: z.object({ q: z.string().optional() }),
@@ -27,7 +31,13 @@ function Discover() {
   const { q } = Route.useSearch();
   const navigate = useNavigate({ from: "/" });
   const [value, setValue] = useState(q ?? "");
-  const results = q ? discover(q) : [];
+  const runAi = useServerFn(aiDiscover);
+  const ai = useQuery({ queryKey: ["ai-discover", q], queryFn: () => runAi({ data: { q: q! } }), enabled: !!q, staleTime: Infinity, retry: false });
+  const useAi = !!ai.data && !ai.data.error;
+  const keyword = q ? discover(q) : [];
+  const results = useAi
+    ? ai.data!.matches.map((m) => ({ solution: getSolution(m.slug)!, reasons: [m.why], caveat: m.caveat })).filter((r) => r.solution)
+    : keyword.map((m) => ({ solution: m.solution, reasons: m.reasons, caveat: m.solution.limits[0] }));
   const c = q ? extractConstraints(q) : null;
   const go = (v: string) => { setValue(v); navigate({ search: { q: v } }); };
 
@@ -57,7 +67,14 @@ function Discover() {
             ))}
             {c && !Object.values(c).some(Boolean) && <span className="text-muted-foreground">aucune</span>}
           </div>
-          {results.length === 0 ? (
+          {ai.isFetching ? (
+            <p className="mb-5 text-sm text-muted-foreground animate-pulse">L'IA analyse votre besoin…</p>
+          ) : useAi ? (
+            <p className="mb-5 text-sm"><span className="rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">IA</span> <span className="text-muted-foreground">Compris :</span> {ai.data!.understood}</p>
+          ) : ai.data?.error ? (
+            <p className="mb-5 text-sm text-muted-foreground">{ai.data.error} Résultats par mots-clés affichés.</p>
+          ) : null}
+          {ai.isFetching ? null : results.length === 0 ? (
             <p className="rounded-lg border border-dashed border-border p-8 text-center text-muted-foreground">Aucune solution correspondante. Essayez de reformuler ou d'enlever une contrainte.</p>
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -65,7 +82,7 @@ function Discover() {
                 <SolutionCard key={m.solution.slug} s={m.solution}>
                   <ul className="mt-3 space-y-1 text-xs">
                     {m.reasons.map((r) => <li key={r} className="text-primary">● {r}</li>)}
-                    <li className="text-muted-foreground">Limite : {m.solution.limits[0]}</li>
+                    <li className="text-muted-foreground">Limite : {m.caveat}</li>
                     <li className="text-muted-foreground">Prix : {m.solution.price}</li>
                   </ul>
                 </SolutionCard>
