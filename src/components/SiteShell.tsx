@@ -31,7 +31,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
       <main className="mx-auto max-w-6xl px-5 py-10">{children}</main>
       <footer className="border-t border-border">
         <div className="mx-auto max-w-6xl px-5 py-6 text-xs text-muted-foreground">
-          Les informations non vérifiées sont affichées « À vérifier ». Aucun contenu sponsorisé n'est mélangé aux recommandations.
+          Unverified information is marked “To verify”. Sponsored content is never mixed into recommendations.
         </div>
       </footer>
     </div>
@@ -52,9 +52,9 @@ export function SolutionCard({ s, children }: { s: Solution; children?: ReactNod
       <p className="mt-3 text-sm">{s.summary}</p>
       {children}
       <div className="mt-auto flex items-center justify-between pt-4 text-xs text-muted-foreground">
-        <span>{s.status === "Vérifié" ? "✓ Vérifié" : "⚠ À vérifier"} le {s.verifiedAt}</span>
+        <span>{s.status === "Verified" ? "✓ Verified" : "⚠ To verify"} on {s.verifiedAt}</span>
         <button onClick={() => toggle(s.slug)} className="rounded-full border border-border px-2.5 py-1 hover:border-primary hover:text-primary">
-          {has(s.slug) ? "Retirer" : "+ Comparer"}
+          {has(s.slug) ? "Remove" : "+ Compare"}
         </button>
       </div>
     </article>

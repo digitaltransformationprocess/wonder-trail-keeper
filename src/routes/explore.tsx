@@ -10,10 +10,12 @@ export const Route = createFileRoute("/explore")({
     sort: z.enum(["name", "recent"]).optional(),
   }),
   head: () => ({ meta: [
-    { title: "Explore — Catalogue des solutions IA | AI Discovery" },
-    { name: "description", content: "Parcourez les outils, modèles, API et agents IA par catégorie, prix et plateforme." },
-    { property: "og:title", content: "Explore le catalogue IA" },
-    { property: "og:description", content: "Filtres par catégorie, type, prix, API, open source et déploiement local." },
+    { title: "Explore — AI solution catalog | AI Discovery" },
+    { name: "description", content: "Browse AI tools, models, APIs, and agents by category, pricing, and platform." },
+    { property: "og:title", content: "Explore the AI catalog" },
+    { property: "og:description", content: "Filter by category, type, pricing, API access, open source, and local deployment." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary_large_image" },
   ] }),
   component: Explore,
 });
@@ -34,15 +36,15 @@ function Explore() {
     <SiteShell>
       <h1 className="font-display text-4xl">Explore</h1>
       <div className="mt-6 grid gap-3 md:grid-cols-4">
-        <input className={sel + " md:col-span-2"} placeholder="Nom, éditeur, cas d'usage…" value={s.q ?? ""} onChange={(e) => set({ q: e.target.value || undefined })} />
+        <input className={sel + " md:col-span-2"} placeholder="Name, publisher, use case…" value={s.q ?? ""} onChange={(e) => set({ q: e.target.value || undefined })} />
         <select className={sel} value={s.cat ?? ""} onChange={(e) => set({ cat: e.target.value || undefined })}>
-          <option value="">Toutes catégories</option>{CATEGORIES.map((c) => <option key={c}>{c}</option>)}
+          <option value="">All categories</option>{CATEGORIES.map((c) => <option key={c}>{c}</option>)}
         </select>
         <select className={sel} value={s.type ?? ""} onChange={(e) => set({ type: e.target.value || undefined })}>
-          <option value="">Tous types</option>{TYPES.map((c) => <option key={c}>{c}</option>)}
+          <option value="">All types</option>{TYPES.map((c) => <option key={c}>{c}</option>)}
         </select>
         <select className={sel} value={s.price ?? ""} onChange={(e) => set({ price: e.target.value || undefined })}>
-          <option value="">Tous prix</option>{["Gratuit", "Freemium", "Payant", "Open source"].map((c) => <option key={c}>{c}</option>)}
+          <option value="">All pricing</option>{["Free", "Freemium", "Paid", "Open source"].map((c) => <option key={c}>{c}</option>)}
         </select>
         {([["api", "API"], ["oss", "Open source"], ["local", "Local"]] as const).map(([k, l]) => (
           <label key={k} className="flex items-center gap-2 text-sm">
@@ -50,12 +52,12 @@ function Explore() {
           </label>
         ))}
         <select className={sel} value={s.sort ?? "name"} onChange={(e) => set({ sort: e.target.value })}>
-          <option value="name">Tri : nom</option><option value="recent">Tri : mise à jour</option>
+          <option value="name">Sort: name</option><option value="recent">Sort: last updated</option>
         </select>
       </div>
       <p className="mt-6 text-sm text-muted-foreground">{list.length} solution(s)</p>
       {list.length === 0 ? (
-        <p className="mt-4 rounded-lg border border-dashed border-border p-8 text-center text-muted-foreground">Aucun résultat. Élargissez vos critères.</p>
+        <p className="mt-4 rounded-lg border border-dashed border-border p-8 text-center text-muted-foreground">No results. Try broader filters.</p>
       ) : (
         <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-3">{list.map((x) => <SolutionCard key={x.slug} s={x} />)}</div>
       )}

@@ -5,19 +5,21 @@ import { useCompare } from "@/lib/store";
 
 export const Route = createFileRoute("/compare")({
   head: () => ({ meta: [
-    { title: "Compare — Comparateur de solutions IA | AI Discovery" },
-    { name: "description", content: "Comparez jusqu'à 4 solutions IA sur des critères communs : prix, API, plateformes, limites." },
-    { property: "og:title", content: "Comparateur de solutions IA" },
-    { property: "og:description", content: "Tableau comparatif clair, données manquantes signalées." },
+    { title: "Compare — AI solution comparison | AI Discovery" },
+    { name: "description", content: "Compare up to 4 AI solutions by pricing, API access, platforms, and limitations." },
+    { property: "og:title", content: "AI solution comparison" },
+    { property: "og:description", content: "Clear side-by-side comparisons with missing information highlighted." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary_large_image" },
   ] }),
   component: Compare,
 });
 
 const ROWS: [string, (s: Solution) => string][] = [
-  ["Type", (s) => s.type], ["Éditeur", (s) => s.publisher], ["Modèle tarifaire", (s) => s.pricingModel], ["Prix", (s) => s.price],
-  ["Plateformes", (s) => s.platforms.join(", ")], ["API", (s) => (s.api ? "Oui" : "Non communiqué")], ["Open source", (s) => (s.openSource ? "Oui" : "Non")],
-  ["Local", (s) => (s.local ? "Oui" : "Non")], ["Points forts", (s) => s.strengths.join(" · ")], ["Limites", (s) => s.limits.join(" · ")],
-  ["Vérifié le", (s) => s.verifiedAt],
+  ["Type", (s) => s.type], ["Publisher", (s) => s.publisher], ["Pricing model", (s) => s.pricingModel], ["Price", (s) => s.price],
+  ["Platforms", (s) => s.platforms.join(", ")], ["API", (s) => (s.api ? "Yes" : "Not disclosed")], ["Open source", (s) => (s.openSource ? "Yes" : "No")],
+  ["Local", (s) => (s.local ? "Yes" : "No")], ["Strengths", (s) => s.strengths.join(" · ")], ["Limitations", (s) => s.limits.join(" · ")],
+  ["Verified on", (s) => s.verifiedAt],
 ];
 
 function Compare() {
@@ -27,7 +29,7 @@ function Compare() {
     <SiteShell>
       <h1 className="font-display text-4xl">Compare</h1>
       {items.length === 0 ? (
-        <p className="mt-6 text-muted-foreground">Ajoutez jusqu'à 4 solutions depuis <Link to="/explore" className="text-primary">Explore</Link> avec « + Comparer ».</p>
+        <p className="mt-6 text-muted-foreground">Add up to 4 solutions from <Link to="/explore" className="text-primary">Explore</Link> using “+ Compare”.</p>
       ) : (
         <div className="mt-6 overflow-x-auto">
           <table className="w-full min-w-[640px] border-collapse text-sm">
@@ -38,7 +40,7 @@ function Compare() {
               </th>))}</tr></thead>
             <tbody>{ROWS.map(([k, f]) => (
               <tr key={k} className="border-t border-border"><td className="p-3 text-muted-foreground">{k}</td>
-                {items.map((s) => { const v = f(s); return <td key={s.slug} className={`p-3 align-top ${v.includes("vérifier") || v.includes("Non communiqué") ? "text-muted-foreground italic" : ""}`}>{v}</td>; })}
+                {items.map((s) => { const v = f(s); return <td key={s.slug} className={`p-3 align-top ${v.includes("verify") || v.includes("Not disclosed") ? "text-muted-foreground italic" : ""}`}>{v}</td>; })}
               </tr>))}</tbody>
           </table>
         </div>

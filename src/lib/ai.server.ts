@@ -6,7 +6,7 @@ export const AI_MODEL = "openai/gpt-6-astra";
 
 export function createGateway() {
   const apiKey = process.env['LOVABLE_API_KEY'];
-  if (!apiKey) throw new Error("LOVABLE_API_KEY manquante");
+  if (!apiKey) throw new Error("LOVABLE_API_KEY is missing");
   let runId: string | undefined;
   return createOpenAI({
     baseURL: "https://ai.gateway.lovable.dev/v1",
@@ -34,8 +34,8 @@ export const OPENAI_OPTS = {
 
 export function aiErrorMessage(e: unknown): string {
   const status = (e as { statusCode?: number })?.statusCode;
-  if (status === 429) return "Trop de demandes, réessayez dans un instant.";
-  if (status === 402) return "Crédits IA épuisés. Ajoutez des crédits pour continuer.";
-  if (status === 403) return "Accès à l'IA refusé pour cet espace de travail.";
-  return "La recherche IA est indisponible pour le moment.";
+  if (status === 429) return "Too many requests. Please try again shortly.";
+  if (status === 402) return "AI credits have run out. Add credits to continue.";
+  if (status === 403) return "AI access is denied for this workspace.";
+  return "AI search is currently unavailable.";
 }

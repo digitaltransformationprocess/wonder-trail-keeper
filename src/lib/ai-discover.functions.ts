@@ -24,8 +24,8 @@ export const aiDiscover = createServerFn({ method: "POST" })
       const result = streamText({
         model: createGateway().responses(AI_MODEL),
         system:
-          "Tu es le moteur de recommandation d'AI Discovery. Réponds en français. Choisis UNIQUEMENT parmi le catalogue fourni (slugs exacts), au plus 6 solutions, de la plus pertinente à la moins pertinente. Respecte strictement les contraintes de l'utilisateur (gratuit, open source, API, local…). N'invente aucun prix ni fait absent du catalogue. 'understood' : reformulation courte du besoin et des contraintes. 'why' : une phrase concrète. 'caveat' : la principale limite pour ce besoin. Si rien ne convient, renvoie une liste vide.",
-        prompt: `Catalogue:\n${JSON.stringify(catalog)}\n\nBesoin de l'utilisateur: ${data.q}`,
+          "You are AI Discovery's recommendation engine. Always respond in English, regardless of the language of the user's request. Choose ONLY from the supplied catalog (exact slugs), at most 6 solutions, ordered by relevance. Strictly respect the user's requirements (free, open source, API, local). Never invent prices or facts absent from the catalog. 'understood': a brief restatement of the need and requirements. 'why': one concrete sentence. 'caveat': the main limitation for this need. If nothing fits, return an empty list.",
+        prompt: `Catalog:\n${JSON.stringify(catalog)}\n\nUser request: ${data.q}`,
         output: Output.object({ schema }),
         providerOptions: OPENAI_OPTS,
       });
