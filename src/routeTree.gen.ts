@@ -15,7 +15,6 @@ import { Route as ExploreRouteImport } from './routes/explore'
 import { Route as LatestRouteImport } from './routes/latest'
 import { Route as LibraryRouteImport } from './routes/library'
 import { Route as ToolsSlugRouteImport } from './routes/tools.$slug'
-import { Route as ApiPublicJobsVeilleRouteImport } from './routes/api/public/jobs/veille'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -47,11 +46,6 @@ const ToolsSlugRoute = ToolsSlugRouteImport.update({
   path: '/tools/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicJobsVeilleRoute = ApiPublicJobsVeilleRouteImport.update({
-  id: '/api/public/jobs/veille',
-  path: '/api/public/jobs/veille',
-  getParentRoute: () => rootRouteImport,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -60,7 +54,6 @@ export interface FileRoutesByFullPath {
   '/latest': typeof LatestRoute
   '/library': typeof LibraryRoute
   '/tools/$slug': typeof ToolsSlugRoute
-  '/api/public/jobs/veille': typeof ApiPublicJobsVeilleRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -69,7 +62,6 @@ export interface FileRoutesByTo {
   '/latest': typeof LatestRoute
   '/library': typeof LibraryRoute
   '/tools/$slug': typeof ToolsSlugRoute
-  '/api/public/jobs/veille': typeof ApiPublicJobsVeilleRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -79,27 +71,13 @@ export interface FileRoutesById {
   '/latest': typeof LatestRoute
   '/library': typeof LibraryRoute
   '/tools/$slug': typeof ToolsSlugRoute
-  '/api/public/jobs/veille': typeof ApiPublicJobsVeilleRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    | '/'
-    | '/compare'
-    | '/explore'
-    | '/latest'
-    | '/library'
-    | '/tools/$slug'
-    | '/api/public/jobs/veille'
+    '/' | '/compare' | '/explore' | '/latest' | '/library' | '/tools/$slug'
   fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/'
-    | '/compare'
-    | '/explore'
-    | '/latest'
-    | '/library'
-    | '/tools/$slug'
-    | '/api/public/jobs/veille'
+  to: '/' | '/compare' | '/explore' | '/latest' | '/library' | '/tools/$slug'
   id:
     | '__root__'
     | '/'
@@ -108,7 +86,6 @@ export interface FileRouteTypes {
     | '/latest'
     | '/library'
     | '/tools/$slug'
-    | '/api/public/jobs/veille'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -118,7 +95,6 @@ export interface RootRouteChildren {
   LatestRoute: typeof LatestRoute
   LibraryRoute: typeof LibraryRoute
   ToolsSlugRoute: typeof ToolsSlugRoute
-  ApiPublicJobsVeilleRoute: typeof ApiPublicJobsVeilleRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -165,13 +141,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ToolsSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/jobs/veille': {
-      id: '/api/public/jobs/veille'
-      path: '/api/public/jobs/veille'
-      fullPath: '/api/public/jobs/veille'
-      preLoaderRoute: typeof ApiPublicJobsVeilleRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
@@ -182,18 +151,7 @@ const rootRouteChildren: RootRouteChildren = {
   LatestRoute: LatestRoute,
   LibraryRoute: LibraryRoute,
   ToolsSlugRoute: ToolsSlugRoute,
-  ApiPublicJobsVeilleRoute: ApiPublicJobsVeilleRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

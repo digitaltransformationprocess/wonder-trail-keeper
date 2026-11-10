@@ -1,26 +1,24 @@
-# Remix of Bright Minds Discovery Hub
+# AI Discovery Platform
 
-go, développe l'application AI Discovery Platform à partir du document AI_Discovery_Platform_Cahier_de_Conception_Complet.docx ci-joint.
-
-This project was built with [Lovable](https://lovable.dev).
-
-**Live app**: https://wonder-trail-keeper.lovable.app
-
-## Build with Lovable
-
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/216fa501-37a4-4e08-a45a-6c3c69dac4eb).
-
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
+Find and compare AI tools with a React + Vite app.
 
 ## Development
 
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
-
 ```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
+npm install
 npm run dev
 ```
+
+Optional Supabase env vars for the Latest page:
+
+```sh
+VITE_SUPABASE_URL=...
+VITE_SUPABASE_PUBLISHABLE_KEY=...
+```
+
+## Scripts
+
+- `npm run dev` — local Vite server
+- `npm run build` — production build
+- `npm run preview` — preview the build
+- `npm test` — run tests
