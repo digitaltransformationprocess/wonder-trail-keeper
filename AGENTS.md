@@ -31,3 +31,4 @@ use the editor.
 
 - AI calls go through `src/lib/ai.server.ts` (Lovable AI Gateway, Responses API) and are only invoked from server functions or server routes — keeps the key server-side.
 - The news watch runs from the daily cron route `/api/public/jobs/veille`, with a lock/pause row in `watch_state` and dedup on `news_items.source_url` — bounded, idempotent background work.
+- Firecrawl requests use the linked managed connection through the connector gateway with server-only credentials — provider-direct calls cannot authenticate this connection.

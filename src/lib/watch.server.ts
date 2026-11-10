@@ -32,21 +32,24 @@ export async function runWatch(): Promise<{ status: number; message: string }> {
   try {
     const key = process.env['FIRECRAWL_API_KEY'];
     if (!key) throw new Error("FIRECRAWL_API_KEY manquante");
-    const fc = await fetch("https://api.firecrawl.dev/v2/search", {
+    const gatewayKey = process.env['LOVABLE_API_KEY'];
+    if (!gatewayKey) throw new Error("LOVABLE_API_KEY manquante");
+    const fc = await fetch("https://connector-gateway.lovable.dev/firecrawl/v2/search", {
       method: "POST",
-      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+      headers: { Authorization: `Bearer ${gatewayKey}`, "X-Connection-Api-Key": key, "Content-Type": "application/json" },
       body: JSON.stringify({ query: "AI tool launch OR new version OR pricing change announcement", limit: 12, tbs: "qdr:w", sources: ["news"] }),
     });
     if (!fc.ok) {
       const body = await fc.text();
+      console.error(`Firecrawl request failed [${fc.status}]: ${body}`);
       await finish(`Recherche web échouée [${fc.status}]`, fc.status === 402 ? "Crédits de recherche web épuisés" : undefined);
-      return { status: 502, message: `Firecrawl ${fc.status}: ${body.slice(0, 200)}` };
+      return { status: fc.status, message: `Firecrawl ${fc.status}: ${body}` };
     }
     const json = await fc.json() as { data?: { news?: Raw[]; web?: Raw[] } | Raw[] };
     type Raw = { url?: string; title?: string; snippet?: string; description?: string; date?: string };
     const d = json.data;
     const raw: Raw[] = Array.isArray(d) ? d : [...(d?.news ?? []), ...(d?.web ?? [])];
-    const results = raw.filter((r) => r.url && r.title).map((r) => ({ url: r.url!, title: r.title!, snippet: r.snippet ?? r.description ?? "", date: r.date ?? "" }));
+    const results = raw.flatMap((r) => r.url && r.title ? [{ url: r.url, title: r.title, snippet: r.snippet ?? r.description ?? "", date: r.date ?? "" }] : []);
 
     const { data: existing } = await db.from("news_items").select("source_url").in("source_url", results.map((r) => r.url));
     const seen = new Set((existing ?? []).map((e) => e.source_url));
