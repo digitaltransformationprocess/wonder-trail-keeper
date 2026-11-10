@@ -30,7 +30,7 @@ export async function runWatch(): Promise<{ status: number; message: string }> {
   };
 
   try {
-    const key = process.env.FIRECRAWL_API_KEY;
+    const key = process.env['FIRECRAWL_API_KEY'];
     if (!key) throw new Error("FIRECRAWL_API_KEY manquante");
     const fc = await fetch("https://api.firecrawl.dev/v2/search", {
       method: "POST",

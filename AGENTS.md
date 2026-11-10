@@ -29,6 +29,5 @@ use the editor.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
 
-$(cat AGENTS.md)
 - AI calls go through `src/lib/ai.server.ts` (Lovable AI Gateway, Responses API) and are only invoked from server functions or server routes — keeps the key server-side.
 - The news watch runs from the daily cron route `/api/public/jobs/veille`, with a lock/pause row in `watch_state` and dedup on `news_items.source_url` — bounded, idempotent background work.
