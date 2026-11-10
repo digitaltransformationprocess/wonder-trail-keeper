@@ -3,7 +3,7 @@ import { z } from "zod";
 import { SOLUTIONS } from "@/data/catalog";
 import { createGateway, AI_MODEL, OPENAI_OPTS } from "./ai.server";
 
-const KINDS = ["Nouvel outil", "Nouvelle version", "Changement de prix", "Annonce"] as const;
+const KINDS = ["New tool", "New version", "Pricing change", "Announcement"] as const;
 const MAX_ITEMS = 6; // bounded work per run
 
 const schema = z.object({
@@ -21,8 +21,8 @@ export async function runWatch(): Promise<{ status: number; message: string }> {
   const now = new Date();
 
   const { data: state } = await db.from("watch_state").select("*").eq("id", "veille").single();
-  if (state?.paused_reason) return { status: 200, message: `En pause : ${state.paused_reason}` };
-  if (state?.locked_until && new Date(state.locked_until) > now) return { status: 200, message: "Déjà en cours" };
+  if (state?.paused_reason) return { status: 200, message: `Paused: ${state.paused_reason}` };
+  if (state?.locked_until && new Date(state.locked_until) > now) return { status: 200, message: "Already running" };
   await db.from("watch_state").update({ locked_until: new Date(now.getTime() + 10 * 60_000).toISOString() }).eq("id", "veille");
 
   const finish = async (result: string, paused?: string) => {
@@ -31,9 +31,9 @@ export async function runWatch(): Promise<{ status: number; message: string }> {
 
   try {
     const key = process.env['FIRECRAWL_API_KEY'];
-    if (!key) throw new Error("FIRECRAWL_API_KEY manquante");
+    if (!key) throw new Error("FIRECRAWL_API_KEY is missing");
     const gatewayKey = process.env['LOVABLE_API_KEY'];
-    if (!gatewayKey) throw new Error("LOVABLE_API_KEY manquante");
+    if (!gatewayKey) throw new Error("LOVABLE_API_KEY is missing");
     const fc = await fetch("https://connector-gateway.lovable.dev/firecrawl/v2/search", {
       method: "POST",
       headers: { Authorization: `Bearer ${gatewayKey}`, "X-Connection-Api-Key": key, "Content-Type": "application/json" },
@@ -42,7 +42,7 @@ export async function runWatch(): Promise<{ status: number; message: string }> {
     if (!fc.ok) {
       const body = await fc.text();
       console.error(`Firecrawl request failed [${fc.status}]: ${body}`);
-      await finish(`Recherche web échouée [${fc.status}]`, fc.status === 402 ? "Crédits de recherche web épuisés" : undefined);
+      await finish(`Web search failed [${fc.status}]`, fc.status === 402 ? "Web search credits exhausted" : undefined);
       return { status: fc.status, message: `Firecrawl ${fc.status}: ${body}` };
     }
     const json = await fc.json() as { data?: { news?: Raw[]; web?: Raw[] } | Raw[] };
@@ -54,12 +54,12 @@ export async function runWatch(): Promise<{ status: number; message: string }> {
     const { data: existing } = await db.from("news_items").select("source_url").in("source_url", results.map((r) => r.url));
     const seen = new Set((existing ?? []).map((e) => e.source_url));
     const fresh = results.filter((r) => !seen.has(r.url));
-    if (fresh.length === 0) { await finish("Aucune nouveauté"); return { status: 200, message: "Aucune nouveauté" }; }
+    if (fresh.length === 0) { await finish("No new items"); return { status: 200, message: "No new items" }; }
 
     const result = streamText({
       model: createGateway().responses(AI_MODEL),
-      system: `Tu es l'éditeur de veille d'AI Discovery. À partir des résultats de recherche fournis, garde au plus ${MAX_ITEMS} actualités réellement liées à un produit ou service d'IA (lancement, nouvelle version, changement de prix, annonce). Ignore le reste. Rédige en français un titre court et un résumé factuel d'une ou deux phrases fondé UNIQUEMENT sur le texte fourni, sans rien inventer. source_url doit être recopiée exactement. solution_slug : un slug du catalogue si l'actualité concerne clairement cet outil, sinon null.`,
-      prompt: `Catalogue (slug: nom): ${SOLUTIONS.map((s) => `${s.slug}: ${s.name}`).join(", ")}\n\nRésultats:\n${JSON.stringify(fresh)}`,
+      system: `You are AI Discovery's news editor. From the supplied search results, keep at most ${MAX_ITEMS} news items actually related to an AI product or service (launch, new version, pricing change, announcement). Ignore everything else. Always write in English. Write a short title and a factual one- or two-sentence summary based ONLY on the supplied text, without inventing anything. Copy source_url exactly. solution_slug: a catalog slug if the news clearly concerns that tool, otherwise null.`,
+      prompt: `Catalog (slug: name): ${SOLUTIONS.map((s) => `${s.slug}: ${s.name}`).join(", ")}\n\nResults:\n${JSON.stringify(fresh)}`,
       output: Output.object({ schema }),
       providerOptions: OPENAI_OPTS,
     });
@@ -73,13 +73,13 @@ export async function runWatch(): Promise<{ status: number; message: string }> {
         published_at: (dt && !isNaN(dt.getTime()) ? dt : new Date()).toISOString().slice(0, 10) };
     });
     if (rows.length) await db.from("news_items").upsert(rows, { onConflict: "source_url", ignoreDuplicates: true });
-    await finish(`${rows.length} actualité(s) ajoutée(s)`);
-    return { status: 200, message: `${rows.length} ajoutée(s)` };
+    await finish(`${rows.length} news item(s) added`);
+    return { status: 200, message: `${rows.length} added` };
   } catch (e) {
     const status = (e as { statusCode?: number })?.statusCode;
-    const paused = status === 402 ? "Crédits IA épuisés" : status === 403 ? "Accès IA refusé" : undefined;
+    const paused = status === 402 ? "AI credits exhausted" : status === 403 ? "AI access denied" : undefined;
     console.error("runWatch", e);
-    await finish("Erreur", paused);
-    return { status: 500, message: "Erreur de veille" };
+    await finish("Error", paused);
+    return { status: 500, message: "News update failed" };
   }
 }

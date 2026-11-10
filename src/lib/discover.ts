@@ -25,12 +25,12 @@ export function discover(q: string): Match[] {
     const hits = s.keywords.filter((k) => t.includes(k));
     score += hits.length * 3;
     for (const w of words) if (hay.some((h) => h.includes(w))) score += 1;
-    if (hits.length) reasons.push(`Correspond à : ${hits.slice(0, 3).join(", ")}`);
+    if (hits.length) reasons.push(`Matches your request: ${s.summary}`);
     if (score === 0) continue;
-    if (c.free) { if (s.pricingModel === "Gratuit" || s.pricingModel === "Freemium" || s.pricingModel === "Open source") { score += 2; reasons.push("Offre gratuite ou freemium"); } else score -= 4; }
+    if (c.free) { if (s.pricingModel === "Free" || s.pricingModel === "Freemium" || s.pricingModel === "Open source") { score += 2; reasons.push("Free or freemium option"); } else score -= 4; }
     if (c.openSource) { if (s.openSource) { score += 3; reasons.push("Open source"); } else score -= 4; }
-    if (c.api) { if (s.api) { score += 2; reasons.push("API disponible"); } else score -= 4; }
-    if (c.local) { if (s.local) { score += 3; reasons.push("Utilisable en local"); } else score -= 4; }
+    if (c.api) { if (s.api) { score += 2; reasons.push("API available"); } else score -= 4; }
+    if (c.local) { if (s.local) { score += 3; reasons.push("Runs locally"); } else score -= 4; }
     if (score > 0) out.push({ solution: s, score, reasons });
   }
   return out.sort((a, b) => b.score - a.score).slice(0, 6);
