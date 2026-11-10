@@ -1,3 +1,5 @@
 # Roadmap
 - [x] Recherche par IA dans Discover
-- [ ] Veille automatique (Latest alimenté automatiquement) — en attente de la connexion Firecrawl
+- [x] Veille automatique quotidienne (Latest)
+- [ ] Comptes utilisateurs
+- [ ] Espace d'administration
