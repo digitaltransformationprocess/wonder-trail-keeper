@@ -183,6 +183,11 @@ export async function setNewsStatus(newsId: string, status: NewsStatus) {
   if (error) throw new Error(error.message);
 }
 
+export async function deleteAdminNews(newsId: string) {
+  const { error } = await supabase.from("news_items").delete().eq("id", newsId);
+  if (error) throw new Error(error.message);
+}
+
 export async function publishAllDraftNews(): Promise<{ published: number }> {
   const { data: drafts, error } = await supabase
     .from("news_items")

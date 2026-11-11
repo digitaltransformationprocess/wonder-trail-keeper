@@ -1,8 +1,14 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense, useState } from "react";
 import { NewsForm } from "@/components/admin/NewsForm";
-import { adminNewsItemQuery, setNewsStatus, updateAdminNews, type NewsStatus } from "@/lib/admin/news";
+import {
+  adminNewsItemQuery,
+  deleteAdminNews,
+  setNewsStatus,
+  updateAdminNews,
+  type NewsStatus,
+} from "@/lib/admin/news";
 
 export const Route = createFileRoute("/admin/news/$id")({
   loader: async ({ context, params }) => {
@@ -34,10 +40,12 @@ function EditNewsPage() {
 
 function EditNews() {
   const { id } = Route.useParams();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { data: item } = useSuspenseQuery(adminNewsItemQuery(id));
   const [submitting, setSubmitting] = useState(false);
   const [statusBusy, setStatusBusy] = useState(false);
+  const [deleteBusy, setDeleteBusy] = useState(false);
   const [statusError, setStatusError] = useState<string | null>(null);
 
   const setStatus = (status: NewsStatus) => {
@@ -72,7 +80,7 @@ function EditNews() {
           {item.status !== "published" ? (
             <button
               type="button"
-              disabled={statusBusy}
+              disabled={statusBusy || deleteBusy}
               className="rounded-full bg-primary px-4 py-2 text-[0.8125rem] font-medium text-primary-foreground disabled:opacity-60"
               onClick={() => setStatus("published")}
             >
@@ -82,7 +90,7 @@ function EditNews() {
             <>
               <button
                 type="button"
-                disabled={statusBusy}
+                disabled={statusBusy || deleteBusy}
                 className="glass rounded-full px-4 py-2 text-[0.8125rem] disabled:opacity-60"
                 onClick={() => setStatus("draft")}
               >
@@ -90,7 +98,7 @@ function EditNews() {
               </button>
               <button
                 type="button"
-                disabled={statusBusy}
+                disabled={statusBusy || deleteBusy}
                 className="glass rounded-full px-4 py-2 text-[0.8125rem] disabled:opacity-60"
                 onClick={() => setStatus("archived")}
               >
@@ -101,13 +109,41 @@ function EditNews() {
           {item.status === "archived" ? (
             <button
               type="button"
-              disabled={statusBusy}
+              disabled={statusBusy || deleteBusy}
               className="rounded-full bg-primary px-4 py-2 text-[0.8125rem] font-medium text-primary-foreground disabled:opacity-60"
               onClick={() => setStatus("draft")}
             >
               Restore to draft
             </button>
           ) : null}
+          <button
+            type="button"
+            disabled={statusBusy || deleteBusy}
+            className="rounded-full border border-red-400/40 px-4 py-2 text-[0.8125rem] text-red-300 disabled:opacity-60"
+            onClick={() => {
+              if (
+                !window.confirm(
+                  `Delete “${item.title}” permanently? This cannot be undone.`,
+                )
+              ) {
+                return;
+              }
+              setDeleteBusy(true);
+              setStatusError(null);
+              void deleteAdminNews(id)
+                .then(async () => {
+                  await queryClient.invalidateQueries({ queryKey: ["admin"] });
+                  await queryClient.invalidateQueries({ queryKey: ["news"] });
+                  await navigate({ to: "/admin/news" });
+                })
+                .catch((err) => {
+                  setStatusError(err instanceof Error ? err.message : "Delete failed");
+                })
+                .finally(() => setDeleteBusy(false));
+            }}
+          >
+            {deleteBusy ? "Deleting…" : "Delete"}
+          </button>
         </div>
       </div>
 

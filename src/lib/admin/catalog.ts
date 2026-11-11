@@ -396,6 +396,11 @@ export async function setToolStatus(toolId: string, status: ToolStatus) {
   if (error) throw new Error(error.message);
 }
 
+export async function deleteAdminTool(toolId: string) {
+  const { error } = await supabase.from("tools").delete().eq("id", toolId);
+  if (error) throw new Error(error.message);
+}
+
 export async function getAdminDashboardCounts() {
   const [
     { data: tools, error: toolsError },

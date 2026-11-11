@@ -4,6 +4,7 @@ import { Suspense, useState } from "react";
 import { ToolForm } from "@/components/admin/ToolForm";
 import {
   adminToolQuery,
+  deleteAdminTool,
   listPlatforms,
   setToolStatus,
   updateAdminTool,
@@ -55,6 +56,8 @@ function EditTool() {
   });
   const [submitting, setSubmitting] = useState(false);
   const [statusBusy, setStatusBusy] = useState(false);
+  const [deleteBusy, setDeleteBusy] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   return (
     <div>
@@ -75,14 +78,18 @@ function EditTool() {
           {tool.status !== "published" && (
             <button
               type="button"
-              disabled={statusBusy}
+              disabled={statusBusy || deleteBusy}
               className="rounded-full bg-primary px-4 py-2 text-[0.8125rem] font-medium text-primary-foreground disabled:opacity-60"
               onClick={() => {
                 setStatusBusy(true);
+                setActionError(null);
                 void setToolStatus(tool.id, "published")
                   .then(async () => {
                     await queryClient.invalidateQueries({ queryKey: ["admin"] });
                     await queryClient.invalidateQueries({ queryKey: ["solutions"] });
+                  })
+                  .catch((err) => {
+                    setActionError(err instanceof Error ? err.message : "Publish failed");
                   })
                   .finally(() => setStatusBusy(false));
               }}
@@ -93,14 +100,18 @@ function EditTool() {
           {tool.status === "published" && (
             <button
               type="button"
-              disabled={statusBusy}
+              disabled={statusBusy || deleteBusy}
               className="glass rounded-full px-4 py-2 text-[0.8125rem] disabled:opacity-60"
               onClick={() => {
                 setStatusBusy(true);
+                setActionError(null);
                 void setToolStatus(tool.id, "archived")
                   .then(async () => {
                     await queryClient.invalidateQueries({ queryKey: ["admin"] });
                     await queryClient.invalidateQueries({ queryKey: ["solutions"] });
+                  })
+                  .catch((err) => {
+                    setActionError(err instanceof Error ? err.message : "Archive failed");
                   })
                   .finally(() => setStatusBusy(false));
               }}
@@ -108,8 +119,40 @@ function EditTool() {
               Archive
             </button>
           )}
+          <button
+            type="button"
+            disabled={statusBusy || deleteBusy}
+            className="rounded-full border border-red-400/40 px-4 py-2 text-[0.8125rem] text-red-300 disabled:opacity-60"
+            onClick={() => {
+              if (
+                !window.confirm(
+                  `Delete “${tool.name}” permanently? This cannot be undone.`,
+                )
+              ) {
+                return;
+              }
+              setDeleteBusy(true);
+              setActionError(null);
+              void deleteAdminTool(tool.id)
+                .then(async () => {
+                  await queryClient.invalidateQueries({ queryKey: ["admin"] });
+                  await queryClient.invalidateQueries({ queryKey: ["solutions"] });
+                  await navigate({ to: "/admin/tools" });
+                })
+                .catch((err) => {
+                  setActionError(err instanceof Error ? err.message : "Delete failed");
+                })
+                .finally(() => setDeleteBusy(false));
+            }}
+          >
+            {deleteBusy ? "Deleting…" : "Delete"}
+          </button>
         </div>
       </div>
+
+      {actionError ? (
+        <p className="mt-4 text-[0.875rem] text-amber-300">{actionError}</p>
+      ) : null}
 
       <div className="mt-8">
         <ToolForm

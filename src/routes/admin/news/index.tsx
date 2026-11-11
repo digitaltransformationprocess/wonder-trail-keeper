@@ -1,7 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
-import { adminNewsQuery, publishAllDraftNews, type NewsStatus } from "@/lib/admin/news";
+import {
+  adminNewsQuery,
+  deleteAdminNews,
+  publishAllDraftNews,
+  type NewsStatus,
+} from "@/lib/admin/news";
 
 export const Route = createFileRoute("/admin/news/")({
   validateSearch: z.object({
@@ -47,6 +52,13 @@ function AdminNewsList() {
   const { data = [], isLoading, isError, error, refetch } = useQuery(adminNewsQuery(status));
   const publishAllMutation = useMutation({
     mutationFn: publishAllDraftNews,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["admin"] });
+      await queryClient.invalidateQueries({ queryKey: ["news"] });
+    },
+  });
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => deleteAdminNews(id),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["admin"] });
       await queryClient.invalidateQueries({ queryKey: ["news"] });
@@ -164,9 +176,28 @@ function AdminNewsList() {
                   <td className="p-4 text-muted-foreground">{item.published_at}</td>
                   <td className="p-4 text-muted-foreground">{item.solution_slug ?? "—"}</td>
                   <td className="p-4">
-                    <Link to="/admin/news/$id" params={{ id: item.id }} className="text-primary">
-                      Edit
-                    </Link>
+                    <div className="flex flex-wrap gap-2">
+                      <Link to="/admin/news/$id" params={{ id: item.id }} className="text-primary">
+                        Edit
+                      </Link>
+                      <button
+                        type="button"
+                        className="text-red-300"
+                        disabled={deleteMutation.isPending}
+                        onClick={() => {
+                          if (
+                            !window.confirm(
+                              `Delete “${item.title}” permanently? This cannot be undone.`,
+                            )
+                          ) {
+                            return;
+                          }
+                          deleteMutation.mutate(item.id);
+                        }}
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
