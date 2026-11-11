@@ -1,0 +1,9 @@
+begin;
+insert into tool_types (tool_id, solution_type_id, is_primary) select t.id, st.id, true from tools t, solution_types st where t.slug = 'linear-asks' and st.name = 'Tool' on conflict do nothing;
+insert into sources (url, publisher, source_type, reliability_level) values ('https://linear.app', 'Linear', 'official', 'A') on conflict (url) do nothing;
+insert into tool_sources (tool_id, source_id, claim_key, verified_at) select t.id, s.id, 'general', current_date from tools t, sources s where t.slug = 'linear-asks' and s.url = 'https://linear.app' on conflict do nothing;
+insert into tool_categories (tool_id, category_id, is_primary) select t.id, c.id, true from tools t, categories c where t.slug = 'linear-asks' and c.name = 'Productivity' on conflict do nothing;
+insert into tool_categories (tool_id, category_id, is_primary) select t.id, c.id, false from tools t, categories c where t.slug = 'linear-asks' and c.name = 'Business & Marketing' on conflict do nothing;
+insert into tool_platforms (tool_id, platform_id, status) select t.id, p.id, 'available' from tools t, platforms p where t.slug = 'linear-asks' and p.label = 'Web' on conflict do nothing;
+insert into tool_platforms (tool_id, platform_id, status) select t.id, p.id, 'available' from tools t, platforms p where t.slug = 'linear-asks' and p.label = 'macOS' on conflict do nothing;
+commit;
