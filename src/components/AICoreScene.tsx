@@ -1,5 +1,11 @@
 import { Canvas, useFrame } from "@react-three/fiber";
-import { AdaptiveDpr, Html, RoundedBox } from "@react-three/drei";
+import {
+  AdaptiveDpr,
+  Environment,
+  Html,
+  MeshTransmissionMaterial,
+  RoundedBox,
+} from "@react-three/drei";
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import type { Group, Mesh } from "three";
 
@@ -9,96 +15,114 @@ type OrbitCategory = {
   speed: number;
   offset: number;
   query: string;
-  size: number;
+  yBias: number;
 };
 
 const CATEGORIES: OrbitCategory[] = [
-  { label: "AI Tools", radius: 1.85, speed: 0.14, offset: 0.4, query: "AI tools and applications", size: 0.1 },
-  { label: "AI Models", radius: 1.98, speed: 0.11, offset: 2.0, query: "AI models", size: 0.085 },
-  { label: "AI Agents", radius: 1.78, speed: 0.16, offset: 3.6, query: "AI agents automation", size: 0.095 },
-  { label: "AI APIs", radius: 2.08, speed: 0.1, offset: 5.2, query: "AI API", size: 0.08 },
+  { label: "AI Models", radius: 1.95, speed: 0.09, offset: 0.55, query: "AI models", yBias: 0.72 },
+  { label: "AI Agents", radius: 1.72, speed: 0.12, offset: 3.4, query: "AI agents automation", yBias: -0.55 },
+  { label: "AI APIs", radius: 2.05, speed: 0.08, offset: 5.1, query: "AI API", yBias: 0.18 },
 ];
 
-function Stage({
-  animate,
-  compact,
-  onCategorySelect,
-}: {
-  animate: boolean;
-  compact: boolean;
-  onCategorySelect?: (query: string) => void;
-}) {
-  const tilt = useRef<Group>(null);
-  const spin = useRef<Group>(null);
-  const rings = useRef<Group>(null);
+function GlassCore({ animate, compact }: { animate: boolean; compact: boolean }) {
+  const core = useRef<Group>(null);
+  const gem = useRef<Mesh>(null);
+  const satellite = useRef<Mesh>(null);
 
   useFrame((state, delta) => {
     if (!animate) return;
     const d = Math.min(delta, 0.05);
-
-    if (spin.current) spin.current.rotation.y += d * 0.12;
-    if (rings.current) {
-      rings.current.rotation.z += d * 0.045;
-      rings.current.rotation.x += d * 0.012;
+    const t = state.clock.elapsedTime;
+    if (core.current) {
+      core.current.rotation.y += d * 0.16;
+      core.current.rotation.x = Math.sin(t * 0.35) * 0.07;
     }
-    if (tilt.current) {
-      const tx = state.pointer.y * -0.1;
-      const ty = state.pointer.x * 0.14;
-      tilt.current.rotation.x += (tx - tilt.current.rotation.x) * 0.05;
-      tilt.current.rotation.y += (ty - tilt.current.rotation.y) * 0.05;
+    if (gem.current) {
+      gem.current.rotation.y -= d * 0.22;
+      gem.current.rotation.x += d * 0.08;
+    }
+    if (satellite.current) {
+      satellite.current.position.y = 0.72 + Math.sin(t * 1.4) * 0.035;
+      satellite.current.rotation.y += d * 0.4;
     }
   });
 
   return (
-    <group ref={tilt}>
-      <ambientLight intensity={0.55} />
-      <directionalLight position={[4, 5, 3]} intensity={1.2} color="#ffffff" />
-      <directionalLight position={[-3, 1.5, -2]} intensity={0.35} color="#dfe5ee" />
-      <pointLight position={[0, 2.4, 1.5]} intensity={18} distance={10} decay={2} color="#ffffff" />
+    <group ref={core}>
+      <RoundedBox args={[1.42, 1.42, 1.42]} radius={0.04} smoothness={4}>
+        <MeshTransmissionMaterial
+          backside
+          samples={compact ? 3 : 5}
+          resolution={compact ? 192 : 320}
+          transmission={1}
+          roughness={0.02}
+          thickness={1.6}
+          ior={1.5}
+          chromaticAberration={0.42}
+          anisotropy={0.15}
+          distortion={0.18}
+          distortionScale={0.28}
+          temporalDistortion={0.12}
+          color="#ffffff"
+          attenuationColor="#eaf2ff"
+          attenuationDistance={1.8}
+          clearcoat={1}
+          clearcoatRoughness={0.02}
+        />
+      </RoundedBox>
 
-      <group position={[compact ? 0 : 2.05, 0, 0]} scale={compact ? 0.78 : 0.72}>
-        <group ref={spin}>
-          {/* Glass core — physical material (no transmission framebuffer pass) */}
-          <RoundedBox args={[1.35, 1.35, 1.35]} radius={0.08} smoothness={2}>
-            <meshPhysicalMaterial
-              color="#eef2f7"
-              roughness={0.12}
-              metalness={0.05}
-              clearcoat={1}
-              clearcoatRoughness={0.08}
-              transparent
-              opacity={0.72}
-              reflectivity={0.6}
-            />
-          </RoundedBox>
+      {/* Bright caustic core — matches the glowing bottom of the reference */}
+      <mesh position={[0, -0.28, 0]} scale={[0.55, 0.22, 0.55]}>
+        <sphereGeometry args={[1, 24, 16]} />
+        <meshBasicMaterial color="#ffffff" transparent opacity={0.55} />
+      </mesh>
 
-          <mesh scale={0.4}>
-            <octahedronGeometry args={[1, 0]} />
-            <meshStandardMaterial color="#f5f7fa" roughness={0.25} metalness={0.08} />
-          </mesh>
-        </group>
+      <mesh ref={gem} scale={0.3}>
+        <octahedronGeometry args={[1, 0]} />
+        <meshPhysicalMaterial
+          color="#ffffff"
+          metalness={0}
+          roughness={0.08}
+          transmission={0.7}
+          thickness={0.5}
+          ior={1.7}
+          iridescence={1}
+          iridescenceThicknessRange={[100, 520]}
+          transparent
+          opacity={0.9}
+          emissive="#9eb6ff"
+          emissiveIntensity={0.15}
+        />
+      </mesh>
 
-        <group ref={rings}>
-          <mesh rotation={[Math.PI / 2.05, 0.08, 0]}>
-            <torusGeometry args={[1.7, 0.0028, 8, 96]} />
-            <meshBasicMaterial color="#ffffff" transparent opacity={0.32} />
-          </mesh>
-          <mesh rotation={[1.15, 0.2, 0.4]}>
-            <torusGeometry args={[2.0, 0.0018, 8, 96]} />
-            <meshBasicMaterial color="#e4e7ec" transparent opacity={0.14} />
-          </mesh>
-        </group>
+      <mesh ref={satellite} position={[0.78, 0.72, 0.55]} scale={0.14}>
+        <boxGeometry args={[1, 1, 1]} />
+        <meshStandardMaterial color="#f2f4f7" roughness={0.2} metalness={0.08} />
+      </mesh>
+    </group>
+  );
+}
 
-        {CATEGORIES.map((cat) => (
-          <OrbitNode
-            key={cat.label}
-            {...cat}
-            animate={animate}
-            showLabel={!compact}
-            {...(onCategorySelect ? { onSelect: onCategorySelect } : {})}
-          />
-        ))}
-      </group>
+function OrbitRings({ animate }: { animate: boolean }) {
+  const rings = useRef<Group>(null);
+
+  useFrame((_, delta) => {
+    if (!animate || !rings.current) return;
+    const d = Math.min(delta, 0.05);
+    rings.current.rotation.z += d * 0.05;
+    rings.current.rotation.x += d * 0.015;
+  });
+
+  return (
+    <group ref={rings}>
+      <mesh rotation={[Math.PI / 2.08, 0.1, 0.15]}>
+        <torusGeometry args={[1.78, 0.0024, 8, 128]} />
+        <meshBasicMaterial color="#ffffff" transparent opacity={0.38} />
+      </mesh>
+      <mesh rotation={[1.05, 0.35, 0.55]}>
+        <torusGeometry args={[2.08, 0.0016, 8, 128]} />
+        <meshBasicMaterial color="#e8ecf2" transparent opacity={0.18} />
+      </mesh>
     </group>
   );
 }
@@ -109,31 +133,35 @@ function OrbitNode({
   speed,
   offset,
   query,
-  size,
+  yBias,
   animate,
   showLabel,
   onSelect,
-}: OrbitCategory & { animate: boolean; showLabel: boolean; onSelect?: (query: string) => void }) {
+}: OrbitCategory & {
+  animate: boolean;
+  showLabel: boolean;
+  onSelect?: (query: string) => void;
+}) {
   const ref = useRef<Group>(null);
-  const meshRef = useRef<Mesh>(null);
 
   useFrame((state) => {
     if (!animate || !ref.current) return;
     const t = state.clock.elapsedTime * speed + offset;
-    ref.current.position.set(Math.cos(t) * radius, Math.sin(t) * 0.55, Math.sin(t) * 0.35);
-    ref.current.rotation.y = t;
-    ref.current.rotation.x = t * 0.35;
+    ref.current.position.set(
+      Math.cos(t) * radius,
+      yBias + Math.sin(t * 0.85) * 0.18,
+      Math.sin(t) * 0.42,
+    );
   });
 
   useEffect(() => {
     if (animate || !ref.current) return;
-    ref.current.position.set(Math.cos(offset) * radius, Math.sin(offset) * 0.55, Math.sin(offset) * 0.35);
-  }, [animate, offset, radius]);
+    ref.current.position.set(Math.cos(offset) * radius, yBias, Math.sin(offset) * 0.42);
+  }, [animate, offset, radius, yBias]);
 
   return (
     <group ref={ref}>
       <mesh
-        ref={meshRef}
         onClick={(e) => {
           e.stopPropagation();
           onSelect?.(query);
@@ -145,24 +173,81 @@ function OrbitNode({
           document.body.style.cursor = "auto";
         }}
       >
-        <boxGeometry args={[size, size, size]} />
-        <meshStandardMaterial color="#f4f6f8" roughness={0.2} metalness={0.15} />
+        <boxGeometry args={[0.09, 0.09, 0.09]} />
+        <meshStandardMaterial color="#e8edf3" roughness={0.22} metalness={0.1} />
       </mesh>
-      {showLabel && (
+      {showLabel ? (
         <Html
           center
-          distanceFactor={9}
-          position={[0, size + 0.22, 0]}
-          zIndexRange={[20, 0]}
-          style={{ pointerEvents: "none" }}
+          distanceFactor={8.5}
+          position={[0, 0.22, 0]}
+          zIndexRange={[30, 0]}
+          style={{ pointerEvents: "auto" }}
           occlude={false}
         >
-          <div className="orbit-label">
+          <button
+            type="button"
+            className="orbit-label"
+            onClick={(e) => {
+              e.stopPropagation();
+              onSelect?.(query);
+            }}
+          >
             <span className="orbit-dot" />
             {label}
-          </div>
+          </button>
         </Html>
-      )}
+      ) : null}
+    </group>
+  );
+}
+
+function Stage({
+  animate,
+  compact,
+  onCategorySelect,
+}: {
+  animate: boolean;
+  compact: boolean;
+  onCategorySelect?: (query: string) => void;
+}) {
+  const tilt = useRef<Group>(null);
+
+  useFrame((state) => {
+    if (!animate || !tilt.current) return;
+    const tx = state.pointer.y * -0.08;
+    const ty = state.pointer.x * 0.12;
+    tilt.current.rotation.x += (tx - tilt.current.rotation.x) * 0.045;
+    tilt.current.rotation.y += (ty - tilt.current.rotation.y) * 0.045;
+  });
+
+  return (
+    <group ref={tilt}>
+      {/* Opaque plate for MeshTransmissionMaterial to refract (transparent canvas alone = grey cube) */}
+      <mesh position={[compact ? 0 : 2.15, 0.1, -2.4]} scale={[10, 10, 1]}>
+        <planeGeometry />
+        <meshBasicMaterial color="#050506" />
+      </mesh>
+
+      <ambientLight intensity={0.45} />
+      <directionalLight position={[3.5, 5.5, 2.5]} intensity={1.8} color="#ffffff" />
+      <directionalLight position={[-3.2, 1.2, -2]} intensity={0.35} color="#b8c4d6" />
+      <pointLight position={[compact ? 0 : 2.15, -1.4, 1.4]} intensity={28} distance={9} decay={2} color="#ffffff" />
+      <pointLight position={[compact ? 1.2 : 3.4, 2.2, 1.8]} intensity={14} distance={8} decay={2} color="#dbe7ff" />
+
+      <group position={[compact ? 0 : 2.15, compact ? 0.05 : 0.1, 0]} scale={compact ? 0.82 : 0.78}>
+        <GlassCore animate={animate} compact={compact} />
+        <OrbitRings animate={animate} />
+        {CATEGORIES.map((cat) => (
+          <OrbitNode
+            key={cat.label}
+            {...cat}
+            animate={animate}
+            showLabel={!compact}
+            {...(onCategorySelect ? { onSelect: onCategorySelect } : {})}
+          />
+        ))}
+      </group>
     </group>
   );
 }
@@ -213,7 +298,6 @@ export function AICoreScene({
   compact: compactProp,
 }: {
   onCategorySelect?: (query: string) => void;
-  /** When provided by parent, avoids a second media-query race. */
   compact?: boolean;
 }) {
   const reducedMotion = useReducedMotionPref();
@@ -222,17 +306,16 @@ export function AICoreScene({
   const pageVisible = usePageVisible();
   const animate = !reducedMotion && pageVisible;
 
-  // Sharp enough to kill pixelation, capped so GPU stays calm.
   const dpr = useMemo<[number, number]>(() => {
-    if (compact) return [1, 1.5];
-    return [1, 1.75];
+    if (compact) return [1, 1.6];
+    return [1, 1.85];
   }, [compact]);
 
   return (
-    <div className="hero-visual" aria-label="Transparent glass AI core">
+    <div className="hero-visual" aria-label="Glass AI core">
       <div className="visual-glow" />
       <Canvas
-        camera={{ position: [0, 0.1, compact ? 6.2 : 7.4], fov: compact ? 38 : 34 }}
+        camera={{ position: [0, 0.15, compact ? 6 : 7.1], fov: compact ? 36 : 32 }}
         dpr={dpr}
         frameloop={animate ? "always" : "never"}
         gl={{
@@ -242,10 +325,11 @@ export function AICoreScene({
           stencil: false,
           depth: true,
         }}
-        performance={{ min: 0.5 }}
+        performance={{ min: 0.55 }}
       >
         <AdaptiveDpr pixelated={false} />
         <Suspense fallback={null}>
+          <Environment preset="studio" environmentIntensity={1.25} />
           <Stage
             animate={animate}
             compact={compact}

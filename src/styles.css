@@ -431,35 +431,47 @@
     z-index: 1;
     width: 100% !important;
     height: 100% !important;
+    pointer-events: auto;
   }
 
   .visual-glow {
     position: absolute;
-    left: 50%;
-    top: 42%;
-    width: min(280px, 46%);
-    height: min(280px, 46%);
+    left: 58%;
+    top: 44%;
+    width: min(340px, 52%);
+    height: min(340px, 52%);
     transform: translate(-50%, -50%);
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.035);
-    filter: blur(70px);
+    background: radial-gradient(
+      circle,
+      rgba(255, 255, 255, 0.09) 0%,
+      rgba(180, 200, 230, 0.04) 42%,
+      transparent 72%
+    );
+    filter: blur(48px);
     pointer-events: none;
   }
 
   .orbit-label {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: 8px;
-    padding: 8px 12px;
-    border: 1px solid rgba(255, 255, 255, 0.14);
+    padding: 8px 13px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 999px;
-    background: rgba(18, 18, 20, 0.72);
-    backdrop-filter: blur(14px);
-    color: rgba(245, 246, 248, 0.9);
+    background: rgba(16, 16, 18, 0.78);
+    backdrop-filter: blur(16px);
+    color: rgba(245, 246, 248, 0.92);
     font-size: 11px;
     letter-spacing: 0.02em;
     white-space: nowrap;
-    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.28);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.32);
+    cursor: pointer;
+  }
+
+  button.orbit-label {
+    font: inherit;
+    appearance: none;
   }
 
   .orbit-dot {

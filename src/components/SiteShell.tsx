@@ -1,6 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { motion, useReducedMotion, useScroll, useMotionValueEvent } from "motion/react";
-import { useState, type ReactNode } from "react";
+import { Menu, X } from "lucide-react";
+import { AnimatePresence, motion, useReducedMotion, useScroll, useMotionValueEvent } from "motion/react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useCompare } from "@/lib/store";
 import type { Solution } from "@/lib/solutions";
 import { pressScale, springSnappy } from "@/lib/motion";
@@ -17,10 +18,24 @@ export function SiteShell({
   const reduce = useReducedMotion();
   const { scrollY } = useScroll();
   const [elevated, setElevated] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useMotionValueEvent(scrollY, "change", (y) => {
     setElevated(y > 8);
   });
+
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMenuOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [menuOpen]);
 
   const nav = [
     { to: "/", label: "Discover", exact: true },
@@ -39,16 +54,18 @@ export function SiteShell({
       <header className="sticky top-0 z-40 px-3 pt-3 md:px-6 md:pt-4">
         <div
           className={`mx-auto flex max-w-5xl items-center justify-between gap-4 rounded-full px-4 py-2.5 transition-apple md:px-5 ${
-            elevated ? "glass-nav" : "bg-transparent"
+            elevated || menuOpen ? "glass-nav" : "bg-transparent"
           }`}
         >
           <Link
             to="/"
             className="type-title text-[1.05rem] tracking-[-0.03em] text-foreground transition-apple hover:opacity-70"
+            onClick={() => setMenuOpen(false)}
           >
             AI Discovery
           </Link>
-          <nav className="flex max-w-[62vw] items-center justify-end gap-x-3 overflow-x-auto text-[0.75rem] text-muted-foreground [scrollbar-width:none] sm:max-w-none sm:gap-x-4 sm:text-[0.8125rem] md:gap-x-5 [&::-webkit-scrollbar]:hidden">
+
+          <nav className="hidden items-center justify-end gap-x-5 text-[0.8125rem] text-muted-foreground md:flex">
             {nav.map((n) => {
               const active = n.exact ? pathname === n.to : pathname.startsWith(n.to);
               return (
@@ -74,7 +91,52 @@ export function SiteShell({
               );
             })}
           </nav>
+
+          <button
+            type="button"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full text-foreground transition-apple hover:bg-fill md:hidden"
+            aria-label={menuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={menuOpen}
+            aria-controls="mobile-nav"
+            onClick={() => setMenuOpen((open) => !open)}
+          >
+            {menuOpen ? <X className="h-5 w-5" strokeWidth={1.75} /> : <Menu className="h-5 w-5" strokeWidth={1.75} />}
+          </button>
         </div>
+
+        <AnimatePresence>
+          {menuOpen ? (
+            <motion.div
+              id="mobile-nav"
+              key="mobile-nav"
+              initial={reduce ? false : { opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={reduce ? undefined : { opacity: 0, y: -8 }}
+              transition={springSnappy}
+              className="glass-nav mx-auto mt-2 max-w-5xl overflow-hidden rounded-3xl px-2 py-2 md:hidden"
+            >
+              <nav className="flex flex-col">
+                {nav.map((n) => {
+                  const active = n.exact ? pathname === n.to : pathname.startsWith(n.to);
+                  return (
+                    <Link
+                      key={n.to}
+                      to={n.to}
+                      onClick={() => setMenuOpen(false)}
+                      className={`rounded-2xl px-4 py-3 text-[0.9375rem] transition-apple ${
+                        active
+                          ? "bg-fill font-medium text-foreground"
+                          : "text-muted-foreground hover:bg-fill/60 hover:text-foreground"
+                      }`}
+                    >
+                      {n.label}
+                    </Link>
+                  );
+                })}
+              </nav>
+            </motion.div>
+          ) : null}
+        </AnimatePresence>
       </header>
 
       <main className={flush ? "" : "mx-auto max-w-5xl px-5 py-10 md:px-8 md:py-14"}>
