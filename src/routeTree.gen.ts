@@ -10,15 +10,28 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminRouteRouteImport } from './routes/admin/route'
 import { Route as CompareRouteImport } from './routes/compare'
 import { Route as ExploreRouteImport } from './routes/explore'
 import { Route as LatestRouteImport } from './routes/latest'
 import { Route as LibraryRouteImport } from './routes/library'
+import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as AdminImportRouteImport } from './routes/admin/import'
+import { Route as AdminLoginRouteImport } from './routes/admin/login'
+import { Route as AdminReviewRouteImport } from './routes/admin/review'
 import { Route as ToolsSlugRouteImport } from './routes/tools.$slug'
+import { Route as AdminToolsIndexRouteImport } from './routes/admin/tools/index'
+import { Route as AdminToolsSlugRouteImport } from './routes/admin/tools/$slug'
+import { Route as AdminToolsNewRouteImport } from './routes/admin/tools/new'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRouteRoute = AdminRouteRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CompareRoute = CompareRouteImport.update({
@@ -41,19 +54,62 @@ const LibraryRoute = LibraryRouteImport.update({
   path: '/library',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminImportRoute = AdminImportRouteImport.update({
+  id: '/import',
+  path: '/import',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminLoginRoute = AdminLoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminReviewRoute = AdminReviewRouteImport.update({
+  id: '/review',
+  path: '/review',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
 const ToolsSlugRoute = ToolsSlugRouteImport.update({
   id: '/tools/$slug',
   path: '/tools/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminToolsIndexRoute = AdminToolsIndexRouteImport.update({
+  id: '/tools/',
+  path: '/tools/',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminToolsSlugRoute = AdminToolsSlugRouteImport.update({
+  id: '/tools/$slug',
+  path: '/tools/$slug',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminToolsNewRoute = AdminToolsNewRouteImport.update({
+  id: '/tools/new',
+  path: '/tools/new',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteRouteWithChildren
   '/compare': typeof CompareRoute
   '/explore': typeof ExploreRoute
   '/latest': typeof LatestRoute
   '/library': typeof LibraryRoute
+  '/admin/import': typeof AdminImportRoute
+  '/admin/login': typeof AdminLoginRoute
+  '/admin/review': typeof AdminReviewRoute
   '/tools/$slug': typeof ToolsSlugRoute
+  '/admin/': typeof AdminIndexRoute
+  '/admin/tools/$slug': typeof AdminToolsSlugRoute
+  '/admin/tools/new': typeof AdminToolsNewRoute
+  '/admin/tools/': typeof AdminToolsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -61,35 +117,85 @@ export interface FileRoutesByTo {
   '/explore': typeof ExploreRoute
   '/latest': typeof LatestRoute
   '/library': typeof LibraryRoute
+  '/admin/import': typeof AdminImportRoute
+  '/admin/login': typeof AdminLoginRoute
+  '/admin/review': typeof AdminReviewRoute
   '/tools/$slug': typeof ToolsSlugRoute
+  '/admin': typeof AdminIndexRoute
+  '/admin/tools/$slug': typeof AdminToolsSlugRoute
+  '/admin/tools/new': typeof AdminToolsNewRoute
+  '/admin/tools': typeof AdminToolsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteRouteWithChildren
   '/compare': typeof CompareRoute
   '/explore': typeof ExploreRoute
   '/latest': typeof LatestRoute
   '/library': typeof LibraryRoute
+  '/admin/import': typeof AdminImportRoute
+  '/admin/login': typeof AdminLoginRoute
+  '/admin/review': typeof AdminReviewRoute
   '/tools/$slug': typeof ToolsSlugRoute
+  '/admin/': typeof AdminIndexRoute
+  '/admin/tools/$slug': typeof AdminToolsSlugRoute
+  '/admin/tools/new': typeof AdminToolsNewRoute
+  '/admin/tools/': typeof AdminToolsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/compare' | '/explore' | '/latest' | '/library' | '/tools/$slug'
+    | '/'
+    | '/admin'
+    | '/compare'
+    | '/explore'
+    | '/latest'
+    | '/library'
+    | '/admin/import'
+    | '/admin/login'
+    | '/admin/review'
+    | '/tools/$slug'
+    | '/admin/'
+    | '/admin/tools/$slug'
+    | '/admin/tools/new'
+    | '/admin/tools/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/compare' | '/explore' | '/latest' | '/library' | '/tools/$slug'
-  id:
-    | '__root__'
+  to:
     | '/'
     | '/compare'
     | '/explore'
     | '/latest'
     | '/library'
+    | '/admin/import'
+    | '/admin/login'
+    | '/admin/review'
     | '/tools/$slug'
+    | '/admin'
+    | '/admin/tools/$slug'
+    | '/admin/tools/new'
+    | '/admin/tools'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin'
+    | '/compare'
+    | '/explore'
+    | '/latest'
+    | '/library'
+    | '/admin/import'
+    | '/admin/login'
+    | '/admin/review'
+    | '/tools/$slug'
+    | '/admin/'
+    | '/admin/tools/$slug'
+    | '/admin/tools/new'
+    | '/admin/tools/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRouteRoute: typeof AdminRouteRouteWithChildren
   CompareRoute: typeof CompareRoute
   ExploreRoute: typeof ExploreRoute
   LatestRoute: typeof LatestRoute
@@ -104,6 +210,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/compare': {
@@ -134,6 +247,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LibraryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/import': {
+      id: '/admin/import'
+      path: '/import'
+      fullPath: '/admin/import'
+      preLoaderRoute: typeof AdminImportRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/login': {
+      id: '/admin/login'
+      path: '/login'
+      fullPath: '/admin/login'
+      preLoaderRoute: typeof AdminLoginRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/review': {
+      id: '/admin/review'
+      path: '/review'
+      fullPath: '/admin/review'
+      preLoaderRoute: typeof AdminReviewRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
     '/tools/$slug': {
       id: '/tools/$slug'
       path: '/tools/$slug'
@@ -141,11 +282,57 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ToolsSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/tools/': {
+      id: '/admin/tools/'
+      path: '/tools'
+      fullPath: '/admin/tools/'
+      preLoaderRoute: typeof AdminToolsIndexRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/tools/$slug': {
+      id: '/admin/tools/$slug'
+      path: '/tools/$slug'
+      fullPath: '/admin/tools/$slug'
+      preLoaderRoute: typeof AdminToolsSlugRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/tools/new': {
+      id: '/admin/tools/new'
+      path: '/tools/new'
+      fullPath: '/admin/tools/new'
+      preLoaderRoute: typeof AdminToolsNewRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
   }
 }
 
+interface AdminRouteRouteChildren {
+  AdminImportRoute: typeof AdminImportRoute
+  AdminLoginRoute: typeof AdminLoginRoute
+  AdminReviewRoute: typeof AdminReviewRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+  AdminToolsSlugRoute: typeof AdminToolsSlugRoute
+  AdminToolsNewRoute: typeof AdminToolsNewRoute
+  AdminToolsIndexRoute: typeof AdminToolsIndexRoute
+}
+
+const AdminRouteRouteChildren: AdminRouteRouteChildren = {
+  AdminImportRoute: AdminImportRoute,
+  AdminLoginRoute: AdminLoginRoute,
+  AdminReviewRoute: AdminReviewRoute,
+  AdminIndexRoute: AdminIndexRoute,
+  AdminToolsSlugRoute: AdminToolsSlugRoute,
+  AdminToolsNewRoute: AdminToolsNewRoute,
+  AdminToolsIndexRoute: AdminToolsIndexRoute,
+}
+
+const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(
+  AdminRouteRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRouteRoute: AdminRouteRouteWithChildren,
   CompareRoute: CompareRoute,
   ExploreRoute: ExploreRoute,
   LatestRoute: LatestRoute,

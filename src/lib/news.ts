@@ -1,3 +1,4 @@
+import { queryOptions } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 export interface NewsRow {
@@ -11,21 +12,23 @@ export interface NewsRow {
 }
 
 export async function listNews(): Promise<NewsRow[]> {
-  try {
-    const { data, error } = await supabase
-      .from("news_items")
-      .select("id, published_at, kind, title, summary, solution_slug, source_url")
-      .order("published_at", { ascending: false })
-      .order("created_at", { ascending: false })
-      .limit(50);
+  const { data, error } = await supabase
+    .from("news_items")
+    .select("id, published_at, kind, title, summary, solution_slug, source_url")
+    .eq("status", "published")
+    .order("published_at", { ascending: false })
+    .order("created_at", { ascending: false })
+    .limit(50);
 
-    if (error) {
-      console.error("listNews", error);
-      return [];
-    }
-    return data ?? [];
-  } catch (error) {
-    console.error("listNews", error);
-    return [];
+  if (error) {
+    throw new Error(`News unavailable: ${error.message}`);
   }
+
+  return data ?? [];
 }
+
+export const newsQuery = queryOptions({
+  queryKey: ["news"],
+  queryFn: listNews,
+  staleTime: 60_000,
+});

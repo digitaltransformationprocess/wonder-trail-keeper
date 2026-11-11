@@ -1,0 +1,26 @@
+name: Discover daily AI tools
+
+on:
+  schedule:
+    # 06:00 UTC — backup if pg_cron/pg_net is unavailable
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger discover-daily edge function
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          INGEST_CRON_SECRET: ${{ secrets.INGEST_CRON_SECRET }}
+        run: |
+          set -euo pipefail
+          if [ -z "${SUPABASE_URL:-}" ] || [ -z "${INGEST_CRON_SECRET:-}" ]; then
+            echo "Missing SUPABASE_URL or INGEST_CRON_SECRET repository secrets"
+            exit 1
+          fi
+          curl -fsS -X POST "${SUPABASE_URL}/functions/v1/discover-daily" \
+            -H "Content-Type: application/json" \
+            -H "x-ingest-secret: ${INGEST_CRON_SECRET}" \
+            -d '{}'

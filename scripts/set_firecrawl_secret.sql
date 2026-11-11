@@ -1,0 +1,7 @@
+-- Run in Supabase SQL editor after you have a Firecrawl API key:
+-- insert into public.runtime_secrets (key, value)
+-- values ('FIRECRAWL_API_KEY', 'fc-YOUR_KEY_HERE')
+-- on conflict (key) do update set value = excluded.value, updated_at = now();
+--
+-- Prefer also setting the same value as an Edge Function secret named FIRECRAWL_API_KEY
+-- in the Supabase dashboard (Project Settings → Edge Functions → Secrets).

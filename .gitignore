@@ -23,3 +23,9 @@ dist
 *.njsproj
 *.sln
 *.sw?
+.env.ingest.local
+args_*.json
+_deploy_*.json
+_mcp_deploy_*.json
+_compact_*.ts
+_part_*.txt

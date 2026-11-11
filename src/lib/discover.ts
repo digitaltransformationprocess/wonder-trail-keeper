@@ -1,7 +1,17 @@
-import { SOLUTIONS, type Solution } from "@/data/catalog";
+import type { Solution } from "@/lib/solutions";
 
-export interface Constraints { free: boolean; openSource: boolean; api: boolean; local: boolean; }
-export interface Match { solution: Solution; score: number; reasons: string[]; }
+export interface Constraints {
+  free: boolean;
+  openSource: boolean;
+  api: boolean;
+  local: boolean;
+}
+
+export interface Match {
+  solution: Solution;
+  score: number;
+  reasons: string[];
+}
 
 export function extractConstraints(q: string): Constraints {
   const t = q.toLowerCase();
@@ -13,25 +23,58 @@ export function extractConstraints(q: string): Constraints {
   };
 }
 
-export function discover(q: string): Match[] {
+/** Rank published solutions against a natural-language need. Data must come from the live catalog. */
+export function discover(q: string, solutions: Solution[]): Match[] {
   const t = q.toLowerCase();
   const words = t.split(/[^a-zà-ÿ0-9]+/).filter((w) => w.length > 2);
   const c = extractConstraints(q);
   const out: Match[] = [];
-  for (const s of SOLUTIONS) {
+
+  for (const s of solutions) {
     const reasons: string[] = [];
     let score = 0;
-    const hay = [...s.keywords, ...s.categories.map((x) => x.toLowerCase()), s.summary.toLowerCase()];
+    const hay = [
+      ...s.keywords,
+      ...s.categories.map((x) => x.toLowerCase()),
+      s.summary.toLowerCase(),
+      s.name.toLowerCase(),
+      s.description.toLowerCase(),
+    ];
     const hits = s.keywords.filter((k) => t.includes(k));
     score += hits.length * 3;
     for (const w of words) if (hay.some((h) => h.includes(w))) score += 1;
     if (hits.length) reasons.push(`Matches your request: ${s.summary}`);
     if (score === 0) continue;
-    if (c.free) { if (s.pricingModel === "Free" || s.pricingModel === "Freemium" || s.pricingModel === "Open source") { score += 2; reasons.push("Free or freemium option"); } else score -= 4; }
-    if (c.openSource) { if (s.openSource) { score += 3; reasons.push("Open source"); } else score -= 4; }
-    if (c.api) { if (s.api) { score += 2; reasons.push("API available"); } else score -= 4; }
-    if (c.local) { if (s.local) { score += 3; reasons.push("Runs locally"); } else score -= 4; }
+    if (c.free) {
+      if (
+        s.pricingModel === "Free" ||
+        s.pricingModel === "Freemium" ||
+        s.pricingModel === "Open source"
+      ) {
+        score += 2;
+        reasons.push("Free or freemium option");
+      } else score -= 4;
+    }
+    if (c.openSource) {
+      if (s.openSource) {
+        score += 3;
+        reasons.push("Open source");
+      } else score -= 4;
+    }
+    if (c.api) {
+      if (s.api) {
+        score += 2;
+        reasons.push("API available");
+      } else score -= 4;
+    }
+    if (c.local) {
+      if (s.local) {
+        score += 3;
+        reasons.push("Runs locally");
+      } else score -= 4;
+    }
     if (score > 0) out.push({ solution: s, score, reasons });
   }
+
   return out.sort((a, b) => b.score - a.score).slice(0, 6);
 }
