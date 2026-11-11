@@ -13,7 +13,8 @@
     "format": "prettier --write .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "embeddings:backfill": "node scripts/backfill_embeddings.mjs"
+    "embeddings:backfill": "node scripts/backfill_embeddings.mjs",
+    "catalog:seed-logos": "node scripts/seed_tools_and_logos.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
