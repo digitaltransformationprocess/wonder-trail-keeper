@@ -62,6 +62,16 @@ async function fetchPublishedSlugs(supabase) {
   return slugs;
 }
 
+async function fetchCategorySlugs(supabase) {
+  const { data, error } = await supabase
+    .from("categories")
+    .select("slug")
+    .eq("is_active", true)
+    .order("slug", { ascending: true });
+  if (error) throw new Error(`Supabase categories: ${error.message}`);
+  return (data ?? []).map((row) => row.slug).filter(Boolean);
+}
+
 async function main() {
   const env = loadEnvFile(join(ROOT, ".env"));
   const supabaseUrl = env.VITE_SUPABASE_URL;
@@ -76,9 +86,16 @@ async function main() {
   }
 
   const supabase = createClient(supabaseUrl, supabaseKey);
-  const slugs = await fetchPublishedSlugs(supabase);
-  const staticPaths = ["/", "/explore", "/latest"];
-  const paths = [...staticPaths, ...slugs.map((slug) => `/tools/${slug}`)];
+  const [slugs, categorySlugs] = await Promise.all([
+    fetchPublishedSlugs(supabase),
+    fetchCategorySlugs(supabase),
+  ]);
+  const staticPaths = ["/", "/explore", "/latest", "/compare", "/library"];
+  const paths = [
+    ...staticPaths,
+    ...slugs.map((slug) => `/tools/${slug}`),
+    ...categorySlugs.map((slug) => `/categories/${slug}`),
+  ];
   const lastmod = new Date().toISOString().slice(0, 10);
 
   const urls = paths

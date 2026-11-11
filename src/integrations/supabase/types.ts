@@ -789,24 +789,140 @@ export type Database = {
           },
         ]
       }
+      features: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          key: string
+          label: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          key: string
+          label: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          key?: string
+          label?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      tool_embeddings: {
+        Row: {
+          content_hash: string
+          dimensions: number
+          embedding: string
+          model: string
+          tool_id: string
+          updated_at: string
+        }
+        Insert: {
+          content_hash: string
+          dimensions: number
+          embedding: string
+          model: string
+          tool_id: string
+          updated_at?: string
+        }
+        Update: {
+          content_hash?: string
+          dimensions?: number
+          embedding?: string
+          model?: string
+          tool_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tool_embeddings_tool_id_fkey"
+            columns: ["tool_id"]
+            isOneToOne: true
+            referencedRelation: "tools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tool_features: {
+        Row: {
+          availability: string
+          evidence_source_id: string | null
+          feature_id: string
+          notes: string | null
+          tool_id: string
+          verified_at: string | null
+        }
+        Insert: {
+          availability?: string
+          evidence_source_id?: string | null
+          feature_id: string
+          notes?: string | null
+          tool_id: string
+          verified_at?: string | null
+        }
+        Update: {
+          availability?: string
+          evidence_source_id?: string | null
+          feature_id?: string
+          notes?: string | null
+          tool_id?: string
+          verified_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tool_features_evidence_source_id_fkey"
+            columns: ["evidence_source_id"]
+            isOneToOne: false
+            referencedRelation: "sources"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tool_features_feature_id_fkey"
+            columns: ["feature_id"]
+            isOneToOne: false
+            referencedRelation: "features"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tool_features_tool_id_fkey"
+            columns: ["tool_id"]
+            isOneToOne: false
+            referencedRelation: "tools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tools: {
         Row: {
           api_available: boolean | null
+          api_docs_url: string | null
+          archived_at: string | null
           audience: string[]
           created_at: string
           description: string
           id: string
           keywords: string[]
           last_verified_at: string | null
+          license: string | null
           limits: string[]
           local_available: boolean
           logo_url: string | null
+          merged_into_tool_id: string | null
           name: string
           official_url: string
           open_source: boolean
           price_display: string | null
           pricing_model: string | null
           publisher_id: string | null
+          repository_url: string | null
           slug: string
           status: Database["public"]["Enums"]["tool_status"]
           strengths: string[]
@@ -815,21 +931,26 @@ export type Database = {
         }
         Insert: {
           api_available?: boolean | null
+          api_docs_url?: string | null
+          archived_at?: string | null
           audience?: string[]
           created_at?: string
           description: string
           id?: string
           keywords?: string[]
           last_verified_at?: string | null
+          license?: string | null
           limits?: string[]
           local_available?: boolean
           logo_url?: string | null
+          merged_into_tool_id?: string | null
           name: string
           official_url: string
           open_source?: boolean
           price_display?: string | null
           pricing_model?: string | null
           publisher_id?: string | null
+          repository_url?: string | null
           slug: string
           status?: Database["public"]["Enums"]["tool_status"]
           strengths?: string[]
@@ -838,21 +959,26 @@ export type Database = {
         }
         Update: {
           api_available?: boolean | null
+          api_docs_url?: string | null
+          archived_at?: string | null
           audience?: string[]
           created_at?: string
           description?: string
           id?: string
           keywords?: string[]
           last_verified_at?: string | null
+          license?: string | null
           limits?: string[]
           local_available?: boolean
           logo_url?: string | null
+          merged_into_tool_id?: string | null
           name?: string
           official_url?: string
           open_source?: boolean
           price_display?: string | null
           pricing_model?: string | null
           publisher_id?: string | null
+          repository_url?: string | null
           slug?: string
           status?: Database["public"]["Enums"]["tool_status"]
           strengths?: string[]
@@ -860,6 +986,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "tools_merged_into_tool_id_fkey"
+            columns: ["merged_into_tool_id"]
+            isOneToOne: false
+            referencedRelation: "tools"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "tools_publisher_id_fkey"
             columns: ["publisher_id"]
@@ -903,6 +1036,24 @@ export type Database = {
         Returns: Database["public"]["Enums"]["app_role"]
       }
       is_staff: { Args: never; Returns: boolean }
+      tool_is_publishable: { Args: { p_tool_id: string }; Returns: boolean }
+      search_published_tools_semantic: {
+        Args: {
+          query_embedding: string
+          want_free?: boolean
+          want_oss?: boolean
+          want_api?: boolean
+          want_local?: boolean
+          result_limit?: number
+        }
+        Returns: {
+          id: string
+          slug: string
+          name: string
+          summary: string
+          distance: number
+        }[]
+      }
       search_published_tools: {
         Args: {
           q: string

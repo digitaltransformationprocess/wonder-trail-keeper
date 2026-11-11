@@ -8,11 +8,16 @@ export interface Constraints {
   local: boolean;
 }
 
+export type MatchConfidence = "high" | "medium" | "low";
+
 export interface Match {
   solution: Solution;
   score: number;
   reasons: string[];
-  source?: "fts" | "ai" | "local";
+  tradeoffs: string[];
+  confidence: MatchConfidence;
+  evidence: string[];
+  source?: "fts" | "ai" | "local" | "hybrid" | "semantic";
 }
 
 export function extractConstraints(q: string): Constraints {
@@ -25,6 +30,15 @@ export function extractConstraints(q: string): Constraints {
   };
 }
 
+/** Scoring weights from the design brief (starting hypotheses). */
+export const DISCOVER_SCORE_WEIGHTS = {
+  need: 0.4,
+  features: 0.25,
+  price: 0.15,
+  compatibility: 0.1,
+  freshness: 0.1,
+} as const;
+
 /** Rank published solutions against a natural-language need. Offline/local fallback. */
 export function discover(q: string, solutions: Solution[]): Match[] {
   const t = q.toLowerCase();
@@ -34,6 +48,7 @@ export function discover(q: string, solutions: Solution[]): Match[] {
 
   for (const s of solutions) {
     const reasons: string[] = [];
+    const tradeoffs: string[] = [...s.limits.slice(0, 2)];
     let score = 0;
     const hay = [
       ...s.keywords,
@@ -41,6 +56,7 @@ export function discover(q: string, solutions: Solution[]): Match[] {
       s.summary.toLowerCase(),
       s.name.toLowerCase(),
       s.description.toLowerCase(),
+      ...s.features.map((f) => f.label.toLowerCase()),
     ];
     const hits = s.keywords.filter((k) => t.includes(k));
     score += hits.length * 3;
@@ -75,7 +91,17 @@ export function discover(q: string, solutions: Solution[]): Match[] {
         reasons.push("Runs locally");
       } else score -= 4;
     }
-    if (score > 0) out.push({ solution: s, score, reasons, source: "local" });
+    if (score > 0) {
+      out.push({
+        solution: s,
+        score,
+        reasons,
+        tradeoffs,
+        confidence: score >= 8 ? "high" : score >= 4 ? "medium" : "low",
+        evidence: s.sources.map((src) => `${src.reliabilityLevel}:${src.claimKey}:${src.url}`),
+        source: "local",
+      });
+    }
   }
 
   return out.sort((a, b) => b.score - a.score).slice(0, 6);
@@ -128,6 +154,9 @@ export async function discoverViaFts(
       solution,
       score: Math.max(1, Math.round((row.rank ?? 0) * 100)),
       reasons: groundedReasons(solution, c),
+      tradeoffs: solution.limits.slice(0, 2),
+      confidence: solution.status === "Verified" ? "medium" : "low",
+      evidence: solution.sources.map((src) => `${src.reliabilityLevel}:${src.claimKey}:${src.url}`),
       source: "fts",
     });
   }
@@ -136,12 +165,17 @@ export async function discoverViaFts(
 
 export interface DiscoverAiResult {
   matches: Match[];
-  source: "ai" | "fts" | "local";
+  source: "ai" | "fts" | "local" | "hybrid";
   answer?: string;
   intent?: Record<string, unknown>;
+  interpretedNeed?: string;
+  clarificationNeeded?: boolean;
+  clarificationQuestion?: string | null;
+  coverageNote?: string;
+  constraints?: Constraints;
 }
 
-/** Prefer edge LLM (grounded) → FTS → local scoring. */
+/** Prefer edge hybrid+LLM → FTS → local scoring. */
 export async function discoverSmart(
   q: string,
   solutions: Solution[],
@@ -163,41 +197,51 @@ export async function discoverSmart(
       });
       if (res.ok) {
         const body = (await res.json()) as {
-          source?: "ai" | "fts";
+          source?: "ai" | "fts" | "hybrid";
           answer?: string;
           intent?: Record<string, unknown>;
+          interpreted_need?: string;
+          clarification_needed?: boolean;
+          clarification_question?: string | null;
+          coverage_note?: string;
+          constraints?: Constraints;
           results?: Array<{
             slug: string;
             score?: number;
             reasons?: string[];
+            match_reason?: string[];
+            tradeoffs?: string[];
+            confidence?: MatchConfidence;
+            evidence?: string[];
           }>;
         };
         const matches: Match[] = [];
         for (const row of body.results ?? []) {
           const solution = bySlug.get(row.slug);
           if (!solution) continue;
+          const reasons = (row.match_reason ?? row.reasons ?? []).filter(Boolean).slice(0, 3);
           matches.push({
             solution,
             score: row.score ?? 1,
-            reasons: (row.reasons ?? []).filter(Boolean).slice(0, 3),
-            source: body.source === "ai" ? "ai" : "fts",
+            reasons,
+            tradeoffs: (row.tradeoffs ?? solution.limits).filter(Boolean).slice(0, 3),
+            confidence: row.confidence ?? "medium",
+            evidence: (row.evidence ?? []).filter(Boolean).slice(0, 4),
+            source: body.source === "ai" ? "ai" : body.source === "hybrid" ? "hybrid" : "fts",
           });
         }
         const answer = typeof body.answer === "string" ? body.answer.trim() : undefined;
-        if (matches.length || answer) {
+        if (matches.length || answer || body.clarification_needed) {
           return {
             matches: matches.slice(0, 6),
-            source: body.source === "ai" ? "ai" : "fts",
+            source: body.source === "ai" ? "ai" : body.source === "hybrid" ? "hybrid" : "fts",
             answer,
             intent: body.intent,
-          };
-        }
-        if (body.source === "fts" || body.source === "ai") {
-          return {
-            matches: [],
-            source: body.source ?? "fts",
-            answer,
-            intent: body.intent,
+            interpretedNeed: body.interpreted_need ?? q,
+            clarificationNeeded: Boolean(body.clarification_needed),
+            clarificationQuestion: body.clarification_question ?? null,
+            coverageNote: body.coverage_note,
+            constraints: body.constraints,
           };
         }
       }
@@ -208,10 +252,10 @@ export async function discoverSmart(
 
   try {
     const matches = await discoverViaFts(q, bySlug);
-    if (matches.length) return { matches, source: "fts" };
+    if (matches.length) return { matches, source: "fts", interpretedNeed: q };
   } catch {
     // fall through to local
   }
 
-  return { matches: discover(q, solutions), source: "local" };
+  return { matches: discover(q, solutions), source: "local", interpretedNeed: q };
 }

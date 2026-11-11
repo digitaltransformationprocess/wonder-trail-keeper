@@ -4,7 +4,6 @@ import {
   Environment,
   Html,
   MeshTransmissionMaterial,
-  RoundedBox,
 } from "@react-three/drei";
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import type { Group, Mesh } from "three";
@@ -49,32 +48,33 @@ function GlassCore({ animate, compact }: { animate: boolean; compact: boolean })
 
   return (
     <group ref={core}>
-      <RoundedBox args={[1.42, 1.42, 1.42]} radius={0.04} smoothness={4}>
+      <mesh>
+        <sphereGeometry args={[0.85, 64, 64]} />
         <MeshTransmissionMaterial
           backside
-          samples={compact ? 3 : 5}
-          resolution={compact ? 192 : 320}
+          samples={compact ? 4 : 8}
+          resolution={compact ? 256 : 384}
           transmission={1}
-          roughness={0.02}
-          thickness={1.6}
-          ior={1.5}
-          chromaticAberration={0.42}
-          anisotropy={0.15}
-          distortion={0.18}
-          distortionScale={0.28}
-          temporalDistortion={0.12}
+          roughness={0}
+          thickness={0.45}
+          ior={1.45}
+          chromaticAberration={0.06}
+          anisotropy={0}
+          distortion={0}
+          distortionScale={0}
+          temporalDistortion={0}
           color="#ffffff"
-          attenuationColor="#eaf2ff"
-          attenuationDistance={1.8}
+          attenuationColor="#ffffff"
+          attenuationDistance={6}
           clearcoat={1}
-          clearcoatRoughness={0.02}
+          clearcoatRoughness={0}
         />
-      </RoundedBox>
+      </mesh>
 
-      {/* Bright caustic core — matches the glowing bottom of the reference */}
+      {/* Soft caustic highlight inside clear glass */}
       <mesh position={[0, -0.28, 0]} scale={[0.55, 0.22, 0.55]}>
         <sphereGeometry args={[1, 24, 16]} />
-        <meshBasicMaterial color="#ffffff" transparent opacity={0.55} />
+        <meshBasicMaterial color="#ffffff" transparent opacity={0.18} />
       </mesh>
 
       <mesh ref={gem} scale={0.3}>

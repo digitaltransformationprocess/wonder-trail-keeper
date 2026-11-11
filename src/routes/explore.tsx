@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { AnimatePresence, motion, useDragControls, useReducedMotion } from "motion/react";
 import { Suspense, useState } from "react";
@@ -88,7 +88,7 @@ function Explore() {
       >
         <option value="">All categories</option>
         {categories.map((c) => (
-          <option key={c.slug} value={c.name}>
+          <option key={c.slug} value={c.slug}>
             {c.name}
           </option>
         ))}
@@ -166,6 +166,19 @@ function Explore() {
 
         <motion.div variants={fadeUp} className="glass mt-8 hidden grid-cols-4 gap-3 rounded-3xl p-4 md:grid">
           {filters}
+        </motion.div>
+
+        <motion.div variants={fadeUp} className="mt-6 flex flex-wrap gap-2">
+          {categories.slice(0, 12).map((c) => (
+            <Link
+              key={c.slug}
+              to="/categories/$slug"
+              params={{ slug: c.slug }}
+              className="rounded-full glass px-3 py-1.5 text-[0.75rem] text-muted-foreground transition-apple hover:text-foreground"
+            >
+              {c.name}
+            </Link>
+          ))}
         </motion.div>
 
         <motion.p variants={fadeUp} className="mt-8 text-[0.8125rem] text-muted-foreground">

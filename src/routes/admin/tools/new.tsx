@@ -3,13 +3,14 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { ToolForm } from "@/components/admin/ToolForm";
 import { createAdminTool, listPlatforms } from "@/lib/admin/catalog";
-import { categoriesQuery, solutionTypesQuery } from "@/lib/solutions";
+import { categoriesQuery, featuresCatalogQuery, solutionTypesQuery } from "@/lib/solutions";
 
 export const Route = createFileRoute("/admin/tools/new")({
   loader: async ({ context }) => {
     await Promise.all([
       context.queryClient.ensureQueryData(categoriesQuery),
       context.queryClient.ensureQueryData(solutionTypesQuery),
+      context.queryClient.ensureQueryData(featuresCatalogQuery),
     ]);
   },
   head: () => ({
@@ -23,6 +24,7 @@ function NewToolPage() {
   const queryClient = useQueryClient();
   const { data: categories = [] } = useQuery(categoriesQuery);
   const { data: types = [] } = useQuery(solutionTypesQuery);
+  const { data: features = [] } = useQuery(featuresCatalogQuery);
   const { data: platforms = [] } = useQuery({
     queryKey: ["admin", "platforms"],
     queryFn: listPlatforms,
@@ -40,6 +42,7 @@ function NewToolPage() {
           categories={categories}
           types={types}
           platforms={platforms}
+          features={features}
           submitting={submitting}
           submitLabel="Create tool"
           onSubmit={async (value) => {

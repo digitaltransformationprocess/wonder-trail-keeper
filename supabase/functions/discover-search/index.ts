@@ -7,8 +7,10 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-/** Fast non-reasoning default — override with GROK_MODEL secret/env. */
-const DEFAULT_MODEL = "grok-4.20-0309-non-reasoning";
+const DEFAULT_CHAT_MODEL = "grok-4.20-0309-non-reasoning";
+const DEFAULT_EMBED_MODEL = "text-embedding-3-small";
+const DEFAULT_EMBED_BASE = "https://api.openai.com/v1";
+const RRF_K = 60;
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -48,29 +50,11 @@ type ToolRow = {
   keywords: string[] | null;
   strengths: string[] | null;
   limits: string[] | null;
+  last_verified_at: string | null;
 };
 
-function groundedReasons(tool: ToolRow, c: Constraints, extra: string[] = []): string[] {
-  const out: string[] = [];
-  for (const r of extra) {
-    if (typeof r === "string" && r.trim()) out.push(r.trim());
-  }
-  if (tool.summary) out.push(tool.summary);
-  if (c.free && tool.pricing_model && ["Free", "Freemium", "Open source"].includes(tool.pricing_model)) {
-    out.push(`Pricing model: ${tool.pricing_model}`);
-  }
-  if (c.openSource && tool.open_source) out.push("Open source");
-  if (c.api && tool.api_available) out.push("API available");
-  if (c.local && tool.local_available) out.push("Runs locally");
-  const seen = new Set<string>();
-  return out.filter((x) => {
-    if (seen.has(x)) return false;
-    seen.add(x);
-    return true;
-  }).slice(0, 3);
-}
-
 type FtsRow = { id: string; slug: string; name: string; summary: string; rank: number };
+type SemRow = { id: string; slug: string; name: string; summary: string; distance: number };
 
 const STOP = new Set([
   "the", "and", "for", "with", "from", "that", "this", "are", "was", "were", "have", "has",
@@ -79,7 +63,6 @@ const STOP = new Set([
   "trouver", "besoin", "veux", "voudrais", "quelque", "chose", "outil", "outils", "aide",
 ]);
 
-/** Expand common FR/EN need words so FTS still finds catalog English copy. */
 function expandQuery(q: string): string {
   const t = q.toLowerCase();
   const extras: string[] = [];
@@ -97,78 +80,6 @@ function expandQuery(q: string): string {
     .map((w) => w.trim())
     .filter((w) => w.length > 2 && !STOP.has(w));
   return [...new Set([...tokens, ...extras])].join(" ");
-}
-
-async function ftsSearch(
-  supabase: ReturnType<typeof createClient>,
-  q: string,
-  c: Constraints,
-): Promise<FtsRow[]> {
-  const { data, error } = await supabase.rpc("search_published_tools", {
-    q,
-    want_free: c.free,
-    want_oss: c.openSource,
-    want_api: c.api,
-    want_local: c.local,
-    result_limit: 6,
-  });
-  if (error) throw new Error(error.message);
-  let rows = (data ?? []) as FtsRow[];
-  if (rows.length) return rows;
-
-  const expanded = expandQuery(q);
-  if (expanded && expanded !== q.trim().toLowerCase()) {
-    const second = await supabase.rpc("search_published_tools", {
-      q: expanded,
-      want_free: c.free,
-      want_oss: c.openSource,
-      want_api: c.api,
-      want_local: c.local,
-      result_limit: 6,
-    });
-    if (second.error) throw new Error(second.error.message);
-    rows = (second.data ?? []) as FtsRow[];
-    if (rows.length) return rows;
-  }
-
-  // Last-resort: published tools matching any meaningful token via ilike on name/summary.
-  const tokens = expandQuery(q).split(/\s+/).filter(Boolean).slice(0, 6);
-  if (!tokens.length) return [];
-  let query = supabase
-    .from("tools")
-    .select("id, slug, name, summary")
-    .eq("status", "published")
-    .limit(6);
-  // PostgREST or() filter
-  const orParts = tokens.flatMap((tok) => [
-    `name.ilike.%${tok}%`,
-    `summary.ilike.%${tok}%`,
-  ]);
-  const { data: soft, error: softErr } = await query.or(orParts.join(","));
-  if (softErr) throw new Error(softErr.message);
-  return (soft ?? []).map((t) => ({
-    id: t.id as string,
-    slug: t.slug as string,
-    name: t.name as string,
-    summary: t.summary as string,
-    rank: 0.01,
-  }));
-}
-
-async function loadTools(
-  supabase: ReturnType<typeof createClient>,
-  slugs: string[],
-): Promise<ToolRow[]> {
-  if (!slugs.length) return [];
-  const { data, error } = await supabase
-    .from("tools")
-    .select(
-      "id, slug, name, summary, description, pricing_model, price_display, open_source, api_available, local_available, keywords, strengths, limits",
-    )
-    .eq("status", "published")
-    .in("slug", slugs);
-  if (error) throw new Error(error.message);
-  return (data ?? []) as ToolRow[];
 }
 
 async function readSecret(
@@ -190,6 +101,277 @@ async function readSecret(
   return null;
 }
 
+/** Drop constraint words from FTS text — they are applied as SQL filters. */
+function lexicalQuery(q: string): string {
+  return q
+    .replace(
+      /\b(free|gratuit|gratuite|gratuitement|sans payer|open[\s-]?source|libre|api|local|offline|hors[\s-]?ligne|self[\s-]?host)\b/gi,
+      " ",
+    )
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+async function ftsSearch(
+  supabase: ReturnType<typeof createClient>,
+  q: string,
+  c: Constraints,
+): Promise<FtsRow[]> {
+  const attempts = [
+    lexicalQuery(q) || q,
+    expandQuery(lexicalQuery(q) || q),
+    // Empty q → constraint-only catalog slice (see search_published_tools)
+    Object.values(c).some(Boolean) ? "" : null,
+  ].filter((v, i, arr): v is string => v != null && arr.indexOf(v) === i);
+
+  let rows: FtsRow[] = [];
+  for (const attempt of attempts) {
+    const { data, error } = await supabase.rpc("search_published_tools", {
+      q: attempt,
+      want_free: c.free,
+      want_oss: c.openSource,
+      want_api: c.api,
+      want_local: c.local,
+      result_limit: 10,
+    });
+    if (error) throw new Error(error.message);
+    rows = (data ?? []) as FtsRow[];
+    if (rows.length) return rows;
+  }
+  return rows;
+}
+
+async function embedQuery(
+  supabase: ReturnType<typeof createClient>,
+  text: string,
+): Promise<{ embedding: number[]; model: string } | null> {
+  const apiKey = await readSecret(supabase, [
+    "EMBEDDING_API_KEY",
+    "OPENAI_API_KEY",
+    "XAI_API_KEY",
+    "GROK_API_KEY",
+  ]);
+  if (!apiKey) return null;
+
+  const model =
+    Deno.env.get("EMBEDDING_MODEL") ??
+    (await readSecret(supabase, ["EMBEDDING_MODEL"])) ??
+    DEFAULT_EMBED_MODEL;
+  const base =
+    (Deno.env.get("EMBEDDING_BASE_URL") ??
+      (await readSecret(supabase, ["EMBEDDING_BASE_URL"])) ??
+      DEFAULT_EMBED_BASE).replace(/\/$/, "");
+
+  try {
+    const res = await fetch(`${base}/embeddings`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ model, input: text.slice(0, 8000) }),
+    });
+    if (!res.ok) {
+      console.error("Embedding API error", res.status, await res.text());
+      return null;
+    }
+    const body = await res.json();
+    const embedding = body?.data?.[0]?.embedding;
+    if (!Array.isArray(embedding) || embedding.length !== 1536) {
+      console.error("Unexpected embedding dimensions", embedding?.length);
+      return null;
+    }
+    return { embedding: embedding as number[], model };
+  } catch (err) {
+    console.error("embedQuery failed", err);
+    return null;
+  }
+}
+
+async function semanticSearch(
+  supabase: ReturnType<typeof createClient>,
+  embedding: number[],
+  c: Constraints,
+): Promise<SemRow[]> {
+  const { data, error } = await supabase.rpc("search_published_tools_semantic", {
+    query_embedding: embedding as unknown as string,
+    want_free: c.free,
+    want_oss: c.openSource,
+    want_api: c.api,
+    want_local: c.local,
+    result_limit: 10,
+  });
+  if (error) {
+    console.error("semantic search failed", error.message);
+    return [];
+  }
+  return (data ?? []) as SemRow[];
+}
+
+/** Reciprocal rank fusion of FTS + semantic slug lists. */
+function hybridMerge(fts: FtsRow[], sem: SemRow[]): Array<{ slug: string; rrf: number; ftsRank: number; semDistance: number | null }> {
+  const scores = new Map<string, { rrf: number; ftsRank: number; semDistance: number | null }>();
+
+  fts.forEach((row, i) => {
+    const cur = scores.get(row.slug) ?? { rrf: 0, ftsRank: 0, semDistance: null };
+    cur.rrf += 1 / (RRF_K + i + 1);
+    cur.ftsRank = row.rank ?? 0;
+    scores.set(row.slug, cur);
+  });
+  sem.forEach((row, i) => {
+    const cur = scores.get(row.slug) ?? { rrf: 0, ftsRank: 0, semDistance: null };
+    cur.rrf += 1 / (RRF_K + i + 1);
+    cur.semDistance = row.distance;
+    scores.set(row.slug, cur);
+  });
+
+  return [...scores.entries()]
+    .map(([slug, v]) => ({ slug, ...v }))
+    .sort((a, b) => b.rrf - a.rrf);
+}
+
+async function loadTools(
+  supabase: ReturnType<typeof createClient>,
+  slugs: string[],
+): Promise<ToolRow[]> {
+  if (!slugs.length) return [];
+  const { data, error } = await supabase
+    .from("tools")
+    .select(
+      "id, slug, name, summary, description, pricing_model, price_display, open_source, api_available, local_available, keywords, strengths, limits, last_verified_at",
+    )
+    .eq("status", "published")
+    .in("slug", slugs);
+  if (error) throw new Error(error.message);
+  return (data ?? []) as ToolRow[];
+}
+
+async function loadEvidence(
+  supabase: ReturnType<typeof createClient>,
+  toolIds: string[],
+): Promise<Map<string, string[]>> {
+  const out = new Map<string, string[]>();
+  if (!toolIds.length) return out;
+  const { data } = await supabase
+    .from("tool_sources")
+    .select("tool_id, claim_key, sources ( url, reliability_level )")
+    .in("tool_id", toolIds);
+  for (const row of data ?? []) {
+    const src = row.sources as { url: string; reliability_level: string } | null;
+    if (!src?.url) continue;
+    const list = out.get(row.tool_id) ?? [];
+    list.push(`${src.reliability_level}:${row.claim_key}:${src.url}`);
+    out.set(row.tool_id, list.slice(0, 4));
+  }
+  return out;
+}
+
+function daysSince(dateStr: string | null): number | null {
+  if (!dateStr) return null;
+  const t = Date.parse(dateStr);
+  if (Number.isNaN(t)) return null;
+  return Math.max(0, (Date.now() - t) / (1000 * 60 * 60 * 24));
+}
+
+/** Weighted score: need 40%, features 25%, price 15%, compat 10%, freshness 10%. */
+function weightedScore(
+  tool: ToolRow,
+  c: Constraints,
+  hybrid: { rrf: number; ftsRank: number; semDistance: number | null },
+  queryTokens: string[],
+): { score: number; confidence: "high" | "medium" | "low"; matchReasons: string[]; tradeoffs: string[] } {
+  const need = Math.min(1, hybrid.rrf * 20 + (hybrid.ftsRank ?? 0) * 2 + (hybrid.semDistance != null ? Math.max(0, 1 - hybrid.semDistance) * 0.5 : 0));
+
+  const hay = [
+    tool.name,
+    tool.summary,
+    tool.description,
+    ...(tool.keywords ?? []),
+    ...(tool.strengths ?? []),
+  ]
+    .join(" ")
+    .toLowerCase();
+  const featureHits = queryTokens.filter((w) => hay.includes(w)).length;
+  const features = Math.min(1, featureHits / Math.max(3, queryTokens.length || 1));
+
+  let price = 0.5;
+  if (c.free) {
+    price = ["Free", "Freemium", "Open source"].includes(tool.pricing_model ?? "") ? 1 : 0.1;
+  } else if (tool.pricing_model && tool.pricing_model !== "Not disclosed") {
+    price = 0.7;
+  }
+
+  let compat = 0.5;
+  let compatHits = 0;
+  let compatNeed = 0;
+  if (c.openSource) {
+    compatNeed += 1;
+    if (tool.open_source) compatHits += 1;
+  }
+  if (c.api) {
+    compatNeed += 1;
+    if (tool.api_available === true) compatHits += 1;
+  }
+  if (c.local) {
+    compatNeed += 1;
+    if (tool.local_available) compatHits += 1;
+  }
+  if (compatNeed > 0) compat = compatHits / compatNeed;
+
+  const age = daysSince(tool.last_verified_at);
+  const freshness = age == null ? 0.35 : age <= 30 ? 1 : age <= 90 ? 0.7 : age <= 180 ? 0.45 : 0.2;
+
+  const score =
+    0.4 * need + 0.25 * features + 0.15 * price + 0.1 * compat + 0.1 * freshness;
+
+  const matchReasons: string[] = [];
+  if (tool.summary) matchReasons.push(tool.summary);
+  if (c.free && ["Free", "Freemium", "Open source"].includes(tool.pricing_model ?? "")) {
+    matchReasons.push(`Pricing model: ${tool.pricing_model}`);
+  }
+  if (c.openSource && tool.open_source) matchReasons.push("Open source");
+  if (c.api && tool.api_available) matchReasons.push("API available");
+  if (c.local && tool.local_available) matchReasons.push("Runs locally");
+  for (const s of (tool.strengths ?? []).slice(0, 1)) matchReasons.push(s);
+
+  const tradeoffs = (tool.limits ?? []).filter(Boolean).slice(0, 2);
+  if (!tool.last_verified_at) tradeoffs.push("Verification date unknown");
+  if (tool.api_available == null && c.api) tradeoffs.push("API availability not disclosed");
+
+  const confidence: "high" | "medium" | "low" =
+    score >= 0.65 && tool.last_verified_at ? "high" : score >= 0.4 ? "medium" : "low";
+
+  return {
+    score: Math.round(score * 100),
+    confidence,
+    matchReasons: [...new Set(matchReasons)].slice(0, 3),
+    tradeoffs: [...new Set(tradeoffs)].slice(0, 3),
+  };
+}
+
+function clarificationFor(q: string, c: Constraints): { needed: boolean; question: string | null } {
+  const words = q
+    .toLowerCase()
+    .split(/[^a-zà-ÿ0-9]+/i)
+    .filter((w) => w.length > 2 && !STOP.has(w));
+  const hasConstraint = Object.values(c).some(Boolean);
+  if (words.length <= 2 && !hasConstraint) {
+    return {
+      needed: true,
+      question:
+        "Do you need it free, open source, with an API, or running locally? That will narrow the catalog match.",
+    };
+  }
+  if (/enterprise|sso|hipaa|gdpr|on.?prem/i.test(q) && !hasConstraint) {
+    return {
+      needed: true,
+      question:
+        "Should I prioritize compliance (SSO/GDPR), self-hosting, or budget constraints?",
+    };
+  }
+  return { needed: false, question: null };
+}
+
 function extractJsonObject(content: string): unknown {
   const trimmed = content.trim();
   try {
@@ -197,9 +379,7 @@ function extractJsonObject(content: string): unknown {
   } catch {
     const start = trimmed.indexOf("{");
     const end = trimmed.lastIndexOf("}");
-    if (start >= 0 && end > start) {
-      return JSON.parse(trimmed.slice(start, end + 1));
-    }
+    if (start >= 0 && end > start) return JSON.parse(trimmed.slice(start, end + 1));
     throw new Error("No JSON object in model response");
   }
 }
@@ -209,18 +389,11 @@ function buildFallbackAnswer(q: string, tools: ToolRow[]): string {
     return `I couldn’t find a solid match in the verified catalog for “${q}”. Try rephrasing, or loosen constraints like free / open source / API / local.`;
   }
   const names = tools.slice(0, 3).map((t) => t.name);
-  const lead = names.length === 1
-    ? `${names[0]} looks like the closest catalog match`
-    : `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]} look like the closest catalog matches`;
-  return `${lead} for “${q}”. Recommendations below use only published catalog fields — anything missing stays “To verify”.`;
-}
-
-function sanitizeAnswer(answer: string, tools: ToolRow[]): string {
-  const cleaned = answer.replace(/\s+/g, " ").trim();
-  if (!cleaned) return buildFallbackAnswer("", tools);
-  // Hard length cap to keep UI readable
-  if (cleaned.length > 900) return `${cleaned.slice(0, 880).trim()}…`;
-  return cleaned;
+  const lead =
+    names.length === 1
+      ? `${names[0]} looks like the closest catalog match`
+      : `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]} look like the closest catalog matches`;
+  return `${lead} for “${q}”. Recommendations use only published catalog fields — missing data stays “To verify”.`;
 }
 
 async function maybeGrokAnswer(
@@ -241,7 +414,6 @@ async function maybeGrokAnswer(
     slug: t.slug,
     name: t.name,
     summary: t.summary,
-    // Keep short for latency
     description: (t.description ?? "").slice(0, 220),
     pricing_model: t.pricing_model,
     price_display: t.price_display,
@@ -251,29 +423,22 @@ async function maybeGrokAnswer(
     keywords: (t.keywords ?? []).slice(0, 6),
     strengths: (t.strengths ?? []).slice(0, 3),
     limits: (t.limits ?? []).slice(0, 2),
+    last_verified_at: t.last_verified_at,
   }));
 
-  const allowedNames = catalog.map((t) => t.name);
   const allowedSlugs = catalog.map((t) => t.slug);
-
   const system = [
     "You are the AI Discovery assistant for a verified AI-tools catalog.",
     "Reply in the same language as the user query.",
     "HARD GUARDRAILS:",
     "1) Use ONLY the provided catalog JSON. Never invent tools, prices, features, integrations, or URLs.",
     "2) If a field is missing/null/To verify, say it is unverified — do not guess.",
-    "3) Only recommend tools from the catalog list. Never mention tools outside that list.",
-    "4) Refuse harmful, illegal, or off-catalog requests; stay helpful for AI-tool discovery.",
-    "5) Do not claim sponsorship or ranking deals.",
-    "OUTPUT: return ONLY valid JSON with shape:",
-    '{"answer":"2-4 short sentences in natural language","results":[{"slug":"...","reasons":["..."]}]}',
-    "answer: speak directly to the user, explain which catalog tools fit and why, using catalog facts only.",
-    "results: max 5, only allowed slugs, max 2 reasons each that paraphrase catalog fields.",
+    "3) Only recommend tools from the catalog list.",
+    "OUTPUT: return ONLY valid JSON:",
+    '{"answer":"2-4 short sentences","results":[{"slug":"...","reasons":["..."],"tradeoffs":["..."]}]}',
+    "results: max 5, only allowed slugs, max 2 reasons and 1 tradeoff each.",
     `Allowed slugs: ${allowedSlugs.join(", ")}`,
-    `Allowed names: ${allowedNames.join(", ")}`,
   ].join("\n");
-
-  const user = JSON.stringify({ query: q, constraints: c, catalog });
 
   try {
     const res = await fetch("https://api.x.ai/v1/chat/completions", {
@@ -285,10 +450,10 @@ async function maybeGrokAnswer(
       body: JSON.stringify({
         model,
         temperature: 0,
-        max_tokens: 500,
+        max_tokens: 550,
         messages: [
           { role: "system", content: system },
-          { role: "user", content: user },
+          { role: "user", content: JSON.stringify({ query: q, constraints: c, catalog }) },
         ],
       }),
     });
@@ -301,7 +466,7 @@ async function maybeGrokAnswer(
     if (typeof content !== "string") return null;
     const parsed = extractJsonObject(content) as {
       answer?: string;
-      results?: Array<{ slug?: string; reasons?: string[] }>;
+      results?: Array<{ slug?: string; reasons?: string[]; tradeoffs?: string[] }>;
     };
 
     const allowed = new Set(allowedSlugs);
@@ -310,19 +475,22 @@ async function maybeGrokAnswer(
     for (const row of parsed.results ?? []) {
       if (!row.slug || !allowed.has(row.slug) || orderedSlugs.includes(row.slug)) continue;
       orderedSlugs.push(row.slug);
-      reasonsBySlug[row.slug] = (row.reasons ?? [])
+      reasonsBySlug[row.slug] = [
+        ...(row.reasons ?? []),
+        ...(row.tradeoffs ?? []).map((t) => `Tradeoff: ${t}`),
+      ]
         .filter((r) => typeof r === "string" && r.trim())
-        .slice(0, 2);
+        .slice(0, 3);
       if (orderedSlugs.length >= 5) break;
     }
 
-    const answer = sanitizeAnswer(
-      typeof parsed.answer === "string" ? parsed.answer : "",
-      tools,
-    );
+    const answer = (typeof parsed.answer === "string" ? parsed.answer : "")
+      .replace(/\s+/g, " ")
+      .trim()
+      .slice(0, 900);
 
     return {
-      answer,
+      answer: answer || buildFallbackAnswer(q, tools),
       reasonsBySlug,
       orderedSlugs,
       used: Boolean(answer) || orderedSlugs.length > 0,
@@ -347,42 +515,68 @@ Deno.serve(async (req) => {
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceKey);
     const c = extractConstraints(query);
+    const clarification = clarificationFor(query, c);
+    const queryTokens = expandQuery(query).split(/\s+/).filter(Boolean);
 
     const ftsRows = await ftsSearch(supabase, query, c);
-    const tools = await loadTools(
-      supabase,
-      ftsRows.map((r) => r.slug),
-    );
+    const embedded = await embedQuery(supabase, query);
+    const semRows = embedded
+      ? await semanticSearch(supabase, embedded.embedding, c)
+      : [];
+
+    const hybrid = hybridMerge(ftsRows, semRows);
+    const candidateSlugs = hybrid.slice(0, 12).map((h) => h.slug);
+    const tools = await loadTools(supabase, candidateSlugs);
     const bySlug = new Map(tools.map((t) => [t.slug, t]));
+    const evidenceByTool = await loadEvidence(
+      supabase,
+      tools.map((t) => t.id),
+    );
+    const hybridBySlug = new Map(hybrid.map((h) => [h.slug, h]));
 
     const grokKey = await readSecret(supabase, ["GROK_API_KEY", "XAI_API_KEY"]);
     const model =
       Deno.env.get("GROK_MODEL") ??
       (await readSecret(supabase, ["GROK_MODEL"])) ??
-      DEFAULT_MODEL;
+      DEFAULT_CHAT_MODEL;
 
     const llm = await maybeGrokAnswer(query, tools, c, grokKey, model);
-    const source: "ai" | "fts" = llm?.used ? "ai" : "fts";
+    const source: "ai" | "hybrid" | "fts" = llm?.used
+      ? "ai"
+      : semRows.length
+        ? "hybrid"
+        : "fts";
 
-    const orderedSlugs =
-      llm?.orderedSlugs?.length
-        ? [
-            ...llm.orderedSlugs,
-            ...ftsRows.map((r) => r.slug).filter((s) => !llm.orderedSlugs.includes(s)),
-          ]
-        : ftsRows.map((r) => r.slug);
+    const orderedSlugs = llm?.orderedSlugs?.length
+      ? [
+          ...llm.orderedSlugs,
+          ...candidateSlugs.filter((s) => !llm.orderedSlugs.includes(s)),
+        ]
+      : candidateSlugs;
 
     const results = [];
     for (const slug of orderedSlugs) {
       const tool = bySlug.get(slug);
       if (!tool) continue;
-      const rank = ftsRows.find((r) => r.slug === slug)?.rank ?? 0;
+      const h = hybridBySlug.get(slug) ?? { rrf: 0, ftsRank: 0, semDistance: null };
+      const scored = weightedScore(tool, c, h, queryTokens);
+      const llmReasons = (llm?.reasonsBySlug?.[slug] ?? []).filter(
+        (r) => !r.startsWith("Tradeoff:"),
+      );
+      const llmTradeoffs = (llm?.reasonsBySlug?.[slug] ?? [])
+        .filter((r) => r.startsWith("Tradeoff:"))
+        .map((r) => r.replace(/^Tradeoff:\s*/, ""));
+
       results.push({
         slug: tool.slug,
         name: tool.name,
         summary: tool.summary,
-        score: Math.max(1, Math.round(rank * 100)),
-        reasons: groundedReasons(tool, c, llm?.reasonsBySlug?.[slug] ?? []),
+        score: scored.score,
+        reasons: [...new Set([...llmReasons, ...scored.matchReasons])].slice(0, 3),
+        match_reason: [...new Set([...llmReasons, ...scored.matchReasons])].slice(0, 3),
+        tradeoffs: [...new Set([...llmTradeoffs, ...scored.tradeoffs])].slice(0, 3),
+        confidence: scored.confidence,
+        evidence: evidenceByTool.get(tool.id) ?? [],
       });
       if (results.length >= 6) break;
     }
@@ -394,9 +588,15 @@ Deno.serve(async (req) => {
         results.map((r) => bySlug.get(r.slug)!).filter(Boolean),
       );
 
+    const coverage_note = results.length
+      ? `Scoring: need 40% · features 25% · price 15% · compatibility 10% · freshness 10%. ${
+          embedded ? "Hybrid FTS+semantic recall." : "FTS recall (embeddings unavailable)."
+        }`
+      : "No published catalog match under current constraints.";
+
     await supabase.from("search_logs").insert({
       query,
-      constraints: c,
+      constraints: { ...c, clarification_needed: clarification.needed, semantic: Boolean(embedded) },
       result_count: results.length,
       latency_ms: Date.now() - started,
       source,
@@ -405,11 +605,18 @@ Deno.serve(async (req) => {
     return json({
       source,
       answer,
+      interpreted_need: query,
+      constraints: c,
+      clarification_needed: clarification.needed,
+      clarification_question: clarification.question,
+      coverage_note,
       intent: {
         query,
         constraints: c,
         provider: grokKey ? "grok" : null,
         model: grokKey ? model : null,
+        embedding_model: embedded?.model ?? null,
+        retrieval: semRows.length ? "hybrid" : "fts",
       },
       results,
     });

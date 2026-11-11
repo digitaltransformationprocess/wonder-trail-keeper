@@ -58,26 +58,38 @@ async function approveCandidate(supabase: SupabaseClient, candidateId: string, o
   if (!slug) slug = slugify(new URL(candidate.candidate_url).hostname);
   const { data: slugClash } = await supabase.from("tools").select("id").eq("slug", slug).maybeSingle();
   if (slugClash) slug = `${slug}-${crypto.randomUUID().slice(0, 6)}`;
-  const status = opts.publishNow ? "published" : "pending_review";
+  // Always insert as pending_review first so junctions exist before publish guards run.
   const officialUrl = String(payload.official_url || candidate.candidate_url);
   const { data: tool, error: insertError } = await supabase.from("tools").insert({
     name: String(payload.name), slug, publisher_id: publisherId, summary: String(payload.summary),
-    description: String(payload.description || payload.summary), official_url: officialUrl, status,
+    description: String(payload.description || payload.summary), official_url: officialUrl, status: "pending_review",
     pricing_model: String(payload.pricing_model || "Not disclosed"), price_display: String(payload.price_display || "To verify"),
     api_available: typeof payload.api_available === "boolean" ? payload.api_available : null,
     open_source: Boolean(payload.open_source), local_available: Boolean(payload.local_available),
     keywords: Array.isArray(payload.keywords) ? payload.keywords : [], strengths: Array.isArray(payload.strengths) ? payload.strengths : [],
     limits: Array.isArray(payload.limits) ? payload.limits : [], audience: Array.isArray(payload.audience) ? payload.audience : [],
-    last_verified_at: opts.publishNow ? new Date().toISOString().slice(0, 10) : null,
+    last_verified_at: null,
   }).select("id, slug").single();
   if (insertError) throw new Error(insertError.message);
   const typeName = String(payload.type || "Tool");
   const { data: typeRow } = await supabase.from("solution_types").select("id").eq("name", typeName).maybeSingle();
   if (typeRow) await supabase.from("tool_types").insert({ tool_id: tool.id, solution_type_id: typeRow.id, is_primary: true });
   const categoryNames = Array.isArray(payload.categories) ? payload.categories.map(String) : [];
+  let linkedCategories = 0;
   if (categoryNames.length) {
     const { data: cats } = await supabase.from("categories").select("id, name").in("name", categoryNames);
-    if (cats?.length) await supabase.from("tool_categories").insert(cats.map((c, i) => ({ tool_id: tool.id, category_id: c.id, is_primary: i === 0 })));
+    if (cats?.length) {
+      linkedCategories = cats.length;
+      await supabase.from("tool_categories").insert(cats.map((c, i) => ({ tool_id: tool.id, category_id: c.id, is_primary: i === 0 })));
+    }
+  }
+  // Fallback: attach first active category so publish remains possible when payload lacks taxonomy.
+  if (!linkedCategories) {
+    const { data: fallbackCat } = await supabase.from("categories").select("id").eq("is_active", true).order("sort_order").limit(1).maybeSingle();
+    if (fallbackCat) {
+      await supabase.from("tool_categories").insert({ tool_id: tool.id, category_id: fallbackCat.id, is_primary: true });
+      linkedCategories = 1;
+    }
   }
   const platformLabels = Array.isArray(payload.platforms) ? payload.platforms.map(String) : [];
   if (platformLabels.length) {
@@ -86,9 +98,24 @@ async function approveCandidate(supabase: SupabaseClient, candidateId: string, o
   }
   const sourceId = await ensureSource(supabase, String(payload.source_url || officialUrl), String(payload.publisher || "Unknown"));
   if (sourceId) await supabase.from("tool_sources").insert({ tool_id: tool.id, source_id: sourceId, claim_key: "general", verified_at: opts.publishNow ? new Date().toISOString().slice(0, 10) : null });
-  const { error: updateError } = await supabase.from("ingestion_candidates").update({ status: "approved", reviewed_at: new Date().toISOString(), reviewed_by: opts.reviewerId, tool_id: tool.id, error: null }).eq("id", candidateId);
+
+  let finalStatus: "published" | "pending_review" = "pending_review";
+  if (opts.publishNow && linkedCategories > 0 && sourceId) {
+    const { data: publishable, error: pubCheckError } = await supabase.rpc("tool_is_publishable", { p_tool_id: tool.id });
+    if (pubCheckError) throw new Error(pubCheckError.message);
+    if (publishable) {
+      const { error: publishError } = await supabase.from("tools").update({
+        status: "published",
+        last_verified_at: new Date().toISOString().slice(0, 10),
+      }).eq("id", tool.id);
+      if (publishError) throw new Error(publishError.message);
+      finalStatus = "published";
+    }
+  }
+
+  const { error: updateError } = await supabase.from("ingestion_candidates").update({ status: "approved", reviewed_at: new Date().toISOString(), reviewed_by: opts.reviewerId, tool_id: tool.id, error: finalStatus === "published" || !opts.publishNow ? null : "Approved but left pending_review (missing publish requirements)" }).eq("id", candidateId);
   if (updateError) throw new Error(updateError.message);
-  return { tool_id: tool.id, slug: tool.slug };
+  return { tool_id: tool.id, slug: tool.slug, status: finalStatus };
 }
 async function rejectCandidate(supabase: SupabaseClient, candidateId: string, reviewerId: string, reason?: string) {
   const { error } = await supabase.from("ingestion_candidates").update({ status: "rejected", reviewed_at: new Date().toISOString(), reviewed_by: reviewerId, error: reason || "Rejected by editor" }).eq("id", candidateId).eq("status", "pending");

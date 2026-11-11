@@ -20,6 +20,9 @@ import { Route as AdminChangesRouteImport } from './routes/admin/changes'
 import { Route as AdminImportRouteImport } from './routes/admin/import'
 import { Route as AdminLoginRouteImport } from './routes/admin/login'
 import { Route as AdminReviewRouteImport } from './routes/admin/review'
+import { Route as AdminSourcesRouteImport } from './routes/admin/sources'
+import { Route as AdminTaxonomyRouteImport } from './routes/admin/taxonomy'
+import { Route as CategoriesSlugRouteImport } from './routes/categories.$slug'
 import { Route as LatestSlugRouteImport } from './routes/latest.$slug'
 import { Route as ToolsSlugRouteImport } from './routes/tools.$slug'
 import { Route as AdminNewsIndexRouteImport } from './routes/admin/news/index'
@@ -84,6 +87,21 @@ const AdminReviewRoute = AdminReviewRouteImport.update({
   path: '/review',
   getParentRoute: () => AdminRouteRoute,
 } as any)
+const AdminSourcesRoute = AdminSourcesRouteImport.update({
+  id: '/sources',
+  path: '/sources',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminTaxonomyRoute = AdminTaxonomyRouteImport.update({
+  id: '/taxonomy',
+  path: '/taxonomy',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const CategoriesSlugRoute = CategoriesSlugRouteImport.update({
+  id: '/categories/$slug',
+  path: '/categories/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LatestSlugRoute = LatestSlugRouteImport.update({
   id: '/$slug',
   path: '/$slug',
@@ -136,6 +154,9 @@ export interface FileRoutesByFullPath {
   '/admin/import': typeof AdminImportRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/review': typeof AdminReviewRoute
+  '/admin/sources': typeof AdminSourcesRoute
+  '/admin/taxonomy': typeof AdminTaxonomyRoute
+  '/categories/$slug': typeof CategoriesSlugRoute
   '/latest/$slug': typeof LatestSlugRoute
   '/tools/$slug': typeof ToolsSlugRoute
   '/admin/': typeof AdminIndexRoute
@@ -156,6 +177,9 @@ export interface FileRoutesByTo {
   '/admin/import': typeof AdminImportRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/review': typeof AdminReviewRoute
+  '/admin/sources': typeof AdminSourcesRoute
+  '/admin/taxonomy': typeof AdminTaxonomyRoute
+  '/categories/$slug': typeof CategoriesSlugRoute
   '/latest/$slug': typeof LatestSlugRoute
   '/tools/$slug': typeof ToolsSlugRoute
   '/admin': typeof AdminIndexRoute
@@ -178,6 +202,9 @@ export interface FileRoutesById {
   '/admin/import': typeof AdminImportRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/review': typeof AdminReviewRoute
+  '/admin/sources': typeof AdminSourcesRoute
+  '/admin/taxonomy': typeof AdminTaxonomyRoute
+  '/categories/$slug': typeof CategoriesSlugRoute
   '/latest/$slug': typeof LatestSlugRoute
   '/tools/$slug': typeof ToolsSlugRoute
   '/admin/': typeof AdminIndexRoute
@@ -201,6 +228,9 @@ export interface FileRouteTypes {
     | '/admin/import'
     | '/admin/login'
     | '/admin/review'
+    | '/admin/sources'
+    | '/admin/taxonomy'
+    | '/categories/$slug'
     | '/latest/$slug'
     | '/tools/$slug'
     | '/admin/'
@@ -221,6 +251,9 @@ export interface FileRouteTypes {
     | '/admin/import'
     | '/admin/login'
     | '/admin/review'
+    | '/admin/sources'
+    | '/admin/taxonomy'
+    | '/categories/$slug'
     | '/latest/$slug'
     | '/tools/$slug'
     | '/admin'
@@ -242,6 +275,9 @@ export interface FileRouteTypes {
     | '/admin/import'
     | '/admin/login'
     | '/admin/review'
+    | '/admin/sources'
+    | '/admin/taxonomy'
+    | '/categories/$slug'
     | '/latest/$slug'
     | '/tools/$slug'
     | '/admin/'
@@ -260,6 +296,7 @@ export interface RootRouteChildren {
   ExploreRoute: typeof ExploreRoute
   LatestRoute: typeof LatestRouteWithChildren
   LibraryRoute: typeof LibraryRoute
+  CategoriesSlugRoute: typeof CategoriesSlugRoute
   ToolsSlugRoute: typeof ToolsSlugRoute
 }
 
@@ -342,6 +379,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminReviewRouteImport
       parentRoute: typeof AdminRouteRoute
     }
+    '/admin/sources': {
+      id: '/admin/sources'
+      path: '/sources'
+      fullPath: '/admin/sources'
+      preLoaderRoute: typeof AdminSourcesRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/taxonomy': {
+      id: '/admin/taxonomy'
+      path: '/taxonomy'
+      fullPath: '/admin/taxonomy'
+      preLoaderRoute: typeof AdminTaxonomyRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/categories/$slug': {
+      id: '/categories/$slug'
+      path: '/categories/$slug'
+      fullPath: '/categories/$slug'
+      preLoaderRoute: typeof CategoriesSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/latest/$slug': {
       id: '/latest/$slug'
       path: '/$slug'
@@ -406,6 +464,8 @@ interface AdminRouteRouteChildren {
   AdminImportRoute: typeof AdminImportRoute
   AdminLoginRoute: typeof AdminLoginRoute
   AdminReviewRoute: typeof AdminReviewRoute
+  AdminSourcesRoute: typeof AdminSourcesRoute
+  AdminTaxonomyRoute: typeof AdminTaxonomyRoute
   AdminIndexRoute: typeof AdminIndexRoute
   AdminNewsIdRoute: typeof AdminNewsIdRoute
   AdminNewsNewRoute: typeof AdminNewsNewRoute
@@ -420,6 +480,8 @@ const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminImportRoute: AdminImportRoute,
   AdminLoginRoute: AdminLoginRoute,
   AdminReviewRoute: AdminReviewRoute,
+  AdminSourcesRoute: AdminSourcesRoute,
+  AdminTaxonomyRoute: AdminTaxonomyRoute,
   AdminIndexRoute: AdminIndexRoute,
   AdminNewsIdRoute: AdminNewsIdRoute,
   AdminNewsNewRoute: AdminNewsNewRoute,
@@ -451,6 +513,7 @@ const rootRouteChildren: RootRouteChildren = {
   ExploreRoute: ExploreRoute,
   LatestRoute: LatestRouteWithChildren,
   LibraryRoute: LibraryRoute,
+  CategoriesSlugRoute: CategoriesSlugRoute,
   ToolsSlugRoute: ToolsSlugRoute,
 }
 export const routeTree = rootRouteImport

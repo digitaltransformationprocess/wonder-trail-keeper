@@ -12,7 +12,8 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "embeddings:backfill": "node scripts/backfill_embeddings.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

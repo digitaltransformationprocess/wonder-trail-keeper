@@ -163,17 +163,27 @@ export function SolutionCard({ s, children }: { s: Solution; children?: ReactNod
       className="glass flex h-full flex-col rounded-3xl p-6"
     >
       <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <Link
-            to="/tools/$slug"
-            params={{ slug: s.slug }}
-            className="type-title text-[1.25rem] text-foreground transition-apple hover:text-primary"
-          >
-            {s.name}
-          </Link>
-          <p className="mt-1 text-[0.8125rem] text-muted-foreground">
-            {s.publisher} · {s.type}
-          </p>
+        <div className="flex min-w-0 items-start gap-3">
+          {s.logoUrl ? (
+            <img
+              src={s.logoUrl}
+              alt=""
+              className="mt-0.5 h-9 w-9 shrink-0 rounded-xl object-cover"
+              loading="lazy"
+            />
+          ) : null}
+          <div className="min-w-0">
+            <Link
+              to="/tools/$slug"
+              params={{ slug: s.slug }}
+              className="type-title text-[1.25rem] text-foreground transition-apple hover:text-primary"
+            >
+              {s.name}
+            </Link>
+            <p className="mt-1 text-[0.8125rem] text-muted-foreground">
+              {s.publisher} · {s.type}
+            </p>
+          </div>
         </div>
         <span className="shrink-0 rounded-full bg-fill px-2.5 py-1 text-[0.7rem] text-muted-foreground">
           {s.pricingModel}
@@ -183,9 +193,37 @@ export function SolutionCard({ s, children }: { s: Solution; children?: ReactNod
       <p className="type-body mt-4 text-[0.9375rem] text-foreground/85">{s.summary}</p>
       {children}
 
+      <div className="mt-4 flex flex-wrap gap-1.5">
+        {s.sources.length === 0 ? (
+          <span className="rounded-full bg-fill px-2 py-0.5 text-[0.65rem] text-muted-foreground">
+            Sources: To verify
+          </span>
+        ) : (
+          [...new Set(s.sources.map((src) => src.reliabilityLevel))]
+            .sort()
+            .map((level) => (
+              <span
+                key={level}
+                className="rounded-full bg-fill px-2 py-0.5 text-[0.65rem] text-muted-foreground"
+                title="Source reliability"
+              >
+                Evidence {level}
+              </span>
+            ))
+        )}
+        {s.apiAvailable === null ? (
+          <span className="rounded-full bg-fill px-2 py-0.5 text-[0.65rem] text-muted-foreground">
+            API: Not disclosed
+          </span>
+        ) : null}
+      </div>
+
       <div className="mt-auto flex items-center justify-between gap-3 border-t hairline pt-5 text-[0.75rem] text-muted-foreground">
         <span>
-          {s.status === "Verified" ? "Verified" : "To verify"} · {s.verifiedAt}
+          <span className={s.status === "Verified" ? "text-primary" : undefined}>
+            {s.status === "Verified" ? "Verified" : "To verify"}
+          </span>{" "}
+          · {s.verifiedAt}
         </span>
         <button
           type="button"

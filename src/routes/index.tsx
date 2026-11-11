@@ -72,10 +72,15 @@ function Discover() {
   const results = matches.map((m) => ({
     solution: m.solution,
     reasons: m.reasons,
-    caveat: m.solution.limits[0] ?? "To verify",
+    tradeoffs: m.tradeoffs?.length ? m.tradeoffs : [m.solution.limits[0] ?? "To verify"],
+    confidence: m.confidence ?? "medium",
+    evidence: m.evidence ?? [],
     source: m.source,
   }));
   const answer = discoverQuery.data?.answer;
+  const clarificationNeeded = discoverQuery.data?.clarificationNeeded;
+  const clarificationQuestion = discoverQuery.data?.clarificationQuestion;
+  const coverageNote = discoverQuery.data?.coverageNote;
   const c = q ? extractConstraints(q) : null;
   const searching = Boolean(q) && isLoading;
   const waitingAi = Boolean(q) && discoverQuery.isLoading && !answer;
@@ -226,18 +231,24 @@ function Discover() {
             </div>
           </div>
 
-          {(answer || waitingAi) && (
+          {(answer || waitingAi || clarificationNeeded) && (
             <div className="glass mb-6 rounded-3xl px-5 py-5 md:px-6">
               <p className="text-[0.7rem] tracking-[0.14em] text-muted-foreground">ASSISTANT</p>
               {answer ? (
                 <p className="type-body mt-3 text-[1.05rem] leading-7 text-foreground/90">{answer}</p>
-              ) : (
+              ) : waitingAi ? (
                 <p className="mt-3 text-[0.9375rem] text-muted-foreground">
                   Writing a grounded answer from the catalog…
                 </p>
-              )}
+              ) : null}
+              {clarificationNeeded && clarificationQuestion ? (
+                <p className="mt-4 rounded-2xl bg-fill/60 px-4 py-3 text-[0.875rem] text-foreground/85">
+                  Clarification: {clarificationQuestion}
+                </p>
+              ) : null}
               <p className="mt-3 text-[0.75rem] text-muted-foreground">
-                Answers use published catalog fields only. Missing data stays “To verify”.
+                {coverageNote ??
+                  "Answers use published catalog fields only. Missing data stays “To verify”."}
               </p>
             </div>
           )}
@@ -277,14 +288,35 @@ function Discover() {
               {results.map((m) => (
                 <motion.div key={m.solution.slug} variants={fadeUp} transition={springSoft}>
                   <SolutionCard s={m.solution}>
+                    <div className="mt-3 flex flex-wrap gap-1.5">
+                      <span className="rounded-full bg-fill px-2 py-0.5 text-[0.65rem] uppercase tracking-wide text-muted-foreground">
+                        {m.confidence} confidence
+                      </span>
+                      {m.source ? (
+                        <span className="rounded-full bg-fill px-2 py-0.5 text-[0.65rem] text-muted-foreground">
+                          {m.source}
+                        </span>
+                      ) : null}
+                    </div>
                     <ul className="mt-4 space-y-1.5 text-[0.8125rem]">
                       {m.reasons.map((r) => (
                         <li key={r} className="text-primary">
                           {r}
                         </li>
                       ))}
-                      <li className="text-muted-foreground">Limitation: {m.caveat}</li>
+                      {m.tradeoffs.map((t) => (
+                        <li key={t} className="text-muted-foreground">
+                          Tradeoff: {t}
+                        </li>
+                      ))}
                       <li className="text-muted-foreground">Price: {m.solution.price}</li>
+                      {m.evidence[0] ? (
+                        <li className="truncate text-muted-foreground" title={m.evidence[0]}>
+                          Evidence: {m.evidence[0].split(":").slice(0, 2).join(" · ")}
+                        </li>
+                      ) : (
+                        <li className="text-muted-foreground">Evidence: To verify</li>
+                      )}
                     </ul>
                   </SolutionCard>
                 </motion.div>

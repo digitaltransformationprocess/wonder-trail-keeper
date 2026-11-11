@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   adminToolsQuery,
-  deleteAdminTool,
+  archiveAdminTool,
   setToolStatus,
   type ToolStatus,
 } from "@/lib/admin/catalog";
@@ -41,8 +41,8 @@ function AdminTools() {
       await queryClient.invalidateQueries({ queryKey: ["solutions"] });
     },
   });
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => deleteAdminTool(id),
+  const archiveMutation = useMutation({
+    mutationFn: (id: string) => archiveAdminTool(id),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["admin"] });
       await queryClient.invalidateQueries({ queryKey: ["solutions"] });
@@ -118,39 +118,31 @@ function AdminTools() {
                         <button
                           type="button"
                           className="text-primary"
-                          disabled={mutation.isPending || deleteMutation.isPending}
+                          disabled={mutation.isPending || archiveMutation.isPending}
                           onClick={() => mutation.mutate({ id: tool.id, status: "published" })}
                         >
                           Publish
                         </button>
                       )}
-                      {tool.status === "published" && (
+                      {tool.status !== "archived" && (
                         <button
                           type="button"
                           className="text-muted-foreground"
-                          disabled={mutation.isPending || deleteMutation.isPending}
-                          onClick={() => mutation.mutate({ id: tool.id, status: "archived" })}
+                          disabled={mutation.isPending || archiveMutation.isPending}
+                          onClick={() => {
+                            if (
+                              !window.confirm(
+                                `Archive “${tool.name}”? It will leave the public catalog.`,
+                              )
+                            ) {
+                              return;
+                            }
+                            archiveMutation.mutate(tool.id);
+                          }}
                         >
                           Archive
                         </button>
                       )}
-                      <button
-                        type="button"
-                        className="text-red-300"
-                        disabled={mutation.isPending || deleteMutation.isPending}
-                        onClick={() => {
-                          if (
-                            !window.confirm(
-                              `Delete “${tool.name}” permanently? This cannot be undone.`,
-                            )
-                          ) {
-                            return;
-                          }
-                          deleteMutation.mutate(tool.id);
-                        }}
-                      >
-                        Delete
-                      </button>
                     </div>
                   </td>
                 </tr>

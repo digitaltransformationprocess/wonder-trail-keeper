@@ -10,6 +10,8 @@ export function AdminShell({ children }: { children: ReactNode }) {
     { to: "/admin", label: "Dashboard", exact: true },
     { to: "/admin/tools", label: "Tools", exact: false },
     { to: "/admin/news", label: "News", exact: false },
+    { to: "/admin/taxonomy", label: "Taxonomy", exact: false },
+    { to: "/admin/sources", label: "Sources", exact: false },
     { to: "/admin/import", label: "Import", exact: false },
     { to: "/admin/review", label: "Review", exact: false },
     { to: "/admin/changes", label: "Changes", exact: false },

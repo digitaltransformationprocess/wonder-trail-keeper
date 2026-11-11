@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth";
 
 const FAV_KEY = "aidp:favorites";
 const CMP_KEY = "aidp:compare";
-const COMPARE_MAX = 4;
+const COMPARE_MAX = 5;
 
 function readList(key: string): string[] {
   try {
