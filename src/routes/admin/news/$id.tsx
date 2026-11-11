@@ -38,14 +38,19 @@ function EditNews() {
   const { data: item } = useSuspenseQuery(adminNewsItemQuery(id));
   const [submitting, setSubmitting] = useState(false);
   const [statusBusy, setStatusBusy] = useState(false);
+  const [statusError, setStatusError] = useState<string | null>(null);
 
   const setStatus = (status: NewsStatus) => {
     setStatusBusy(true);
+    setStatusError(null);
     void setNewsStatus(id, status)
       .then(async () => {
         await queryClient.invalidateQueries({ queryKey: ["admin"] });
         await queryClient.invalidateQueries({ queryKey: ["news"] });
         await queryClient.invalidateQueries({ queryKey: adminNewsItemQuery(id).queryKey });
+      })
+      .catch((err) => {
+        setStatusError(err instanceof Error ? err.message : "Status update failed");
       })
       .finally(() => setStatusBusy(false));
   };
@@ -105,6 +110,10 @@ function EditNews() {
           ) : null}
         </div>
       </div>
+
+      {statusError ? (
+        <p className="mt-4 text-[0.875rem] text-amber-300">{statusError}</p>
+      ) : null}
 
       <div className="mt-8">
         <NewsForm

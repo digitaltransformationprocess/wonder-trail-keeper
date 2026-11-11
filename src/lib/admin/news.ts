@@ -108,11 +108,12 @@ export async function getAdminNews(id: string): Promise<AdminNewsDetail | null> 
 }
 
 export async function createAdminNews(input: AdminNewsInput): Promise<string> {
+  const slug = normalizeSlug(input.slug) ?? normalizeSlug(input.title);
   const { data, error } = await supabase
     .from("news_items")
     .insert({
       title: input.title.trim(),
-      slug: normalizeSlug(input.slug),
+      slug,
       summary: input.summary.trim(),
       body: input.body?.trim() || null,
       kind: input.kind.trim(),
@@ -131,11 +132,12 @@ export async function createAdminNews(input: AdminNewsInput): Promise<string> {
 }
 
 export async function updateAdminNews(newsId: string, input: AdminNewsInput): Promise<string> {
+  const slug = normalizeSlug(input.slug) ?? normalizeSlug(input.title);
   const { data, error } = await supabase
     .from("news_items")
     .update({
       title: input.title.trim(),
-      slug: normalizeSlug(input.slug),
+      slug,
       summary: input.summary.trim(),
       body: input.body?.trim() || null,
       kind: input.kind.trim(),
@@ -157,7 +159,7 @@ export async function updateAdminNews(newsId: string, input: AdminNewsInput): Pr
 export async function setNewsStatus(newsId: string, status: NewsStatus) {
   const { data: existing, error: readError } = await supabase
     .from("news_items")
-    .select("published_at")
+    .select("published_at, slug, title")
     .eq("id", newsId)
     .maybeSingle();
   if (readError) throw new Error(readError.message);
@@ -165,14 +167,47 @@ export async function setNewsStatus(newsId: string, status: NewsStatus) {
   const patch: {
     status: NewsStatus;
     published_at?: string;
+    slug?: string | null;
   } = { status };
 
-  if (status === "published" && !existing?.published_at) {
-    patch.published_at = new Date().toISOString().slice(0, 10);
+  if (status === "published") {
+    if (!existing?.published_at) {
+      patch.published_at = new Date().toISOString().slice(0, 10);
+    }
+    if (!existing?.slug) {
+      patch.slug = normalizeSlug(existing?.title ?? null);
+    }
   }
 
   const { error } = await supabase.from("news_items").update(patch).eq("id", newsId);
   if (error) throw new Error(error.message);
+}
+
+export async function publishAllDraftNews(): Promise<{ published: number }> {
+  const { data: drafts, error } = await supabase
+    .from("news_items")
+    .select("id, title, slug, published_at")
+    .eq("status", "draft")
+    .order("updated_at", { ascending: true })
+    .limit(200);
+  if (error) throw new Error(error.message);
+
+  let published = 0;
+  const today = new Date().toISOString().slice(0, 10);
+  for (const draft of drafts ?? []) {
+    const { error: updateError } = await supabase
+      .from("news_items")
+      .update({
+        status: "published",
+        published_at: draft.published_at || today,
+        slug: draft.slug || normalizeSlug(draft.title),
+      })
+      .eq("id", draft.id)
+      .eq("status", "draft");
+    if (updateError) throw new Error(updateError.message);
+    published += 1;
+  }
+  return { published };
 }
 
 export function adminNewsQuery(status: NewsStatus | "all" = "all") {

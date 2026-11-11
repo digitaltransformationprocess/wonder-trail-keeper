@@ -4,7 +4,7 @@ import { Search } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import { useState } from "react";
 import { z } from "zod";
-import { AICoreSceneLazy } from "@/components/AICoreSceneLazy";
+import { AICoreSceneLazy, useIsDesktopHero } from "@/components/AICoreSceneLazy";
 import { SiteShell, SolutionCard } from "@/components/SiteShell";
 import { discover, discoverSmart, discoverViaFts, extractConstraints } from "@/lib/discover";
 import { fadeUp, springSoft, staggerChildren } from "@/lib/motion";
@@ -39,6 +39,7 @@ function Discover() {
   const navigate = useNavigate({ from: "/" });
   const [value, setValue] = useState(q ?? "");
   const reduce = useReducedMotion();
+  const isDesktop = useIsDesktopHero();
   const { data: solutions = [], isLoading, isError, error, refetch } = useQuery(solutionsQuery);
   const catalogKey = solutions.map((s) => s.slug).join(",");
   const enabled = Boolean(q) && solutions.length > 0 && !isLoading;
@@ -86,9 +87,11 @@ function Discover() {
   return (
     <SiteShell flush>
       <section className="relative min-h-0 overflow-hidden px-5 pb-14 pt-8 md:min-h-[calc(100svh-4.5rem)] md:px-8 md:pb-20 md:pt-10">
-        <div className="pointer-events-none absolute inset-0 z-0 hidden md:block">
-          <AICoreSceneLazy onCategorySelect={go} />
-        </div>
+        {isDesktop === true ? (
+          <div className="pointer-events-none absolute inset-0 z-0">
+            <AICoreSceneLazy compact={false} onCategorySelect={go} />
+          </div>
+        ) : null}
         <div className="relative z-10 mx-auto grid max-w-6xl items-center">
           <motion.div
             className="relative z-10 max-w-xl"
@@ -161,9 +164,11 @@ function Discover() {
               ))}
             </motion.div>
 
-            <div className="relative mx-auto mt-8 h-[280px] w-full max-w-md md:hidden">
-              <AICoreSceneLazy onCategorySelect={go} />
-            </div>
+            {isDesktop === false ? (
+              <div className="relative mx-auto mt-8 h-[280px] w-full max-w-md">
+                <AICoreSceneLazy compact onCategorySelect={go} />
+              </div>
+            ) : null}
 
             <motion.div
               variants={fadeUp}

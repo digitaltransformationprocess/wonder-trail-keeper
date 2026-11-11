@@ -57,9 +57,10 @@ export function NewsForm({
           setError("Source URL is required");
           return;
         }
+        const nextSlug = (slugTouched ? slug.trim() : previewSlug)?.trim() || null;
         void onSubmit({
           title,
-          slug: slugTouched ? slug.trim() || null : (initial?.slug ?? null),
+          slug: nextSlug,
           summary,
           body: body.trim() || null,
           kind,

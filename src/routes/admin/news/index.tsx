@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
-import { adminNewsQuery, type NewsStatus } from "@/lib/admin/news";
+import { adminNewsQuery, publishAllDraftNews, type NewsStatus } from "@/lib/admin/news";
 
 export const Route = createFileRoute("/admin/news/")({
   validateSearch: z.object({
@@ -43,7 +43,15 @@ function AdminNewsList() {
   const search = Route.useSearch();
   const status = (search.status ?? "all") as NewsStatus | "all";
   const navigate = useNavigate({ from: "/admin/news" });
+  const queryClient = useQueryClient();
   const { data = [], isLoading, isError, error, refetch } = useQuery(adminNewsQuery(status));
+  const publishAllMutation = useMutation({
+    mutationFn: publishAllDraftNews,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["admin"] });
+      await queryClient.invalidateQueries({ queryKey: ["news"] });
+    },
+  });
 
   return (
     <div>
@@ -54,13 +62,37 @@ function AdminNewsList() {
             Draft, publish, and archive verified updates for Latest.
           </p>
         </div>
-        <Link
-          to="/admin/news/new"
-          className="rounded-full bg-primary px-5 py-2.5 text-[0.875rem] font-medium text-primary-foreground"
-        >
-          New item
-        </Link>
+        <div className="flex flex-wrap gap-3">
+          <button
+            type="button"
+            disabled={publishAllMutation.isPending}
+            onClick={() => publishAllMutation.mutate()}
+            className="rounded-full border hairline px-5 py-2.5 text-[0.875rem] disabled:opacity-50"
+          >
+            {publishAllMutation.isPending ? "Publishing…" : "Publier tous les brouillons"}
+          </button>
+          <Link
+            to="/admin/news/new"
+            className="rounded-full bg-primary px-5 py-2.5 text-[0.875rem] font-medium text-primary-foreground"
+          >
+            New item
+          </Link>
+        </div>
       </div>
+
+      {publishAllMutation.isError ? (
+        <p className="mt-4 text-[0.875rem] text-red-400">
+          {publishAllMutation.error instanceof Error
+            ? publishAllMutation.error.message
+            : "Publish all failed"}
+        </p>
+      ) : null}
+      {publishAllMutation.data ? (
+        <p className="mt-4 text-[0.8125rem] text-muted-foreground">
+          Published {publishAllMutation.data.published} draft
+          {publishAllMutation.data.published === 1 ? "" : "s"}.
+        </p>
+      ) : null}
 
       <div className="mt-8 flex flex-wrap gap-2">
         {FILTERS.map((f) => (

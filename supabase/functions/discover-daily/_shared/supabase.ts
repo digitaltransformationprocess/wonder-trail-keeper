@@ -39,9 +39,18 @@ export async function requireStaff(authHeader: string | null) {
   return { supabase, user: userData.user, profile, service: serviceClient() };
 }
 
-export function assertCronSecret(req: Request) {
-  const expected = Deno.env.get("INGEST_CRON_SECRET");
-  if (!expected) throw new Error("INGEST_CRON_SECRET is not configured");
+export async function runtimeSecret(supabase: SupabaseClient, key: string) {
+  const fromEnv = Deno.env.get(key);
+  if (fromEnv) return fromEnv;
+  const { data, error } = await supabase.from("runtime_secrets").select("value").eq("key", key).maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!data?.value) throw new Error(`${key} secret is not set`);
+  return data.value as string;
+}
+
+export async function assertCronSecret(req: Request, supabase?: SupabaseClient) {
+  const client = supabase ?? serviceClient();
+  const expected = await runtimeSecret(client, "INGEST_CRON_SECRET");
   const provided = req.headers.get("x-ingest-secret");
   if (!provided || provided !== expected) throw new Error("Invalid cron secret");
 }

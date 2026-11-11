@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import {
+  approveAllCandidates,
   approveCandidate,
   asPayload,
   pendingCandidatesQuery,
@@ -23,13 +24,20 @@ function AdminReview() {
   const queryClient = useQueryClient();
   const { data = [], isLoading, isError, error, refetch } = useQuery(pendingCandidatesQuery);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [publishNow, setPublishNow] = useState(false);
+  const [publishNow, setPublishNow] = useState(true);
 
   const selected = data.find((c) => c.id === selectedId) ?? data[0] ?? null;
 
   const approveMutation = useMutation({
-    mutationFn: (candidate: IngestionCandidate) =>
-      approveCandidate(candidate.id, publishNow),
+    mutationFn: (candidate: IngestionCandidate) => approveCandidate(candidate.id, publishNow),
+    onSuccess: async () => {
+      setSelectedId(null);
+      await queryClient.invalidateQueries({ queryKey: ["admin"] });
+    },
+  });
+
+  const approveAllMutation = useMutation({
+    mutationFn: () => approveAllCandidates(publishNow),
     onSuccess: async () => {
       setSelectedId(null);
       await queryClient.invalidateQueries({ queryKey: ["admin"] });
@@ -46,12 +54,53 @@ function AdminReview() {
 
   return (
     <div>
-      <div>
-        <h1 className="type-display text-clarity text-[2.5rem]">Review</h1>
-        <p className="mt-2 text-[0.9375rem] text-muted-foreground">
-          Approve scraped candidates into catalog tools, or reject them.
-        </p>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="type-display text-clarity text-[2.5rem]">Review</h1>
+          <p className="mt-2 text-[0.9375rem] text-muted-foreground">
+            Approve scraped candidates into catalog tools, or reject them.
+          </p>
+        </div>
+        {data.length > 0 ? (
+          <div className="flex flex-wrap items-center gap-3">
+            <label className="flex items-center gap-2 text-[0.8125rem]">
+              <input
+                type="checkbox"
+                checked={publishNow}
+                onChange={(e) => setPublishNow(e.target.checked)}
+              />
+              Publier par défaut
+            </label>
+            <button
+              type="button"
+              disabled={approveAllMutation.isPending}
+              onClick={() => approveAllMutation.mutate()}
+              className="rounded-full bg-primary px-5 py-2.5 text-[0.875rem] font-medium text-primary-foreground disabled:opacity-50"
+            >
+              {approveAllMutation.isPending
+                ? "Approving all…"
+                : `Approuver tout (${data.length})`}
+            </button>
+          </div>
+        ) : null}
       </div>
+
+      {approveAllMutation.isError ? (
+        <p className="mt-4 text-[0.875rem] text-red-400">
+          {approveAllMutation.error instanceof Error
+            ? approveAllMutation.error.message
+            : "Approve all failed"}
+        </p>
+      ) : null}
+      {approveAllMutation.data ? (
+        <p className="mt-4 text-[0.8125rem] text-muted-foreground">
+          Approved {approveAllMutation.data.stats.approved}/
+          {approveAllMutation.data.stats.considered}
+          {approveAllMutation.data.stats.failed
+            ? ` · failed ${approveAllMutation.data.stats.failed}`
+            : ""}
+        </p>
+      ) : null}
 
       {isLoading ? (
         <p className="mt-10 text-muted-foreground">Loading…</p>
@@ -68,7 +117,7 @@ function AdminReview() {
         <p className="mt-10 text-muted-foreground">
           No pending candidates.{" "}
           <Link to="/admin/import" className="text-primary">
-            Import URLs
+            Run discovery
           </Link>
         </p>
       ) : (
@@ -93,9 +142,6 @@ function AdminReview() {
                     {c.source_type} · conf {c.confidence ?? "—"} ·{" "}
                     {new Date(c.discovered_at).toLocaleString()}
                   </p>
-                  {c.error ? (
-                    <p className="mt-1 text-[0.75rem] text-amber-300">{c.error}</p>
-                  ) : null}
                 </button>
               );
             })}
@@ -156,7 +202,7 @@ function CandidateDetail({
             href={candidate.candidate_url}
             target="_blank"
             rel="noreferrer"
-            className="mt-1 block text-[0.8125rem] text-primary break-all"
+            className="mt-1 block break-all text-[0.8125rem] text-primary"
           >
             {candidate.candidate_url}
           </a>
@@ -168,7 +214,7 @@ function CandidateDetail({
 
       <p className="mt-4 text-[0.9375rem]">{payload.summary || "No summary extracted."}</p>
       {payload.description ? (
-        <p className="mt-3 text-[0.8125rem] text-muted-foreground whitespace-pre-wrap">
+        <p className="mt-3 whitespace-pre-wrap text-[0.8125rem] text-muted-foreground">
           {payload.description}
         </p>
       ) : null}
@@ -200,7 +246,7 @@ function CandidateDetail({
           checked={publishNow}
           onChange={(e) => onPublishNowChange(e.target.checked)}
         />
-        Publish now (otherwise pending_review)
+        Publier par défaut (sinon pending_review)
       </label>
 
       {actionError ? <p className="mt-4 text-[0.8125rem] text-red-400">{actionError}</p> : null}

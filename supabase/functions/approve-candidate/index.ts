@@ -101,14 +101,60 @@ Deno.serve(async (req) => {
     if (req.method !== "POST") return jsonResponse({ error: "Method not allowed" }, 405);
     const auth = await requireStaff(req.headers.get("Authorization"));
     const body = await req.json();
-    const candidateId = String(body?.candidate_id ?? "");
     const action = String(body?.action ?? "approve");
+    const publishNow = Boolean(body?.publish_now);
+
+    if (action === "approve_all") {
+      const { data: pending, error } = await auth.service
+        .from("ingestion_candidates")
+        .select("id, extracted_payload, error, status")
+        .eq("status", "pending")
+        .is("error", null)
+        .order("discovered_at", { ascending: true })
+        .limit(100);
+      if (error) throw new Error(error.message);
+
+      const eligible = (pending ?? []).filter((row) => {
+        const payload = (row.extracted_payload ?? {}) as Record<string, unknown>;
+        return Boolean(payload.name && payload.summary);
+      });
+
+      let approved = 0;
+      let failed = 0;
+      const failures: Array<{ id: string; error: string }> = [];
+      for (const row of eligible) {
+        try {
+          await approveCandidate(auth.service, row.id, {
+            reviewerId: auth.user.id,
+            publishNow,
+          });
+          approved += 1;
+        } catch (err) {
+          failed += 1;
+          failures.push({
+            id: row.id,
+            error: err instanceof Error ? err.message : "approve failed",
+          });
+        }
+      }
+      return jsonResponse({
+        ok: true,
+        status: "approve_all",
+        stats: { considered: eligible.length, approved, failed, publish_now: publishNow },
+        failures,
+      });
+    }
+
+    const candidateId = String(body?.candidate_id ?? "");
     if (!candidateId) return jsonResponse({ error: "candidate_id required" }, 400);
     if (action === "reject") {
       await rejectCandidate(auth.service, candidateId, auth.user.id, body?.reason);
       return jsonResponse({ ok: true, status: "rejected" });
     }
-    const result = await approveCandidate(auth.service, candidateId, { reviewerId: auth.user.id, publishNow: Boolean(body?.publish_now) });
+    const result = await approveCandidate(auth.service, candidateId, {
+      reviewerId: auth.user.id,
+      publishNow,
+    });
     return jsonResponse({ ok: true, status: "approved", ...result });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Approve failed";

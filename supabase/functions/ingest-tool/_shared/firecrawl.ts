@@ -1,3 +1,4 @@
+import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import type { ExtractedTool } from "./normalize.ts";
 
 const FIRECRAWL_BASE = "https://api.firecrawl.dev/v2";
@@ -41,10 +42,14 @@ Rules:
 - categories should map to common AI catalog categories when possible (e.g. AI Assistants, Image Generation, Coding & Development).
 - Keep summary under 200 characters. description can be longer but factual.`;
 
-function apiKey(): string {
-  const key = Deno.env.get("FIRECRAWL_API_KEY");
-  if (!key) throw new Error("FIRECRAWL_API_KEY secret is not set");
-  return key;
+async function firecrawlKey(supabase?: SupabaseClient) {
+  const fromEnv = Deno.env.get("FIRECRAWL_API_KEY");
+  if (fromEnv) return fromEnv;
+  if (!supabase) throw new Error("FIRECRAWL_API_KEY secret is not set");
+  const { data, error } = await supabase.from("runtime_secrets").select("value").eq("key", "FIRECRAWL_API_KEY").maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!data?.value) throw new Error("FIRECRAWL_API_KEY secret is not set");
+  return data.value;
 }
 
 export type ScrapeResult = {
@@ -52,11 +57,12 @@ export type ScrapeResult = {
   markdown: string | null;
 };
 
-export async function scrapeTool(url: string): Promise<ScrapeResult> {
+export async function scrapeTool(url: string, supabase?: SupabaseClient): Promise<ScrapeResult> {
+  const key = await firecrawlKey(supabase);
   const res = await fetch(`${FIRECRAWL_BASE}/scrape`, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${apiKey()}`,
+      Authorization: `Bearer ${key}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
@@ -86,11 +92,16 @@ export async function scrapeTool(url: string): Promise<ScrapeResult> {
 
 export type SearchHit = { url: string; title?: string; description?: string };
 
-export async function searchNewTools(query: string, limit = 8): Promise<SearchHit[]> {
+export async function searchNewTools(
+  query: string,
+  limit = 8,
+  supabase?: SupabaseClient,
+): Promise<SearchHit[]> {
+  const key = await firecrawlKey(supabase);
   const res = await fetch(`${FIRECRAWL_BASE}/search`, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${apiKey()}`,
+      Authorization: `Bearer ${key}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({

@@ -11,10 +11,31 @@ export type IngestSourceType = "manual_url" | "daily_search";
 
 export type IngestItemResult = {
   url: string;
-  status: "queued" | "duplicate" | "exists" | "error";
+  status: "queued" | "duplicate" | "exists" | "error" | "skipped";
   candidate_id?: string;
   error?: string;
 };
+
+/** Stay under Firecrawl free-tier ~15 req/min. */
+const SCRAPE_GAP_MS = 5_000;
+
+const BLOCKED_HOST_PARTS = [
+  "reddit.com",
+  "twitter.com",
+  "x.com",
+  "facebook.com",
+  "linkedin.com",
+  "youtube.com",
+  "tiktok.com",
+  "medium.com",
+  "substack.com",
+  "quora.com",
+  "pinterest.com",
+];
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 function urlsMatch(a: string, b: string): boolean {
   try {
@@ -24,12 +45,35 @@ function urlsMatch(a: string, b: string): boolean {
   }
 }
 
+export function isBlockedUrl(url: string): boolean {
+  try {
+    const host = new URL(url).hostname.toLowerCase();
+    return BLOCKED_HOST_PARTS.some((part) => host === part || host.endsWith(`.${part}`));
+  } catch {
+    return true;
+  }
+}
+
+function isHardFailure(message: string): boolean {
+  const m = message.toLowerCase();
+  return (
+    m.includes("rate limit") ||
+    m.includes("do not support this site") ||
+    m.includes("unsupported") ||
+    m.includes("403") ||
+    m.includes("401")
+  );
+}
+
 export async function ingestUrls(
   supabase: SupabaseClient,
   urls: string[],
   sourceType: IngestSourceType,
+  options: { delayMs?: number } = {},
 ): Promise<IngestItemResult[]> {
+  const delayMs = options.delayMs ?? SCRAPE_GAP_MS;
   const results: IngestItemResult[] = [];
+  let scraped = 0;
 
   for (const raw of urls) {
     let normalized: string;
@@ -46,7 +90,15 @@ export async function ingestUrls(
       continue;
     }
 
-    // Already in catalog?
+    if (isBlockedUrl(normalized)) {
+      results.push({
+        url: normalized,
+        status: "skipped",
+        error: "Blocked host (not an official product page)",
+      });
+      continue;
+    }
+
     const { data: tools, error: toolsError } = await supabase
       .from("tools")
       .select("id, official_url, slug")
@@ -81,25 +133,37 @@ export async function ingestUrls(
       continue;
     }
 
-    // Pending candidate already?
     const { data: existingCandidate } = await supabase
       .from("ingestion_candidates")
-      .select("id, status")
+      .select("id, status, error, extracted_payload")
       .eq("dedupe_key", key)
       .maybeSingle();
 
     if (existingCandidate?.status === "pending") {
-      results.push({
-        url: normalized,
-        status: "duplicate",
-        candidate_id: existingCandidate.id,
-        error: "Already pending review",
-      });
-      continue;
+      const payload = existingCandidate.extracted_payload;
+      const hasPayload =
+        payload &&
+        typeof payload === "object" &&
+        !Array.isArray(payload) &&
+        Object.keys(payload as Record<string, unknown>).length > 0 &&
+        !existingCandidate.error;
+      if (hasPayload) {
+        results.push({
+          url: normalized,
+          status: "duplicate",
+          candidate_id: existingCandidate.id,
+          error: "Already pending review",
+        });
+        continue;
+      }
+      // Allow retry of empty/failed pending rows.
     }
+
+    if (scraped > 0 && delayMs > 0) await sleep(delayMs);
 
     try {
       const { extracted, markdown } = await scrapeTool(normalized, supabase);
+      scraped += 1;
       const payload = sanitizeExtracted(extracted, normalized);
       if (!payload.name || !payload.summary) {
         throw new Error("Extraction missing required name/summary");
@@ -130,7 +194,9 @@ export async function ingestUrls(
       if (insertError) throw new Error(insertError.message);
       results.push({ url: normalized, status: "queued", candidate_id: candidate.id });
     } catch (err) {
+      scraped += 1;
       const message = err instanceof Error ? err.message : "Ingest failed";
+      const status = isHardFailure(message) ? "rejected" : "pending";
       const { data: failed } = await supabase
         .from("ingestion_candidates")
         .upsert(
@@ -138,10 +204,11 @@ export async function ingestUrls(
             candidate_url: normalized,
             dedupe_key: key,
             source_type: sourceType,
-            status: "pending",
+            status,
             extracted_payload: {},
             error: message,
             discovered_at: new Date().toISOString(),
+            reviewed_at: isHardFailure(message) ? new Date().toISOString() : null,
           },
           { onConflict: "dedupe_key" },
         )

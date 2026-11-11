@@ -80,6 +80,34 @@ export async function queueIngestUrls(raw: string) {
   };
 }
 
+export async function triggerDiscoverDaily() {
+  const { data, error } = await supabase.functions.invoke("discover-daily", {
+    body: { force: true },
+  });
+  if (error) throw new Error(error.message);
+  if (data?.error) throw new Error(String(data.error));
+  return data as {
+    run_id?: string;
+    skipped?: boolean;
+    reason?: string;
+    stats?: Record<string, number>;
+    results?: Array<{ url: string; status: string; candidate_id?: string; error?: string }>;
+  };
+}
+
+export async function triggerDiscoverNews(options: { publish?: boolean } = {}) {
+  const { data, error } = await supabase.functions.invoke("discover-news", {
+    body: { publish: Boolean(options.publish), limit: 12 },
+  });
+  if (error) throw new Error(error.message);
+  if (data?.error) throw new Error(String(data.error));
+  return data as {
+    ok: boolean;
+    stats: Record<string, number | string>;
+    results: Array<{ url: string; status: string; id?: string; error?: string }>;
+  };
+}
+
 export async function listPendingCandidates(): Promise<IngestionCandidate[]> {
   const { data, error } = await supabase
     .from("ingestion_candidates")
@@ -87,10 +115,14 @@ export async function listPendingCandidates(): Promise<IngestionCandidate[]> {
       "id, candidate_url, dedupe_key, source_type, status, extracted_payload, raw_markdown, confidence, error, discovered_at, reviewed_at, tool_id",
     )
     .eq("status", "pending")
+    .is("error", null)
     .order("discovered_at", { ascending: false })
     .limit(100);
   if (error) throw new Error(error.message);
-  return (data ?? []) as IngestionCandidate[];
+  return ((data ?? []) as IngestionCandidate[]).filter((row) => {
+    const payload = asPayload(row.extracted_payload);
+    return Boolean(payload.name && payload.summary);
+  });
 }
 
 export async function listRecentIngestionRuns(limit = 5): Promise<IngestionRun[]> {
@@ -104,12 +136,8 @@ export async function listRecentIngestionRuns(limit = 5): Promise<IngestionRun[]
 }
 
 export async function countPendingCandidates(): Promise<number> {
-  const { count, error } = await supabase
-    .from("ingestion_candidates")
-    .select("id", { count: "exact", head: true })
-    .eq("status", "pending");
-  if (error) throw new Error(error.message);
-  return count ?? 0;
+  const rows = await listPendingCandidates();
+  return rows.length;
 }
 
 export async function approveCandidate(candidateId: string, publishNow = false) {
@@ -119,6 +147,20 @@ export async function approveCandidate(candidateId: string, publishNow = false) 
   if (error) throw new Error(error.message);
   if (data?.error) throw new Error(String(data.error));
   return data as { ok: boolean; status: string; tool_id?: string; slug?: string };
+}
+
+export async function approveAllCandidates(publishNow = false) {
+  const { data, error } = await supabase.functions.invoke("approve-candidate", {
+    body: { action: "approve_all", publish_now: publishNow },
+  });
+  if (error) throw new Error(error.message);
+  if (data?.error) throw new Error(String(data.error));
+  return data as {
+    ok: boolean;
+    status: string;
+    stats: { considered: number; approved: number; failed: number; publish_now: boolean };
+    failures?: Array<{ id: string; error: string }>;
+  };
 }
 
 export async function rejectCandidate(candidateId: string, reason?: string) {
