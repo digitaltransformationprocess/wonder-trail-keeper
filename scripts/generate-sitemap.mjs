@@ -73,7 +73,11 @@ async function fetchCategorySlugs(supabase) {
 }
 
 async function main() {
-  const env = loadEnvFile(join(ROOT, ".env"));
+  // Prefer local .env, then production public env (used on Vercel after .env was untracked).
+  const env = {
+    ...loadEnvFile(join(ROOT, ".env.production")),
+    ...loadEnvFile(join(ROOT, ".env")),
+  };
   const supabaseUrl = env.VITE_SUPABASE_URL;
   const supabaseKey = env.VITE_SUPABASE_PUBLISHABLE_KEY;
   const siteUrl = (env.VITE_SITE_URL ?? "").replace(/\/$/, "");
