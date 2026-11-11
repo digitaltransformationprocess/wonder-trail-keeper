@@ -6,7 +6,7 @@ import { useState } from "react";
 import { z } from "zod";
 import { AICoreSceneLazy } from "@/components/AICoreSceneLazy";
 import { SiteShell, SolutionCard } from "@/components/SiteShell";
-import { discover, extractConstraints } from "@/lib/discover";
+import { discoverSmart, extractConstraints } from "@/lib/discover";
 import { fadeUp, springSoft, staggerChildren } from "@/lib/motion";
 import { solutionsQuery } from "@/lib/solutions";
 
@@ -40,15 +40,22 @@ function Discover() {
   const [value, setValue] = useState(q ?? "");
   const reduce = useReducedMotion();
   const { data: solutions = [], isLoading, isError, error, refetch } = useQuery(solutionsQuery);
+  const discoverQuery = useQuery({
+    queryKey: ["discover", q, solutions.map((s) => s.slug).join(",")],
+    queryFn: () => discoverSmart(q!, solutions),
+    enabled: Boolean(q) && solutions.length > 0 && !isLoading,
+    staleTime: 30_000,
+  });
 
-  const results = q
-    ? discover(q, solutions).map((m) => ({
-        solution: m.solution,
-        reasons: m.reasons,
-        caveat: m.solution.limits[0] ?? "To verify",
-      }))
-    : [];
+  const results =
+    discoverQuery.data?.matches.map((m) => ({
+      solution: m.solution,
+      reasons: m.reasons,
+      caveat: m.solution.limits[0] ?? "To verify",
+      source: m.source,
+    })) ?? [];
   const c = q ? extractConstraints(q) : null;
+  const searching = Boolean(q) && (isLoading || discoverQuery.isLoading);
   const go = (next: string) => {
     setValue(next);
     navigate({ search: { q: next } });
@@ -192,7 +199,7 @@ function Discover() {
             </div>
           </div>
 
-          {isLoading ? (
+          {searching ? (
             <p className="glass rounded-3xl px-6 py-12 text-center text-muted-foreground">
               Searching the live catalog…
             </p>

@@ -1,13 +1,25 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { motion, useReducedMotion } from "motion/react";
+import { z } from "zod";
 import { SiteShell } from "@/components/SiteShell";
-import { newsQuery } from "@/lib/news";
+import { newsQuery, type NewsFilters } from "@/lib/news";
 import { fadeUp, staggerChildren } from "@/lib/motion";
 
 export const Route = createFileRoute("/latest")({
-  loader: async ({ context }) => {
-    await context.queryClient.ensureQueryData(newsQuery);
+  validateSearch: z.object({
+    kind: z.string().optional(),
+    since: z.string().optional(),
+  }),
+  loaderDeps: ({ search }) => ({
+    kind: search.kind,
+    since: search.since,
+  }),
+  loader: async ({ context, deps }) => {
+    const filters: NewsFilters = {};
+    if (deps.kind) filters.kind = deps.kind;
+    if (deps.since) filters.since = deps.since;
+    await context.queryClient.ensureQueryData(newsQuery(filters));
   },
   head: () => ({
     meta: [
@@ -21,8 +33,17 @@ export const Route = createFileRoute("/latest")({
   component: Latest,
 });
 
+const field =
+  "rounded-xl glass px-3.5 py-2.5 text-[0.875rem] outline-none transition-apple focus:ring-1 focus:ring-signal/40";
+
 function Latest() {
-  const { data: news = [], isLoading, isError, error, refetch } = useQuery(newsQuery);
+  const search = Route.useSearch();
+  const navigate = useNavigate({ from: "/latest" });
+  const filters: NewsFilters = {};
+  if (search.kind) filters.kind = search.kind;
+  if (search.since) filters.since = search.since;
+
+  const { data: news = [], isLoading, isError, error, refetch } = useQuery(newsQuery(filters));
   const reduce = useReducedMotion();
 
   return (
@@ -34,6 +55,55 @@ function Latest() {
         <motion.p variants={fadeUp} className="mt-3 max-w-xl text-[0.9375rem] text-muted-foreground">
           Fresh signal only — launches, releases, and pricing after verification.
         </motion.p>
+
+        <motion.div
+          variants={fadeUp}
+          className="glass mt-8 flex flex-wrap items-end gap-4 rounded-3xl px-5 py-5"
+        >
+          <div>
+            <label className="mb-1.5 block text-[0.75rem] text-muted-foreground">Kind</label>
+            <input
+              className={field}
+              placeholder="e.g. release"
+              value={search.kind ?? ""}
+              onChange={(e) =>
+                navigate({
+                  search: (prev) => ({
+                    ...prev,
+                    kind: e.target.value || undefined,
+                  }),
+                  replace: true,
+                })
+              }
+            />
+          </div>
+          <div>
+            <label className="mb-1.5 block text-[0.75rem] text-muted-foreground">Since</label>
+            <input
+              className={field}
+              type="date"
+              value={search.since ?? ""}
+              onChange={(e) =>
+                navigate({
+                  search: (prev) => ({
+                    ...prev,
+                    since: e.target.value || undefined,
+                  }),
+                  replace: true,
+                })
+              }
+            />
+          </div>
+          {(search.kind || search.since) && (
+            <button
+              type="button"
+              className="text-[0.8125rem] text-primary"
+              onClick={() => navigate({ search: {}, replace: true })}
+            >
+              Clear filters
+            </button>
+          )}
+        </motion.div>
 
         {isLoading ? (
           <motion.p variants={fadeUp} className="mt-12 text-[0.875rem] text-muted-foreground">
@@ -57,7 +127,7 @@ function Latest() {
             variants={fadeUp}
             className="glass mt-12 rounded-3xl px-6 py-12 text-center text-muted-foreground"
           >
-            No published updates yet.
+            No published updates{search.kind || search.since ? " matching filters" : ""} yet.
           </motion.p>
         ) : (
           <motion.ol variants={staggerChildren} className="mt-12">
@@ -72,11 +142,28 @@ function Latest() {
                   <div className="mt-1 text-primary">{n.kind}</div>
                 </div>
                 <div>
-                  <h2 className="type-title text-[1.5rem] tracking-[-0.02em] md:text-[1.75rem]">
-                    {n.title}
-                  </h2>
+                  {n.slug ? (
+                    <Link to="/latest/$slug" params={{ slug: n.slug }}>
+                      <h2 className="type-title text-[1.5rem] tracking-[-0.02em] transition-apple hover:text-primary md:text-[1.75rem]">
+                        {n.title}
+                      </h2>
+                    </Link>
+                  ) : (
+                    <h2 className="type-title text-[1.5rem] tracking-[-0.02em] md:text-[1.75rem]">
+                      {n.title}
+                    </h2>
+                  )}
                   <p className="type-body mt-2 text-[0.9375rem] text-foreground/85">{n.summary}</p>
                   <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-[0.8125rem]">
+                    {n.slug ? (
+                      <Link
+                        to="/latest/$slug"
+                        params={{ slug: n.slug }}
+                        className="text-primary transition-apple hover:opacity-70"
+                      >
+                        Read more
+                      </Link>
+                    ) : null}
                     {n.solution_slug && (
                       <Link
                         to="/tools/$slug"

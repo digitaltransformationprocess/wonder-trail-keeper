@@ -29,3 +29,6 @@ _deploy_*.json
 _mcp_deploy_*.json
 _compact_*.ts
 _part_*.txt
+_watch_changes_src.txt
+_one_*.json
+_ingest_*.ts

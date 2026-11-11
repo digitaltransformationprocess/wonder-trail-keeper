@@ -19,10 +19,13 @@ function AdminDashboard() {
     { label: "Published tools", value: data?.published },
     { label: "Pending review", value: data?.pendingReview },
     { label: "Pending candidates", value: data?.pendingCandidates },
+    { label: "Pending field changes", value: data?.pendingChanges },
     { label: "Needs update", value: data?.needsUpdate },
     { label: "Archived", value: data?.archived },
     { label: "Total tools", value: data?.toolsTotal },
-    { label: "Published news", value: data?.newsPublished },
+    { label: "News draft", value: data?.newsDraft },
+    { label: "News published", value: data?.newsPublished },
+    { label: "News archived", value: data?.newsArchived },
   ];
 
   const latest = data?.latestIngestionRun;
@@ -52,6 +55,18 @@ function AdminDashboard() {
             className="rounded-full border hairline px-5 py-2.5 text-[0.875rem]"
           >
             Review queue
+          </Link>
+          <Link
+            to="/admin/changes"
+            className="rounded-full border hairline px-5 py-2.5 text-[0.875rem]"
+          >
+            Field changes
+          </Link>
+          <Link
+            to="/admin/news/new"
+            className="rounded-full border hairline px-5 py-2.5 text-[0.875rem]"
+          >
+            New news
           </Link>
           <Link
             to="/admin/tools/new"
@@ -115,9 +130,12 @@ function AdminDashboard() {
         </>
       )}
 
-      <div className="mt-10">
+      <div className="mt-10 flex flex-wrap gap-6">
         <Link to="/admin/tools" className="text-[0.875rem] text-primary">
           Manage tools →
+        </Link>
+        <Link to="/admin/news" className="text-[0.875rem] text-primary">
+          Manage news →
         </Link>
       </div>
     </div>

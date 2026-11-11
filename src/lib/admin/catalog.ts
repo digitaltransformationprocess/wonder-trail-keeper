@@ -401,6 +401,7 @@ export async function getAdminDashboardCounts() {
     { data: tools, error: toolsError },
     { data: news, error: newsError },
     { count: pendingCandidates, error: candidatesError },
+    { count: pendingChanges, error: changesError },
     { data: latestRun, error: runError },
   ] = await Promise.all([
     supabase.from("tools").select("id, status"),
@@ -409,6 +410,10 @@ export async function getAdminDashboardCounts() {
       .from("ingestion_candidates")
       .select("id", { count: "exact", head: true })
       .eq("status", "pending"),
+    supabase
+      .from("change_events")
+      .select("id", { count: "exact", head: true })
+      .eq("review_status", "pending"),
     supabase
       .from("ingestion_runs")
       .select("id, kind, started_at, finished_at, stats, error")
@@ -419,10 +424,16 @@ export async function getAdminDashboardCounts() {
   if (toolsError) throw new Error(toolsError.message);
   if (newsError) throw new Error(newsError.message);
   if (candidatesError) throw new Error(candidatesError.message);
+  if (changesError) throw new Error(changesError.message);
   if (runError) throw new Error(runError.message);
 
   const byStatus = (tools ?? []).reduce<Record<string, number>>((acc, t) => {
     acc[t.status] = (acc[t.status] ?? 0) + 1;
+    return acc;
+  }, {});
+
+  const newsByStatus = (news ?? []).reduce<Record<string, number>>((acc, n) => {
+    acc[n.status] = (acc[n.status] ?? 0) + 1;
     return acc;
   }, {});
 
@@ -432,8 +443,11 @@ export async function getAdminDashboardCounts() {
     pendingReview: byStatus["pending_review"] ?? 0,
     needsUpdate: byStatus["needs_update"] ?? 0,
     archived: byStatus["archived"] ?? 0,
-    newsPublished: (news ?? []).filter((n) => n.status === "published").length,
+    newsDraft: newsByStatus["draft"] ?? 0,
+    newsPublished: newsByStatus["published"] ?? 0,
+    newsArchived: newsByStatus["archived"] ?? 0,
     pendingCandidates: pendingCandidates ?? 0,
+    pendingChanges: pendingChanges ?? 0,
     latestIngestionRun: latestRun,
   };
 }

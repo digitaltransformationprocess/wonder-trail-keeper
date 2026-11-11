@@ -1,12 +1,17 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { motion, useReducedMotion } from "motion/react";
+import { useEffect, useRef } from "react";
+import { z } from "zod";
 import { SiteShell } from "@/components/SiteShell";
-import { solutionsBySlugsQuery, type Solution } from "@/lib/solutions";
-import { useCompare } from "@/lib/store";
 import { fadeUp, staggerChildren } from "@/lib/motion";
+import { solutionsBySlugsQuery, type Solution } from "@/lib/solutions";
+import { setCompareSlugs, useCompare } from "@/lib/store";
 
 export const Route = createFileRoute("/compare")({
+  validateSearch: z.object({
+    tools: z.string().optional(),
+  }),
   head: () => ({
     meta: [
       { title: "Compare — AI solution comparison | AI Discovery" },
@@ -33,12 +38,42 @@ const ROWS: [string, (s: Solution) => string][] = [
   ["Verified on", (s) => s.verifiedAt],
 ];
 
+function parseToolSlugs(raw: string | undefined): string[] {
+  if (!raw) return [];
+  return raw
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .slice(0, 4);
+}
+
 function Compare() {
+  const { tools: toolsParam } = Route.useSearch();
+  const navigate = useNavigate({ from: "/compare" });
   const { list, toggle } = useCompare();
   const { data: items = [], isLoading, isError, error, refetch } = useQuery(
     solutionsBySlugsQuery(list),
   );
   const reduce = useReducedMotion();
+  const urlReady = useRef(false);
+
+  useEffect(() => {
+    if (toolsParam) {
+      setCompareSlugs(parseToolSlugs(toolsParam));
+    }
+    urlReady.current = true;
+  }, []);
+
+  useEffect(() => {
+    if (!urlReady.current) return;
+    const next = list.length > 0 ? list.join(",") : undefined;
+    const current = toolsParam || undefined;
+    if (next === current) return;
+    void navigate({
+      search: (prev) => ({ ...prev, tools: next }),
+      replace: true,
+    });
+  }, [list, toolsParam, navigate]);
 
   return (
     <SiteShell>
@@ -47,7 +82,7 @@ function Compare() {
           Compare
         </motion.h1>
         <motion.p variants={fadeUp} className="mt-3 max-w-xl text-[0.9375rem] text-muted-foreground">
-          Side-by-side criteria — missing data stays missing.
+          Side-by-side criteria — missing data stays missing. Share this page to pass the list along.
         </motion.p>
 
         {list.length === 0 ? (

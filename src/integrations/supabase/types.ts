@@ -62,7 +62,10 @@ export type Database = {
           id: string
           new_value: string | null
           old_value: string | null
+          review_note: string | null
+          review_status: string
           reviewed_at: string | null
+          reviewed_by: string | null
           source_id: string | null
           tool_id: string | null
         }
@@ -72,7 +75,10 @@ export type Database = {
           id?: string
           new_value?: string | null
           old_value?: string | null
+          review_note?: string | null
+          review_status?: string
           reviewed_at?: string | null
+          reviewed_by?: string | null
           source_id?: string | null
           tool_id?: string | null
         }
@@ -82,7 +88,10 @@ export type Database = {
           id?: string
           new_value?: string | null
           old_value?: string | null
+          review_note?: string | null
+          review_status?: string
           reviewed_at?: string | null
+          reviewed_by?: string | null
           source_id?: string | null
           tool_id?: string | null
         }
@@ -96,6 +105,95 @@ export type Database = {
           },
           {
             foreignKeyName: "change_events_tool_id_fkey"
+            columns: ["tool_id"]
+            isOneToOne: false
+            referencedRelation: "tools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      collection_items: {
+        Row: {
+          collection_id: string
+          created_at: string
+          position: number
+          tool_id: string
+        }
+        Insert: {
+          collection_id: string
+          created_at?: string
+          position?: number
+          tool_id: string
+        }
+        Update: {
+          collection_id?: string
+          created_at?: string
+          position?: number
+          tool_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collection_items_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "collections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "collection_items_tool_id_fkey"
+            columns: ["tool_id"]
+            isOneToOne: false
+            referencedRelation: "tools"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      collections: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          slug: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          slug: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          slug?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      favorites: {
+        Row: {
+          created_at: string
+          tool_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          tool_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          tool_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "favorites_tool_id_fkey"
             columns: ["tool_id"]
             isOneToOne: false
             referencedRelation: "tools"
@@ -430,6 +528,36 @@ export type Database = {
           key?: string
           updated_at?: string
           value?: string
+        }
+        Relationships: []
+      }
+      search_logs: {
+        Row: {
+          constraints: Json
+          created_at: string
+          id: string
+          latency_ms: number | null
+          query: string
+          result_count: number
+          source: string
+        }
+        Insert: {
+          constraints?: Json
+          created_at?: string
+          id?: string
+          latency_ms?: number | null
+          query: string
+          result_count?: number
+          source?: string
+        }
+        Update: {
+          constraints?: Json
+          created_at?: string
+          id?: string
+          latency_ms?: number | null
+          query?: string
+          result_count?: number
+          source?: string
         }
         Relationships: []
       }
@@ -775,6 +903,23 @@ export type Database = {
         Returns: Database["public"]["Enums"]["app_role"]
       }
       is_staff: { Args: never; Returns: boolean }
+      search_published_tools: {
+        Args: {
+          q: string
+          want_api?: boolean
+          want_free?: boolean
+          want_local?: boolean
+          want_oss?: boolean
+          result_limit?: number
+        }
+        Returns: {
+          id: string
+          name: string
+          rank: number
+          slug: string
+          summary: string
+        }[]
+      }
     }
     Enums: {
       app_role:
@@ -789,7 +934,7 @@ export type Database = {
         | "approved"
         | "rejected"
         | "duplicate"
-      ingestion_run_kind: "manual_ingest" | "daily_discover"
+      ingestion_run_kind: "manual_ingest" | "daily_discover" | "change_watch"
       ingestion_source_type: "manual_url" | "daily_search"
       news_status: "draft" | "published" | "archived"
       reliability_level: "A" | "B" | "C" | "D"

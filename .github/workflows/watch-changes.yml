@@ -1,0 +1,26 @@
+name: Watch published tool changes
+
+on:
+  schedule:
+    # 07:30 UTC — backup if pg_cron/pg_net is unavailable
+    - cron: "30 7 * * *"
+  workflow_dispatch:
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger watch-changes edge function
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          INGEST_CRON_SECRET: ${{ secrets.INGEST_CRON_SECRET }}
+        run: |
+          set -euo pipefail
+          if [ -z "${SUPABASE_URL:-}" ] || [ -z "${INGEST_CRON_SECRET:-}" ]; then
+            echo "Missing SUPABASE_URL or INGEST_CRON_SECRET repository secrets"
+            exit 1
+          fi
+          curl -fsS -X POST "${SUPABASE_URL}/functions/v1/watch-changes" \
+            -H "Content-Type: application/json" \
+            -H "x-ingest-secret: ${INGEST_CRON_SECRET}" \
+            -d '{"limit":5}'
