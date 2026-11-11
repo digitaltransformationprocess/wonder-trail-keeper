@@ -6,7 +6,7 @@ import { useState } from "react";
 import { z } from "zod";
 import { AICoreSceneLazy } from "@/components/AICoreSceneLazy";
 import { SiteShell, SolutionCard } from "@/components/SiteShell";
-import { discoverSmart, extractConstraints } from "@/lib/discover";
+import { discover, discoverSmart, discoverViaFts, extractConstraints } from "@/lib/discover";
 import { fadeUp, springSoft, staggerChildren } from "@/lib/motion";
 import { solutionsQuery } from "@/lib/solutions";
 
@@ -40,22 +40,44 @@ function Discover() {
   const [value, setValue] = useState(q ?? "");
   const reduce = useReducedMotion();
   const { data: solutions = [], isLoading, isError, error, refetch } = useQuery(solutionsQuery);
-  const discoverQuery = useQuery({
-    queryKey: ["discover", q, solutions.map((s) => s.slug).join(",")],
-    queryFn: () => discoverSmart(q!, solutions),
-    enabled: Boolean(q) && solutions.length > 0 && !isLoading,
+  const catalogKey = solutions.map((s) => s.slug).join(",");
+  const enabled = Boolean(q) && solutions.length > 0 && !isLoading;
+
+  // Fast path: show catalog matches immediately while Grok answers.
+  const ftsQuery = useQuery({
+    queryKey: ["discover-fts", q, catalogKey],
+    queryFn: async () => {
+      const bySlug = new Map(solutions.map((s) => [s.slug, s]));
+      try {
+        return await discoverViaFts(q!, bySlug);
+      } catch {
+        return discover(q!, solutions);
+      }
+    },
+    enabled,
     staleTime: 30_000,
   });
 
-  const results =
-    discoverQuery.data?.matches.map((m) => ({
-      solution: m.solution,
-      reasons: m.reasons,
-      caveat: m.solution.limits[0] ?? "To verify",
-      source: m.source,
-    })) ?? [];
+  const discoverQuery = useQuery({
+    queryKey: ["discover", q, catalogKey],
+    queryFn: () => discoverSmart(q!, solutions),
+    enabled,
+    staleTime: 30_000,
+  });
+
+  const matches = discoverQuery.data?.matches?.length
+    ? discoverQuery.data.matches
+    : (ftsQuery.data ?? []);
+  const results = matches.map((m) => ({
+    solution: m.solution,
+    reasons: m.reasons,
+    caveat: m.solution.limits[0] ?? "To verify",
+    source: m.source,
+  }));
+  const answer = discoverQuery.data?.answer;
   const c = q ? extractConstraints(q) : null;
-  const searching = Boolean(q) && (isLoading || discoverQuery.isLoading);
+  const searching = Boolean(q) && isLoading;
+  const waitingAi = Boolean(q) && discoverQuery.isLoading && !answer;
   const go = (next: string) => {
     setValue(next);
     navigate({ search: { q: next } });
@@ -199,6 +221,22 @@ function Discover() {
             </div>
           </div>
 
+          {(answer || waitingAi) && (
+            <div className="glass mb-6 rounded-3xl px-5 py-5 md:px-6">
+              <p className="text-[0.7rem] tracking-[0.14em] text-muted-foreground">ASSISTANT</p>
+              {answer ? (
+                <p className="type-body mt-3 text-[1.05rem] leading-7 text-foreground/90">{answer}</p>
+              ) : (
+                <p className="mt-3 text-[0.9375rem] text-muted-foreground">
+                  Writing a grounded answer from the catalog…
+                </p>
+              )}
+              <p className="mt-3 text-[0.75rem] text-muted-foreground">
+                Answers use published catalog fields only. Missing data stays “To verify”.
+              </p>
+            </div>
+          )}
+
           {searching ? (
             <p className="glass rounded-3xl px-6 py-12 text-center text-muted-foreground">
               Searching the live catalog…
@@ -216,9 +254,13 @@ function Discover() {
                 Retry
               </button>
             </div>
-          ) : results.length === 0 ? (
+          ) : results.length === 0 && !ftsQuery.isLoading ? (
             <p className="glass rounded-3xl px-6 py-12 text-center text-muted-foreground">
               No matching solutions. Try rephrasing or removing a requirement.
+            </p>
+          ) : results.length === 0 ? (
+            <p className="glass rounded-3xl px-6 py-12 text-center text-muted-foreground">
+              Searching the live catalog…
             </p>
           ) : (
             <motion.div

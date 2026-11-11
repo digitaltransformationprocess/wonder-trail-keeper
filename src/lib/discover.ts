@@ -137,6 +137,7 @@ export async function discoverViaFts(
 export interface DiscoverAiResult {
   matches: Match[];
   source: "ai" | "fts" | "local";
+  answer?: string;
   intent?: Record<string, unknown>;
 }
 
@@ -163,6 +164,7 @@ export async function discoverSmart(
       if (res.ok) {
         const body = (await res.json()) as {
           source?: "ai" | "fts";
+          answer?: string;
           intent?: Record<string, unknown>;
           results?: Array<{
             slug: string;
@@ -181,15 +183,22 @@ export async function discoverSmart(
             source: body.source === "ai" ? "ai" : "fts",
           });
         }
-        if (matches.length) {
+        const answer = typeof body.answer === "string" ? body.answer.trim() : undefined;
+        if (matches.length || answer) {
           return {
             matches: matches.slice(0, 6),
             source: body.source === "ai" ? "ai" : "fts",
+            answer,
             intent: body.intent,
           };
         }
         if (body.source === "fts" || body.source === "ai") {
-          return { matches: [], source: body.source ?? "fts", intent: body.intent };
+          return {
+            matches: [],
+            source: body.source ?? "fts",
+            answer,
+            intent: body.intent,
+          };
         }
       }
     } catch {
