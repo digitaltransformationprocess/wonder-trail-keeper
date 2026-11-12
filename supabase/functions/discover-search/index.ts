@@ -246,6 +246,27 @@ async function loadTools(
   return (data ?? []) as ToolRow[];
 }
 
+/** Internal ranks — service_role only; never returned to clients. */
+async function loadInternalRanks(
+  supabase: ReturnType<typeof createClient>,
+  toolIds: string[],
+): Promise<Map<string, number>> {
+  const out = new Map<string, number>();
+  if (!toolIds.length) return out;
+  const { data, error } = await supabase
+    .from("tool_internal_ranks")
+    .select("tool_id, rank_score")
+    .in("tool_id", toolIds);
+  if (error) {
+    console.error("internal ranks unavailable", error.message);
+    return out;
+  }
+  for (const row of data ?? []) {
+    out.set(row.tool_id as string, Number(row.rank_score) || 40);
+  }
+  return out;
+}
+
 async function loadEvidence(
   supabase: ReturnType<typeof createClient>,
   toolIds: string[],
@@ -531,6 +552,10 @@ Deno.serve(async (req) => {
       supabase,
       tools.map((t) => t.id),
     );
+    const internalRanks = await loadInternalRanks(
+      supabase,
+      tools.map((t) => t.id),
+    );
     const hybridBySlug = new Map(hybrid.map((h) => [h.slug, h]));
 
     const grokKey = await readSecret(supabase, ["GROK_API_KEY", "XAI_API_KEY"]);
@@ -553,7 +578,20 @@ Deno.serve(async (req) => {
         ]
       : candidateSlugs;
 
-    const results = [];
+    type RankedResult = {
+      slug: string;
+      name: string;
+      summary: string;
+      score: number;
+      reasons: string[];
+      match_reason: string[];
+      tradeoffs: string[];
+      confidence: "high" | "medium" | "low";
+      evidence: string[];
+      _sort: number;
+    };
+
+    const results: RankedResult[] = [];
     for (const slug of orderedSlugs) {
       const tool = bySlug.get(slug);
       if (!tool) continue;
@@ -565,29 +603,36 @@ Deno.serve(async (req) => {
       const llmTradeoffs = (llm?.reasonsBySlug?.[slug] ?? [])
         .filter((r) => r.startsWith("Tradeoff:"))
         .map((r) => r.replace(/^Tradeoff:\s*/, ""));
+      const internal = internalRanks.get(tool.id) ?? 40;
+      // Blend relevance with internal popularity/trust — never expose components.
+      const blended = Math.round(scored.score * 0.6 + internal * 0.4);
 
       results.push({
         slug: tool.slug,
         name: tool.name,
         summary: tool.summary,
-        score: scored.score,
+        score: blended,
         reasons: [...new Set([...llmReasons, ...scored.matchReasons])].slice(0, 3),
         match_reason: [...new Set([...llmReasons, ...scored.matchReasons])].slice(0, 3),
         tradeoffs: [...new Set([...llmTradeoffs, ...scored.tradeoffs])].slice(0, 3),
         confidence: scored.confidence,
         evidence: evidenceByTool.get(tool.id) ?? [],
+        _sort: blended,
       });
     }
+
+    results.sort((a, b) => b._sort - a._sort);
+    const publicResults = results.map(({ _sort: _ignored, ...rest }) => rest);
 
     const answer =
       llm?.answer ||
       buildFallbackAnswer(
         query,
-        results.map((r) => bySlug.get(r.slug)!).filter(Boolean),
+        publicResults.map((r) => bySlug.get(r.slug)!).filter(Boolean),
       );
 
-    const coverage_note = results.length
-      ? `Scoring: need 40% · features 25% · price 15% · compatibility 10% · freshness 10%. ${
+    const coverage_note = publicResults.length
+      ? `Matched against the verified catalog. ${
           embedded ? "Hybrid FTS+semantic recall." : "FTS recall (embeddings unavailable)."
         }`
       : "No published catalog match under current constraints.";
@@ -595,7 +640,7 @@ Deno.serve(async (req) => {
     await supabase.from("search_logs").insert({
       query,
       constraints: { ...c, clarification_needed: clarification.needed, semantic: Boolean(embedded) },
-      result_count: results.length,
+      result_count: publicResults.length,
       latency_ms: Date.now() - started,
       source,
     });
@@ -616,7 +661,7 @@ Deno.serve(async (req) => {
         embedding_model: embedded?.model ?? null,
         retrieval: semRows.length ? "hybrid" : "fts",
       },
-      results,
+      results: publicResults,
     });
   } catch (err) {
     return json(

@@ -100,7 +100,7 @@ export async function triggerDiscoverNews(options: { publish?: boolean; days?: n
     body: {
       publish: Boolean(options.publish),
       limit: 12,
-      days: options.days ?? 1,
+      days: options.days ?? 7,
     },
   });
   if (error) throw new Error(error.message);

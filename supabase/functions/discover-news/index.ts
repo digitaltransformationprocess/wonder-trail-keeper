@@ -94,13 +94,15 @@ function looksLikeListing(url: string): boolean {
 }
 
 function inferKind(title: string, description: string, eventKind?: string): string {
+  const t = `${title} ${description}`.toLowerCase();
+  if (/pric|plan|billing|free tier|subscription/.test(t)) return "pricing";
+  if (/v\d|version|update|upgrade|changelog|\d+\.\d+/.test(t)) return "version";
+  if (/new tool|launches? a|introduces?|debut|arrives|added to/.test(t)) return "new_tool";
+  if (/launch|releas|announce|introduc|unveil|generally available|ga\b/.test(t)) return "release";
+  if (/acquisit|fund|rais|ipo|merger/.test(t)) return "business";
   if (eventKind && ["pricing", "release", "business", "news", "research"].includes(eventKind)) {
     return eventKind === "research" ? "news" : eventKind;
   }
-  const t = `${title} ${description}`.toLowerCase();
-  if (/pric|plan|billing|free tier/.test(t)) return "pricing";
-  if (/launch|releas|announce|introduc|unveil/.test(t)) return "release";
-  if (/acquisit|fund|rais|ipo/.test(t)) return "business";
   return "news";
 }
 
@@ -157,18 +159,28 @@ async function reformulateNews(
     "grok-4.20-0309-non-reasoning";
 
   const system = [
-    "You are an editor for an AI Discovery catalog (Latest news).",
-    "Rewrite the source article into a short, neutral product-news item.",
+    "You are an editor for AI Discov Blog — product posts like a tool review / release note.",
+    "Rewrite the source into a clear blog article about an AI tool, model, version, launch, or pricing change.",
     "HARD RULES:",
-    "1) Use ONLY facts present in the provided source text. Never invent.",
-    "2) Focus on AI tools, models, APIs, agents, or platforms when possible.",
-    "3) No hype, no affiliate tone, no speculation.",
+    "1) Use ONLY facts present in the provided source text. Never invent prices, benchmarks, or features.",
+    "2) Prefer concrete product names, version numbers, pricing, and capabilities when present.",
+    "3) Neutral, practical tone — no hype, no affiliate CTA spam.",
     "4) Reply in English.",
+    "5) body must use markdown sections with ## headings.",
     "OUTPUT ONLY valid JSON:",
-    '{"title":"max 90 chars","summary":"1-2 sentences max 280 chars","body":"2-4 short paragraphs"}',
+    '{"title":"specific headline with product + angle, max 110 chars","summary":"lead paragraph 1-3 sentences max 360 chars","body":"markdown blog body"}',
+    "body structure (omit a section if source lacks facts):",
+    "## What shipped",
+    "## Who it is for",
+    "Pros\\n- ...",
+    "Cons\\n- ...",
+    "## Pricing notes",
+    "## FAQ",
+    "### Question?\\nAnswer.",
+    "Verdict: one closing sentence grounded in the source.",
   ].join("\n");
 
-  const excerpt = (input.markdown ?? input.summary).slice(0, 6000);
+  const excerpt = (input.markdown ?? input.summary).slice(0, 9000);
   const res = await fetch("https://api.x.ai/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -177,8 +189,8 @@ async function reformulateNews(
     },
     body: JSON.stringify({
       model,
-      temperature: 0.2,
-      max_tokens: 700,
+      temperature: 0.25,
+      max_tokens: 1400,
       messages: [
         { role: "system", content: system },
         {
@@ -208,8 +220,8 @@ async function reformulateNews(
   try {
     const parsed = JSON.parse(match[0]) as { title?: string; summary?: string; body?: string };
     const title = (parsed.title ?? "").trim().slice(0, 180);
-    const summary = (parsed.summary ?? "").trim().slice(0, 400);
-    const articleBody = (parsed.body ?? "").trim().slice(0, 4000);
+    const summary = (parsed.summary ?? "").trim().slice(0, 500);
+    const articleBody = (parsed.body ?? "").trim().slice(0, 8000);
     if (!title || !summary) return null;
     return { title, summary, body: articleBody || summary };
   } catch {
@@ -250,7 +262,8 @@ Deno.serve(async (req) => {
     };
     const publish = Boolean(body.publish);
     const limit = Math.max(1, Math.min(Number(body.limit ?? 12), 20));
-    const daysWindow = Math.max(1, Math.min(Number(body.days ?? 1), 3));
+    // Blog regen often needs a wider window than same-day only.
+    const daysWindow = Math.max(1, Math.min(Number(body.days ?? 7), 21));
 
     const cronHeader = req.headers.get("x-ingest-secret");
     let supabase: SupabaseClient;

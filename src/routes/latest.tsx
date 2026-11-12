@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { motion, useReducedMotion } from "motion/react";
 import { z } from "zod";
 import { SiteShell } from "@/components/SiteShell";
-import { newsQuery, type NewsFilters } from "@/lib/news";
+import { newsQuery, type NewsFilters, type NewsRow } from "@/lib/news";
 import { fadeUp, staggerChildren } from "@/lib/motion";
 
 export const Route = createFileRoute("/latest")({
@@ -23,18 +23,48 @@ export const Route = createFileRoute("/latest")({
   },
   head: () => ({
     meta: [
-      { title: "Latest — Verified AI news | AI Discovery" },
+      { title: "Latest — New AI tools, releases & versions | AI Discov" },
       {
         name: "description",
-        content: "Sourced news about new AI tools, releases, and pricing changes.",
+        content:
+          "Updates on new AI tools, model releases, version upgrades, pricing, and product launches.",
       },
     ],
   }),
   component: Latest,
 });
 
-const field =
-  "rounded-xl glass px-3.5 py-2.5 text-[0.875rem] outline-none transition-apple focus:ring-1 focus:ring-signal/40";
+const KINDS = [
+  { value: "", label: "All" },
+  { value: "release", label: "Releases" },
+  { value: "version", label: "Versions" },
+  { value: "new_tool", label: "New tools" },
+  { value: "pricing", label: "Pricing" },
+  { value: "business", label: "Business" },
+] as const;
+
+function kindLabel(kind: string) {
+  const map: Record<string, string> = {
+    release: "Release",
+    version: "Version",
+    new_tool: "New tool",
+    pricing: "Pricing",
+    business: "Business",
+    news: "News",
+  };
+  return map[kind] ?? kind;
+}
+
+function groupByDate(items: NewsRow[]) {
+  const groups = new Map<string, NewsRow[]>();
+  for (const item of items) {
+    const key = item.published_at || "Undated";
+    const list = groups.get(key) ?? [];
+    list.push(item);
+    groups.set(key, list);
+  }
+  return [...groups.entries()];
+}
 
 function Latest() {
   const search = Route.useSearch();
@@ -45,64 +75,54 @@ function Latest() {
 
   const { data: news = [], isLoading, isError, error, refetch } = useQuery(newsQuery(filters));
   const reduce = useReducedMotion();
+  const grouped = groupByDate(news);
 
   return (
     <SiteShell>
       <motion.div initial={reduce ? false : "hidden"} animate="show" variants={staggerChildren}>
-        <motion.h1 variants={fadeUp} className="type-display text-clarity text-[2.5rem] md:text-[3.25rem]">
+        <motion.p
+          variants={fadeUp}
+          className="text-[0.75rem] font-medium uppercase tracking-[0.12em] text-muted-foreground"
+        >
+          AI Discov
+        </motion.p>
+        <motion.h1
+          variants={fadeUp}
+          className="type-display text-clarity mt-2 text-[2.5rem] md:text-[3.4rem]"
+        >
           Latest
         </motion.h1>
-        <motion.p variants={fadeUp} className="mt-3 max-w-xl text-[0.9375rem] text-muted-foreground">
-          Fresh signal only — launches, releases, and pricing after verification.
+        <motion.p variants={fadeUp} className="mt-4 max-w-2xl text-[1.05rem] leading-8 text-muted-foreground">
+          New AI tools, model versions, pricing changes, and product milestones — clear posts you
+          can skim in a minute.
         </motion.p>
 
-        <motion.div
-          variants={fadeUp}
-          className="glass mt-8 flex flex-wrap items-end gap-4 rounded-3xl px-5 py-5"
-        >
-          <div>
-            <label className="mb-1.5 block text-[0.75rem] text-muted-foreground">Kind</label>
-            <input
-              className={field}
-              placeholder="e.g. release"
-              value={search.kind ?? ""}
-              onChange={(e) =>
-                navigate({
-                  search: (prev) => ({
-                    ...prev,
-                    kind: e.target.value || undefined,
-                  }),
-                  replace: true,
-                })
-              }
-            />
-          </div>
-          <div>
-            <label className="mb-1.5 block text-[0.75rem] text-muted-foreground">Since</label>
-            <input
-              className={field}
-              type="date"
-              value={search.since ?? ""}
-              onChange={(e) =>
-                navigate({
-                  search: (prev) => ({
-                    ...prev,
-                    since: e.target.value || undefined,
-                  }),
-                  replace: true,
-                })
-              }
-            />
-          </div>
-          {(search.kind || search.since) && (
-            <button
-              type="button"
-              className="text-[0.8125rem] text-primary"
-              onClick={() => navigate({ search: {}, replace: true })}
-            >
-              Clear filters
-            </button>
-          )}
+        <motion.div variants={fadeUp} className="mt-8 flex flex-wrap gap-2">
+          {KINDS.map((k) => {
+            const active = (search.kind ?? "") === k.value;
+            return (
+              <button
+                key={k.label}
+                type="button"
+                className={`rounded-full px-3.5 py-1.5 text-[0.8125rem] transition-apple ${
+                  active
+                    ? "bg-primary text-primary-foreground"
+                    : "glass text-muted-foreground hover:text-foreground"
+                }`}
+                onClick={() =>
+                  navigate({
+                    search: (prev) => ({
+                      ...prev,
+                      kind: k.value || undefined,
+                    }),
+                    replace: true,
+                  })
+                }
+              >
+                {k.label}
+              </button>
+            );
+          })}
         </motion.div>
 
         {isLoading ? (
@@ -112,7 +132,7 @@ function Latest() {
         ) : isError ? (
           <motion.div variants={fadeUp} className="glass mt-12 rounded-3xl px-6 py-12 text-center">
             <p className="text-muted-foreground">
-              Couldn’t load news{error instanceof Error ? `: ${error.message}` : "."}
+              Couldn’t load updates{error instanceof Error ? `: ${error.message}` : "."}
             </p>
             <button
               type="button"
@@ -127,65 +147,60 @@ function Latest() {
             variants={fadeUp}
             className="glass mt-12 rounded-3xl px-6 py-12 text-center text-muted-foreground"
           >
-            No published updates{search.kind || search.since ? " matching filters" : ""} yet.
+            No published updates{search.kind ? " in this category" : ""} yet.
           </motion.p>
         ) : (
-          <motion.ol variants={staggerChildren} className="mt-12">
-            {news.map((n) => (
-              <motion.li
-                key={n.id}
-                variants={fadeUp}
-                className="glass mb-3 grid gap-3 rounded-3xl px-5 py-6 md:grid-cols-[140px_minmax(0,1fr)]"
-              >
-                <div className="text-[0.8125rem] text-muted-foreground">
-                  <div>{n.published_at}</div>
-                  <div className="mt-1 text-primary">{n.kind}</div>
-                </div>
-                <div>
-                  {n.slug ? (
-                    <Link to="/latest/$slug" params={{ slug: n.slug }}>
-                      <h2 className="type-title text-[1.5rem] tracking-[-0.02em] transition-apple hover:text-primary md:text-[1.75rem]">
-                        {n.title}
-                      </h2>
-                    </Link>
-                  ) : (
-                    <h2 className="type-title text-[1.5rem] tracking-[-0.02em] md:text-[1.75rem]">
-                      {n.title}
-                    </h2>
-                  )}
-                  <p className="type-body mt-2 text-[0.9375rem] text-foreground/85">{n.summary}</p>
-                  <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-[0.8125rem]">
-                    {n.slug ? (
-                      <Link
-                        to="/latest/$slug"
-                        params={{ slug: n.slug }}
-                        className="text-primary transition-apple hover:opacity-70"
-                      >
-                        Read more
-                      </Link>
-                    ) : null}
-                    {n.solution_slug && (
-                      <Link
-                        to="/tools/$slug"
-                        params={{ slug: n.solution_slug }}
-                        className="text-primary transition-apple hover:opacity-70"
-                      >
-                        View tool
-                      </Link>
-                    )}
-                    <a
-                      href={n.source_url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-muted-foreground transition-apple hover:text-foreground"
-                    >
-                      Source
-                    </a>
-                  </div>
-                </div>
-              </motion.li>
+          <motion.div variants={staggerChildren} className="mt-12 space-y-12">
+            {grouped.map(([date, items]) => (
+              <motion.section key={date} variants={fadeUp}>
+                <h2 className="type-title text-[0.95rem] tracking-[-0.01em] text-muted-foreground">
+                  {date === new Date().toISOString().slice(0, 10) ? "Today" : date}
+                </h2>
+                <ol className="mt-4 space-y-3">
+                  {items.map((n, idx) => {
+                    const inner = (
+                      <>
+                        <span className="mt-1 w-7 shrink-0 text-[0.875rem] tabular-nums text-muted-foreground">
+                          {idx + 1}.
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="rounded-full bg-fill px-2.5 py-0.5 text-[0.7rem] font-medium uppercase tracking-[0.06em] text-muted-foreground">
+                              {kindLabel(n.kind)}
+                            </span>
+                            {n.solution_slug ? (
+                              <span className="text-[0.75rem] text-muted-foreground">
+                                Catalog · {n.solution_slug}
+                              </span>
+                            ) : null}
+                          </div>
+                          <h3 className="type-title mt-2 text-[1.25rem] tracking-[-0.02em] transition-apple group-hover:text-primary md:text-[1.45rem]">
+                            {n.title}
+                          </h3>
+                          <p className="mt-2 line-clamp-2 text-[0.9375rem] leading-7 text-muted-foreground">
+                            {n.summary}
+                          </p>
+                        </div>
+                      </>
+                    );
+                    const className =
+                      "glass group flex gap-4 rounded-3xl px-5 py-5 transition-apple hover:bg-fill/50 md:gap-6 md:px-6";
+                    return (
+                      <li key={n.id}>
+                        {n.slug ? (
+                          <Link to="/latest/$slug" params={{ slug: n.slug }} className={className}>
+                            {inner}
+                          </Link>
+                        ) : (
+                          <div className={className}>{inner}</div>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ol>
+              </motion.section>
             ))}
-          </motion.ol>
+          </motion.div>
         )}
       </motion.div>
     </SiteShell>
