@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { motion, useReducedMotion } from "motion/react";
 import { z } from "zod";
@@ -15,7 +15,11 @@ export const Route = createFileRoute("/latest")({
     kind: search.kind,
     since: search.since,
   }),
-  loader: async ({ context, deps }) => {
+  loader: async ({ context, deps, location }) => {
+    // Child article route (/latest/$slug) renders via <Outlet />; skip list fetch.
+    if (location.pathname !== "/latest" && location.pathname.startsWith("/latest/")) {
+      return;
+    }
     const filters: NewsFilters = {};
     if (deps.kind) filters.kind = deps.kind;
     if (deps.since) filters.since = deps.since;
@@ -31,8 +35,16 @@ export const Route = createFileRoute("/latest")({
       },
     ],
   }),
-  component: Latest,
+  component: LatestLayout,
 });
+
+function LatestLayout() {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  if (pathname !== "/latest" && pathname.startsWith("/latest/")) {
+    return <Outlet />;
+  }
+  return <Latest />;
+}
 
 const KINDS = [
   { value: "", label: "All" },
