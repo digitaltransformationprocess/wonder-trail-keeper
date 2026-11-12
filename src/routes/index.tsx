@@ -4,7 +4,6 @@ import { Search } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import { useState } from "react";
 import { z } from "zod";
-import { AICoreSceneLazy, useIsDesktopHero } from "@/components/AICoreSceneLazy";
 import { SiteShell, SolutionCard } from "@/components/SiteShell";
 import { discover, discoverSmart, discoverViaFts, extractConstraints } from "@/lib/discover";
 import { fadeUp, springSoft, staggerChildren } from "@/lib/motion";
@@ -39,7 +38,6 @@ function Discover() {
   const navigate = useNavigate({ from: "/" });
   const [value, setValue] = useState(q ?? "");
   const reduce = useReducedMotion();
-  const isDesktop = useIsDesktopHero();
   const { data: solutions = [], isLoading, isError, error, refetch } = useQuery(solutionsQuery);
   const catalogKey = solutions.map((s) => s.slug).join(",");
   const enabled = Boolean(q) && solutions.length > 0 && !isLoading;
@@ -92,11 +90,6 @@ function Discover() {
   return (
     <SiteShell flush>
       <section className="relative min-h-0 overflow-hidden px-5 pb-14 pt-8 md:min-h-[calc(100svh-4.5rem)] md:px-8 md:pb-20 md:pt-10">
-        {isDesktop === true ? (
-          <div className="pointer-events-none absolute inset-0 z-0">
-            <AICoreSceneLazy compact={false} onCategorySelect={go} />
-          </div>
-        ) : null}
         <div className="relative z-10 mx-auto grid max-w-6xl items-center">
           <motion.div
             className="relative z-10 max-w-xl"
@@ -106,15 +99,15 @@ function Discover() {
           >
             <motion.div
               variants={fadeUp}
-              className="mb-5 flex items-center gap-2.5 text-[0.58rem] font-medium tracking-[0.14em] text-white/45 sm:mb-7 sm:text-[0.625rem] sm:tracking-[0.22em]"
+              className="mb-5 flex items-center gap-2.5 text-[0.58rem] font-medium tracking-[0.14em] text-muted-foreground sm:mb-7 sm:text-[0.625rem] sm:tracking-[0.22em]"
             >
-              <span className="inline-block h-1.5 w-1.5 rounded-full bg-white/70" />
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-foreground/70" />
               YOUR GATEWAY TO ARTIFICIAL INTELLIGENCE
             </motion.div>
 
             <motion.h1
               variants={fadeUp}
-              className="type-display text-[2.35rem] leading-[1.05] text-white sm:text-[clamp(2.6rem,5vw,4.4rem)]"
+              className="type-display text-[2.35rem] leading-[1.05] text-foreground sm:text-[clamp(2.6rem,5vw,4.4rem)]"
             >
               Discover the right
               <br />
@@ -125,7 +118,7 @@ function Discover() {
 
             <motion.p
               variants={fadeUp}
-              className="mt-6 max-w-md text-[0.95rem] leading-8 text-white/50"
+              className="mt-6 max-w-md text-[0.95rem] leading-8 text-muted-foreground"
             >
               Explore, compare and find AI tools, models and agents that help you turn ideas into
               reality.
@@ -139,7 +132,7 @@ function Discover() {
                 if (value.trim()) go(value.trim());
               }}
             >
-              <Search className="h-5 w-5 shrink-0 text-white/55" strokeWidth={1.6} />
+              <Search className="h-5 w-5 shrink-0 text-muted-foreground" strokeWidth={1.6} />
               <input
                 type="text"
                 value={value}
@@ -154,7 +147,7 @@ function Discover() {
 
             <motion.div
               variants={fadeUp}
-              className="mt-4 flex flex-wrap items-center gap-3 text-[0.7rem] text-white/35"
+              className="mt-4 flex flex-wrap items-center gap-3 text-[0.7rem] text-muted-foreground/80"
             >
               <span>Popular:</span>
               {EXAMPLES.map((e) => (
@@ -162,22 +155,16 @@ function Discover() {
                   key={e.label}
                   type="button"
                   onClick={() => go(e.q)}
-                  className="text-white/55 transition-apple hover:text-white"
+                  className="text-muted-foreground transition-apple hover:text-foreground"
                 >
                   {e.label}
                 </button>
               ))}
             </motion.div>
 
-            {isDesktop === false ? (
-              <div className="relative mx-auto mt-8 h-[280px] w-full max-w-md">
-                <AICoreSceneLazy compact onCategorySelect={go} />
-              </div>
-            ) : null}
-
             <motion.div
               variants={fadeUp}
-              className="mt-8 grid grid-cols-3 gap-3 border-t border-white/10 pt-5 sm:mt-12 sm:flex sm:gap-8 sm:pt-6"
+              className="mt-8 grid grid-cols-3 gap-3 border-t hairline pt-5 sm:mt-12 sm:flex sm:gap-8 sm:pt-6"
             >
               {[
                 ["Discover", "Explore AI solutions"],
@@ -185,19 +172,19 @@ function Discover() {
                 ["Stay updated", "Follow AI evolution"],
               ].map(([title, body]) => (
                 <div key={title} className="flex flex-col gap-1.5">
-                  <strong className="text-[0.75rem] font-semibold text-white/85">{title}</strong>
-                  <span className="text-[0.625rem] text-white/40">{body}</span>
+                  <strong className="text-[0.75rem] font-semibold text-foreground">{title}</strong>
+                  <span className="text-[0.625rem] text-muted-foreground">{body}</span>
                 </div>
               ))}
             </motion.div>
           </motion.div>
         </div>
 
-        <div className="mx-auto mt-16 max-w-6xl border-t border-white/[0.06] pt-10 text-center">
-          <p className="text-[0.625rem] tracking-[0.28em] text-white/40">
+        <div className="mx-auto mt-16 max-w-6xl border-t hairline pt-10 text-center">
+          <p className="text-[0.625rem] tracking-[0.28em] text-muted-foreground">
             ONE PLACE. THE ENTIRE AI ECOSYSTEM.
           </p>
-          <h2 className="type-display mt-3 text-[1.75rem] text-white md:text-[2rem]">
+          <h2 className="type-display mt-3 text-[1.75rem] text-foreground md:text-[2rem]">
             Everything AI, connected.
           </h2>
         </div>

@@ -2,6 +2,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { Menu, X } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion, useScroll, useMotionValueEvent } from "motion/react";
 import { useEffect, useState, type ReactNode } from "react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { useCompare } from "@/lib/store";
 import type { Solution } from "@/lib/solutions";
 import { pressScale, springSnappy } from "@/lib/motion";
@@ -90,18 +91,22 @@ export function SiteShell({
                 </Link>
               );
             })}
+            <ThemeToggle />
           </nav>
 
-          <button
-            type="button"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full text-foreground transition-apple hover:bg-fill md:hidden"
-            aria-label={menuOpen ? "Close menu" : "Open menu"}
-            aria-expanded={menuOpen}
-            aria-controls="mobile-nav"
-            onClick={() => setMenuOpen((open) => !open)}
-          >
-            {menuOpen ? <X className="h-5 w-5" strokeWidth={1.75} /> : <Menu className="h-5 w-5" strokeWidth={1.75} />}
-          </button>
+          <div className="flex items-center gap-1 md:hidden">
+            <ThemeToggle />
+            <button
+              type="button"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full text-foreground transition-apple hover:bg-fill"
+              aria-label={menuOpen ? "Close menu" : "Open menu"}
+              aria-expanded={menuOpen}
+              aria-controls="mobile-nav"
+              onClick={() => setMenuOpen((open) => !open)}
+            >
+              {menuOpen ? <X className="h-5 w-5" strokeWidth={1.75} /> : <Menu className="h-5 w-5" strokeWidth={1.75} />}
+            </button>
+          </div>
         </div>
 
         <AnimatePresence>

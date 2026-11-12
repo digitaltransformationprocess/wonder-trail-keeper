@@ -7,6 +7,7 @@ import {
   HeadContent,
   type ErrorComponentProps,
 } from "@tanstack/react-router";
+import { ThemeProvider } from "@/lib/theme";
 
 function NotFoundComponent() {
   return (
@@ -81,9 +82,11 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <HeadContent />
-      <Outlet />
-    </QueryClientProvider>
+    <ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <HeadContent />
+        <Outlet />
+      </QueryClientProvider>
+    </ThemeProvider>
   );
 }

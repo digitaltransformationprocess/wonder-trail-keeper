@@ -1,5 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import type { ReactNode } from "react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { signOut, useAuth } from "@/lib/auth";
 
 export function AdminShell({ children }: { children: ReactNode }) {
@@ -41,6 +42,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
             </nav>
           </div>
           <div className="flex items-center gap-3 text-[0.8125rem] text-muted-foreground">
+            <ThemeToggle />
             <span>
               {profile?.display_name ?? profile?.email} · {profile?.role}
             </span>

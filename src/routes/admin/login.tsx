@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { signIn, signUp, useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/admin/login")({
@@ -29,7 +30,10 @@ function AdminLogin() {
     "w-full rounded-xl glass px-3.5 py-2.5 text-[0.875rem] outline-none transition-apple focus:ring-1 focus:ring-signal/40";
 
   return (
-    <div className="flex min-h-screen items-center justify-center atmosphere px-5">
+    <div className="relative flex min-h-screen items-center justify-center atmosphere px-5">
+      <div className="absolute right-4 top-4 md:right-6 md:top-6">
+        <ThemeToggle />
+      </div>
       <div className="glass w-full max-w-md rounded-3xl p-8">
         <h1 className="type-display text-clarity text-[2rem]">Admin</h1>
         <p className="mt-2 text-[0.875rem] text-muted-foreground">

@@ -3,6 +3,20 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem("ai-discovery-theme");
+          var dark =
+            stored === "dark" ||
+            ((stored == null || stored === "system") &&
+              window.matchMedia("(prefers-color-scheme: dark)").matches);
+          if (stored === "light") dark = false;
+          document.documentElement.classList.toggle("dark", dark);
+          document.documentElement.style.colorScheme = dark ? "dark" : "light";
+        } catch (e) {}
+      })();
+    </script>
     <title>AI Discovery Platform</title>
     <meta name="description" content="Find the right AI solution for your needs." />
     <meta name="robots" content="index, follow" />
