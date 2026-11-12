@@ -24,6 +24,7 @@ dist
 *.sln
 *.sw?
 .env.ingest.local
+.env*.local
 args_*.json
 _deploy_*.json
 _mcp_deploy_*.json
@@ -32,3 +33,16 @@ _part_*.txt
 _watch_changes_src.txt
 _one_*.json
 _ingest_*.ts
+
+# Local deploy / MCP payload dumps (never commit)
+.deploy-*.json
+.mcp-deploy*.json
+.tmp-deploy*
+tmp-deploy-*.json
+tmp-edge-*.json
+.ingest-*.txt
+scripts/_mcp_args_*.json
+scripts/call-deploy.json
+scripts/.deploy_payload_size.txt
+scripts/_run_deploy_*.mjs
+scripts/mcp-deploy-*.mjs
