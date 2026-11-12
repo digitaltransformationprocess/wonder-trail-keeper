@@ -6,7 +6,10 @@ type BrandMarkProps = {
 };
 
 /** AI Discov mark — cool slate palette, swaps light/dark asset. */
-export function BrandMark({ className = "h-7 w-7", title = "AI Discov" }: BrandMarkProps) {
+export function BrandMark({
+  className = "h-8 w-8 md:h-9 md:w-9",
+  title = "AI Discov",
+}: BrandMarkProps) {
   const { resolved } = useTheme();
   const src =
     resolved === "dark" ? "/brand/aidiscov-mark-dark.png" : "/brand/aidiscov-mark-light.png";
@@ -26,7 +29,7 @@ export function BrandMark({ className = "h-7 w-7", title = "AI Discov" }: BrandM
 
 export function BrandLockup({
   className = "",
-  markClassName = "h-7 w-7",
+  markClassName = "h-8 w-8 md:h-9 md:w-9",
   admin = false,
 }: {
   className?: string;
@@ -34,9 +37,9 @@ export function BrandLockup({
   admin?: boolean;
 }) {
   return (
-    <span className={`inline-flex items-center gap-2.5 ${className}`}>
+    <span className={`inline-flex items-center gap-2.5 md:gap-3 ${className}`}>
       <BrandMark className={markClassName} />
-      <span className="type-title text-[1.05rem] tracking-[-0.03em] text-foreground">
+      <span className="type-title text-[1.05rem] tracking-[-0.03em] text-foreground md:text-[1.1rem]">
         AI Discov{admin ? " Admin" : ""}
       </span>
     </span>
