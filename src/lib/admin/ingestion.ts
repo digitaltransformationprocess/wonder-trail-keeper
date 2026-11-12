@@ -95,9 +95,13 @@ export async function triggerDiscoverDaily() {
   };
 }
 
-export async function triggerDiscoverNews(options: { publish?: boolean } = {}) {
+export async function triggerDiscoverNews(options: { publish?: boolean; days?: number } = {}) {
   const { data, error } = await supabase.functions.invoke("discover-news", {
-    body: { publish: Boolean(options.publish), limit: 12 },
+    body: {
+      publish: Boolean(options.publish),
+      limit: 12,
+      days: options.days ?? 1,
+    },
   });
   if (error) throw new Error(error.message);
   if (data?.error) throw new Error(String(data.error));

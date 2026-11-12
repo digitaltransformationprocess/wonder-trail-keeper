@@ -119,8 +119,8 @@ function AdminImport() {
         <div className="glass rounded-3xl p-6">
           <p className="text-[0.875rem] text-foreground/90">Découvrir des news</p>
           <p className="mt-2 text-[0.8125rem] text-muted-foreground">
-            Firecrawl cherche des annonces / releases AI et crée des items News (brouillon ou
-            publiés).
+            Sources fiables (TechCrunch, Reuters, OpenAI, Anthropic, Google…), actualités du jour,
+            reformulation éditoriale, puis création News (brouillon ou publié).
           </p>
           <label className="mt-4 flex items-center gap-2 text-[0.8125rem]">
             <input
@@ -149,15 +149,32 @@ function AdminImport() {
             </p>
           ) : null}
           {discoverNewsMutation.data ? (
-            <p className="mt-3 text-[0.8125rem] text-muted-foreground">
-              created {String(discoverNewsMutation.data.stats.created ?? 0)} · skipped{" "}
-              {String(discoverNewsMutation.data.stats.skipped ?? 0)} · errors{" "}
-              {String(discoverNewsMutation.data.stats.errors ?? 0)}
-              {" · "}
-              <Link to="/admin/news" className="text-primary">
-                News admin
-              </Link>
-            </p>
+            <div className="mt-3 space-y-2 text-[0.8125rem] text-muted-foreground">
+              <p>
+                day {String(discoverNewsMutation.data.stats.day ?? "—")} · created{" "}
+                {String(discoverNewsMutation.data.stats.created ?? 0)} · exists{" "}
+                {String(discoverNewsMutation.data.stats.skipped ?? 0)} · stale{" "}
+                {String(discoverNewsMutation.data.stats.stale ?? 0)} · listing{" "}
+                {String(discoverNewsMutation.data.stats.listing ?? 0)} · reformulated{" "}
+                {String(discoverNewsMutation.data.stats.reformulated ?? 0)} · errors{" "}
+                {String(discoverNewsMutation.data.stats.errors ?? 0)}
+                {" · "}
+                <Link to="/admin/news" className="text-primary">
+                  News admin
+                </Link>
+              </p>
+              {Array.isArray(discoverNewsMutation.data.results) &&
+              discoverNewsMutation.data.results.length ? (
+                <ul className="max-h-40 space-y-1 overflow-auto rounded-2xl bg-fill/40 px-3 py-2 font-mono text-[0.7rem]">
+                  {discoverNewsMutation.data.results.slice(0, 12).map((r) => (
+                    <li key={`${r.url}-${r.status}`} className="truncate">
+                      <span className="text-foreground/80">{r.status}</span> · {r.url}
+                      {r.error ? ` (${r.error})` : ""}
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+            </div>
           ) : null}
         </div>
       </div>
