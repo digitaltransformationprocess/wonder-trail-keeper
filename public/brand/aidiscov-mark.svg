@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none" role="img" aria-label="AI Discov">
+  <!-- Cool-slate brand mark: converging signal ’ discovery point -->
+  <rect width="128" height="128" rx="28" fill="var(--mark-bg, #f8f8fa)"/>
+  <g stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path
+      d="M28 42h30l24 16"
+      stroke="var(--mark-outer, #787a84)"
+      stroke-width="11"
+    />
+    <path
+      d="M28 86h30l24-16"
+      stroke="var(--mark-outer, #787a84)"
+      stroke-width="11"
+    />
+    <path
+      d="M24 64h62"
+      stroke="var(--mark-center, #242630)"
+      stroke-width="11"
+    />
+  </g>
+  <circle cx="94" cy="64" r="13" fill="var(--mark-dot, #3a4ea8)"/>
+</svg>

@@ -69,7 +69,7 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   head: () => ({
     meta: [
-      { title: "AI Discovery Platform" },
+      { title: "AI Discov" },
       { name: "description", content: "Find the right AI solution for your needs." },
     ],
   }),

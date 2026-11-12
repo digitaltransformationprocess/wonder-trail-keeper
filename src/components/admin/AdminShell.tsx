@@ -1,5 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import type { ReactNode } from "react";
+import { BrandLockup } from "@/components/BrandMark";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { signOut, useAuth } from "@/lib/auth";
 
@@ -23,8 +24,8 @@ export function AdminShell({ children }: { children: ReactNode }) {
       <header className="border-b hairline">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-5 py-4 md:px-8">
           <div className="flex items-center gap-6">
-            <Link to="/admin" className="type-title text-[1.05rem] tracking-[-0.03em]">
-              AI Discovery Admin
+            <Link to="/admin" aria-label="AI Discov Admin">
+              <BrandLockup admin />
             </Link>
             <nav className="flex gap-4 text-[0.8125rem] text-muted-foreground">
               {nav.map((n) => {

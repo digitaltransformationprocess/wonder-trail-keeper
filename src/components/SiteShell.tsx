@@ -2,6 +2,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { Menu, X } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion, useScroll, useMotionValueEvent } from "motion/react";
 import { useEffect, useState, type ReactNode } from "react";
+import { BrandLockup } from "@/components/BrandMark";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useCompare } from "@/lib/store";
 import type { Solution } from "@/lib/solutions";
@@ -60,10 +61,11 @@ export function SiteShell({
         >
           <Link
             to="/"
-            className="type-title text-[1.05rem] tracking-[-0.03em] text-foreground transition-apple hover:opacity-70"
+            className="transition-apple hover:opacity-70"
             onClick={() => setMenuOpen(false)}
+            aria-label="AI Discov home"
           >
-            AI Discovery
+            <BrandLockup />
           </Link>
 
           <nav className="hidden items-center justify-end gap-x-5 text-[0.8125rem] text-muted-foreground md:flex">
