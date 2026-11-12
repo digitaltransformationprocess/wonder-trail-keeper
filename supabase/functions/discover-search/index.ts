@@ -132,7 +132,7 @@ async function ftsSearch(
       want_oss: c.openSource,
       want_api: c.api,
       want_local: c.local,
-      result_limit: 10,
+      result_limit: 50,
     });
     if (error) throw new Error(error.message);
     rows = (data ?? []) as FtsRow[];
@@ -199,7 +199,7 @@ async function semanticSearch(
     want_oss: c.openSource,
     want_api: c.api,
     want_local: c.local,
-    result_limit: 10,
+    result_limit: 50,
   });
   if (error) {
     console.error("semantic search failed", error.message);
@@ -436,7 +436,7 @@ async function maybeGrokAnswer(
     "3) Only recommend tools from the catalog list.",
     "OUTPUT: return ONLY valid JSON:",
     '{"answer":"2-4 short sentences","results":[{"slug":"...","reasons":["..."],"tradeoffs":["..."]}]}',
-    "results: max 5, only allowed slugs, max 2 reasons and 1 tradeoff each.",
+    "results: rank all relevant allowed slugs (no artificial max of 5), max 2 reasons and 1 tradeoff each.",
     `Allowed slugs: ${allowedSlugs.join(", ")}`,
   ].join("\n");
 
@@ -450,7 +450,7 @@ async function maybeGrokAnswer(
       body: JSON.stringify({
         model,
         temperature: 0,
-        max_tokens: 550,
+        max_tokens: 900,
         messages: [
           { role: "system", content: system },
           { role: "user", content: JSON.stringify({ query: q, constraints: c, catalog }) },
@@ -481,7 +481,6 @@ async function maybeGrokAnswer(
       ]
         .filter((r) => typeof r === "string" && r.trim())
         .slice(0, 3);
-      if (orderedSlugs.length >= 5) break;
     }
 
     const answer = (typeof parsed.answer === "string" ? parsed.answer : "")
@@ -525,7 +524,7 @@ Deno.serve(async (req) => {
       : [];
 
     const hybrid = hybridMerge(ftsRows, semRows);
-    const candidateSlugs = hybrid.slice(0, 12).map((h) => h.slug);
+    const candidateSlugs = hybrid.map((h) => h.slug);
     const tools = await loadTools(supabase, candidateSlugs);
     const bySlug = new Map(tools.map((t) => [t.slug, t]));
     const evidenceByTool = await loadEvidence(
@@ -578,7 +577,6 @@ Deno.serve(async (req) => {
         confidence: scored.confidence,
         evidence: evidenceByTool.get(tool.id) ?? [],
       });
-      if (results.length >= 6) break;
     }
 
     const answer =

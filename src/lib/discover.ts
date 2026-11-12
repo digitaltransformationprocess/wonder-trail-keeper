@@ -104,7 +104,7 @@ export function discover(q: string, solutions: Solution[]): Match[] {
     }
   }
 
-  return out.sort((a, b) => b.score - a.score).slice(0, 6);
+  return out.sort((a, b) => b.score - a.score);
 }
 
 function groundedReasons(solution: Solution, c: Constraints): string[] {
@@ -131,7 +131,7 @@ export async function discoverViaFts(
     want_oss: c.openSource,
     want_api: c.api,
     want_local: c.local,
-    result_limit: 8,
+    result_limit: 50,
   });
 
   const latency = Math.round(performance.now() - started);
@@ -160,7 +160,7 @@ export async function discoverViaFts(
       source: "fts",
     });
   }
-  return matches.slice(0, 6);
+  return matches;
 }
 
 export interface DiscoverAiResult {
@@ -233,7 +233,7 @@ export async function discoverSmart(
         const answer = typeof body.answer === "string" ? body.answer.trim() : undefined;
         if (matches.length || answer || body.clarification_needed) {
           return {
-            matches: matches.slice(0, 6),
+            matches,
             source: body.source === "ai" ? "ai" : body.source === "hybrid" ? "hybrid" : "fts",
             answer,
             intent: body.intent,
