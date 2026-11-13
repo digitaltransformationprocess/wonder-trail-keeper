@@ -104,7 +104,13 @@ function Latest() {
 
   return (
     <SiteShell>
-      <motion.div initial={reduce ? false : "hidden"} animate="show" variants={staggerChildren}>
+      <motion.div
+        initial={reduce ? false : "hidden"}
+        animate="show"
+        variants={staggerChildren}
+        // Faster entrance: Latest is a frequent nav target; long stagger feels laggy.
+        transition={{ staggerChildren: 0.03, delayChildren: 0 }}
+      >
         <motion.p
           variants={fadeUp}
           className="text-[0.75rem] font-medium uppercase tracking-[0.12em] text-muted-foreground"

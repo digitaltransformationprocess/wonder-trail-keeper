@@ -19,10 +19,11 @@ export interface NewsFilters {
 }
 
 export async function listNews(filters: NewsFilters = {}): Promise<NewsRow[]> {
+  // List view does not need full article bodies — keeps the /latest loader light.
   let query = supabase
     .from("news_items")
     .select(
-      "id, slug, published_at, kind, title, summary, body, solution_slug, source_url",
+      "id, slug, published_at, kind, title, summary, solution_slug, source_url",
     )
     .eq("status", "published")
     .order("published_at", { ascending: false })
@@ -45,7 +46,7 @@ export async function listNews(filters: NewsFilters = {}): Promise<NewsRow[]> {
     throw new Error(`News unavailable: ${error.message}`);
   }
 
-  return data ?? [];
+  return (data ?? []).map((row) => ({ ...row, body: null }));
 }
 
 export async function getPublishedNewsBySlug(slug: string): Promise<NewsRow | null> {

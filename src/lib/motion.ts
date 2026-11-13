@@ -34,8 +34,8 @@ export const staggerChildren: Variants = {
   hidden: {},
   show: {
     transition: {
-      staggerChildren: 0.06,
-      delayChildren: 0.04,
+      staggerChildren: 0.04,
+      delayChildren: 0.02,
     },
   },
 };

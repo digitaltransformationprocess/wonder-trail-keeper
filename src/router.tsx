@@ -17,6 +17,9 @@ export const getRouter = () => {
     routeTree,
     context: { queryClient },
     scrollRestoration: true,
+    // Warm loaders on link hover/focus so /latest (and others) feel instant.
+    defaultPreload: "intent",
+    // Let TanStack Query own freshness (staleTime), not the router preload cache.
     defaultPreloadStaleTime: 0,
   });
 };
