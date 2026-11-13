@@ -151,9 +151,51 @@ export function SiteShell({
       </main>
 
       <footer className="mt-4 border-t hairline">
-        <div className="mx-auto max-w-5xl px-5 py-8 text-[0.75rem] leading-relaxed text-muted-foreground md:px-8">
-          Clarity over noise. Unverified information is marked “To verify”. Sponsored content is
-          never mixed into recommendations.
+        <div className="mx-auto flex max-w-5xl flex-col gap-4 px-5 py-8 text-[0.75rem] leading-relaxed text-muted-foreground md:flex-row md:items-start md:justify-between md:px-8">
+          <p className="max-w-md">
+            Clarity over noise. Unverified information is marked “To verify”. Sponsored content is
+            never mixed into recommendations.
+          </p>
+          <nav className="flex flex-wrap gap-x-4 gap-y-2" aria-label="Legal">
+            <Link to="/legal" className="transition-apple hover:text-foreground">
+              Legal
+            </Link>
+            <Link
+              to="/legal/$slug"
+              params={{ slug: "terms" }}
+              className="transition-apple hover:text-foreground"
+            >
+              Terms
+            </Link>
+            <Link
+              to="/legal/$slug"
+              params={{ slug: "privacy" }}
+              className="transition-apple hover:text-foreground"
+            >
+              Privacy
+            </Link>
+            <Link
+              to="/legal/$slug"
+              params={{ slug: "cookies" }}
+              className="transition-apple hover:text-foreground"
+            >
+              Cookies
+            </Link>
+            <Link
+              to="/legal/$slug"
+              params={{ slug: "acceptable-use" }}
+              className="transition-apple hover:text-foreground"
+            >
+              Acceptable use
+            </Link>
+            <Link
+              to="/legal/$slug"
+              params={{ slug: "disclaimer" }}
+              className="transition-apple hover:text-foreground"
+            >
+              Disclaimer
+            </Link>
+          </nav>
         </div>
       </footer>
     </div>

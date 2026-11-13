@@ -14,6 +14,7 @@ import { Route as AdminRouteRouteImport } from './routes/admin/route'
 import { Route as CompareRouteImport } from './routes/compare'
 import { Route as ExploreRouteImport } from './routes/explore'
 import { Route as LatestRouteImport } from './routes/latest'
+import { Route as LegalRouteImport } from './routes/legal'
 import { Route as LibraryRouteImport } from './routes/library'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminChangesRouteImport } from './routes/admin/changes'
@@ -24,6 +25,8 @@ import { Route as AdminSourcesRouteImport } from './routes/admin/sources'
 import { Route as AdminTaxonomyRouteImport } from './routes/admin/taxonomy'
 import { Route as CategoriesSlugRouteImport } from './routes/categories.$slug'
 import { Route as LatestSlugRouteImport } from './routes/latest.$slug'
+import { Route as LegalIndexRouteImport } from './routes/legal.index'
+import { Route as LegalSlugRouteImport } from './routes/legal.$slug'
 import { Route as ToolsSlugRouteImport } from './routes/tools.$slug'
 import { Route as AdminNewsIndexRouteImport } from './routes/admin/news/index'
 import { Route as AdminNewsIdRouteImport } from './routes/admin/news/$id'
@@ -55,6 +58,11 @@ const ExploreRoute = ExploreRouteImport.update({
 const LatestRoute = LatestRouteImport.update({
   id: '/latest',
   path: '/latest',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalRoute = LegalRouteImport.update({
+  id: '/legal',
+  path: '/legal',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LibraryRoute = LibraryRouteImport.update({
@@ -107,6 +115,16 @@ const LatestSlugRoute = LatestSlugRouteImport.update({
   path: '/$slug',
   getParentRoute: () => LatestRoute,
 } as any)
+const LegalIndexRoute = LegalIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => LegalRoute,
+} as any)
+const LegalSlugRoute = LegalSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => LegalRoute,
+} as any)
 const ToolsSlugRoute = ToolsSlugRouteImport.update({
   id: '/tools/$slug',
   path: '/tools/$slug',
@@ -149,6 +167,7 @@ export interface FileRoutesByFullPath {
   '/compare': typeof CompareRoute
   '/explore': typeof ExploreRoute
   '/latest': typeof LatestRouteWithChildren
+  '/legal': typeof LegalRouteWithChildren
   '/library': typeof LibraryRoute
   '/admin/changes': typeof AdminChangesRoute
   '/admin/import': typeof AdminImportRoute
@@ -158,8 +177,10 @@ export interface FileRoutesByFullPath {
   '/admin/taxonomy': typeof AdminTaxonomyRoute
   '/categories/$slug': typeof CategoriesSlugRoute
   '/latest/$slug': typeof LatestSlugRoute
+  '/legal/$slug': typeof LegalSlugRoute
   '/tools/$slug': typeof ToolsSlugRoute
   '/admin/': typeof AdminIndexRoute
+  '/legal/': typeof LegalIndexRoute
   '/admin/news/$id': typeof AdminNewsIdRoute
   '/admin/news/new': typeof AdminNewsNewRoute
   '/admin/tools/$slug': typeof AdminToolsSlugRoute
@@ -181,8 +202,10 @@ export interface FileRoutesByTo {
   '/admin/taxonomy': typeof AdminTaxonomyRoute
   '/categories/$slug': typeof CategoriesSlugRoute
   '/latest/$slug': typeof LatestSlugRoute
+  '/legal/$slug': typeof LegalSlugRoute
   '/tools/$slug': typeof ToolsSlugRoute
   '/admin': typeof AdminIndexRoute
+  '/legal': typeof LegalIndexRoute
   '/admin/news/$id': typeof AdminNewsIdRoute
   '/admin/news/new': typeof AdminNewsNewRoute
   '/admin/tools/$slug': typeof AdminToolsSlugRoute
@@ -197,6 +220,7 @@ export interface FileRoutesById {
   '/compare': typeof CompareRoute
   '/explore': typeof ExploreRoute
   '/latest': typeof LatestRouteWithChildren
+  '/legal': typeof LegalRouteWithChildren
   '/library': typeof LibraryRoute
   '/admin/changes': typeof AdminChangesRoute
   '/admin/import': typeof AdminImportRoute
@@ -206,8 +230,10 @@ export interface FileRoutesById {
   '/admin/taxonomy': typeof AdminTaxonomyRoute
   '/categories/$slug': typeof CategoriesSlugRoute
   '/latest/$slug': typeof LatestSlugRoute
+  '/legal/$slug': typeof LegalSlugRoute
   '/tools/$slug': typeof ToolsSlugRoute
   '/admin/': typeof AdminIndexRoute
+  '/legal/': typeof LegalIndexRoute
   '/admin/news/$id': typeof AdminNewsIdRoute
   '/admin/news/new': typeof AdminNewsNewRoute
   '/admin/tools/$slug': typeof AdminToolsSlugRoute
@@ -223,6 +249,7 @@ export interface FileRouteTypes {
     | '/compare'
     | '/explore'
     | '/latest'
+    | '/legal'
     | '/library'
     | '/admin/changes'
     | '/admin/import'
@@ -232,8 +259,10 @@ export interface FileRouteTypes {
     | '/admin/taxonomy'
     | '/categories/$slug'
     | '/latest/$slug'
+    | '/legal/$slug'
     | '/tools/$slug'
     | '/admin/'
+    | '/legal/'
     | '/admin/news/$id'
     | '/admin/news/new'
     | '/admin/tools/$slug'
@@ -255,8 +284,10 @@ export interface FileRouteTypes {
     | '/admin/taxonomy'
     | '/categories/$slug'
     | '/latest/$slug'
+    | '/legal/$slug'
     | '/tools/$slug'
     | '/admin'
+    | '/legal'
     | '/admin/news/$id'
     | '/admin/news/new'
     | '/admin/tools/$slug'
@@ -270,6 +301,7 @@ export interface FileRouteTypes {
     | '/compare'
     | '/explore'
     | '/latest'
+    | '/legal'
     | '/library'
     | '/admin/changes'
     | '/admin/import'
@@ -279,8 +311,10 @@ export interface FileRouteTypes {
     | '/admin/taxonomy'
     | '/categories/$slug'
     | '/latest/$slug'
+    | '/legal/$slug'
     | '/tools/$slug'
     | '/admin/'
+    | '/legal/'
     | '/admin/news/$id'
     | '/admin/news/new'
     | '/admin/tools/$slug'
@@ -295,6 +329,7 @@ export interface RootRouteChildren {
   CompareRoute: typeof CompareRoute
   ExploreRoute: typeof ExploreRoute
   LatestRoute: typeof LatestRouteWithChildren
+  LegalRoute: typeof LegalRouteWithChildren
   LibraryRoute: typeof LibraryRoute
   CategoriesSlugRoute: typeof CategoriesSlugRoute
   ToolsSlugRoute: typeof ToolsSlugRoute
@@ -335,6 +370,13 @@ declare module '@tanstack/react-router' {
       path: '/latest'
       fullPath: '/latest'
       preLoaderRoute: typeof LatestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal': {
+      id: '/legal'
+      path: '/legal'
+      fullPath: '/legal'
+      preLoaderRoute: typeof LegalRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/library': {
@@ -406,6 +448,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/latest/$slug'
       preLoaderRoute: typeof LatestSlugRouteImport
       parentRoute: typeof LatestRoute
+    }
+    '/legal/': {
+      id: '/legal/'
+      path: '/'
+      fullPath: '/legal/'
+      preLoaderRoute: typeof LegalIndexRouteImport
+      parentRoute: typeof LegalRoute
+    }
+    '/legal/$slug': {
+      id: '/legal/$slug'
+      path: '/$slug'
+      fullPath: '/legal/$slug'
+      preLoaderRoute: typeof LegalSlugRouteImport
+      parentRoute: typeof LegalRoute
     }
     '/tools/$slug': {
       id: '/tools/$slug'
@@ -506,12 +562,25 @@ const LatestRouteChildren: LatestRouteChildren = {
 const LatestRouteWithChildren =
   LatestRoute._addFileChildren(LatestRouteChildren)
 
+interface LegalRouteChildren {
+  LegalSlugRoute: typeof LegalSlugRoute
+  LegalIndexRoute: typeof LegalIndexRoute
+}
+
+const LegalRouteChildren: LegalRouteChildren = {
+  LegalSlugRoute: LegalSlugRoute,
+  LegalIndexRoute: LegalIndexRoute,
+}
+
+const LegalRouteWithChildren = LegalRoute._addFileChildren(LegalRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRouteRoute: AdminRouteRouteWithChildren,
   CompareRoute: CompareRoute,
   ExploreRoute: ExploreRoute,
   LatestRoute: LatestRouteWithChildren,
+  LegalRoute: LegalRouteWithChildren,
   LibraryRoute: LibraryRoute,
   CategoriesSlugRoute: CategoriesSlugRoute,
   ToolsSlugRoute: ToolsSlugRoute,

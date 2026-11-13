@@ -7,6 +7,8 @@ import {
   HeadContent,
   type ErrorComponentProps,
 } from "@tanstack/react-router";
+import { CookieConsent } from "@/components/CookieConsent";
+import { VercelAnalytics } from "@/components/VercelAnalytics";
 import { ThemeProvider } from "@/lib/theme";
 
 function NotFoundComponent() {
@@ -86,6 +88,8 @@ function RootComponent() {
       <QueryClientProvider client={queryClient}>
         <HeadContent />
         <Outlet />
+        <CookieConsent />
+        <VercelAnalytics />
       </QueryClientProvider>
     </ThemeProvider>
   );

@@ -67,6 +67,14 @@ function kindLabel(kind: string) {
   return map[kind] ?? kind;
 }
 
+function toolLabel(slug: string) {
+  return slug
+    .split("-")
+    .filter(Boolean)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+}
+
 function groupByDate(items: NewsRow[]) {
   const groups = new Map<string, NewsRow[]>();
   for (const item of items) {
@@ -169,46 +177,72 @@ function Latest() {
                   {date === new Date().toISOString().slice(0, 10) ? "Today" : date}
                 </h2>
                 <ol className="mt-4 space-y-3">
-                  {items.map((n, idx) => {
-                    const inner = (
-                      <>
-                        <span className="mt-1 w-7 shrink-0 text-[0.875rem] tabular-nums text-muted-foreground">
-                          {idx + 1}.
-                        </span>
-                        <div className="min-w-0 flex-1">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <span className="rounded-full bg-fill px-2.5 py-0.5 text-[0.7rem] font-medium uppercase tracking-[0.06em] text-muted-foreground">
-                              {kindLabel(n.kind)}
-                            </span>
-                            {n.solution_slug ? (
-                              <span className="text-[0.75rem] text-muted-foreground">
-                                Catalog · {n.solution_slug}
-                              </span>
-                            ) : null}
-                          </div>
-                          <h3 className="type-title mt-2 text-[1.25rem] tracking-[-0.02em] transition-apple group-hover:text-primary md:text-[1.45rem]">
-                            {n.title}
-                          </h3>
-                          <p className="mt-2 line-clamp-2 text-[0.9375rem] leading-7 text-muted-foreground">
-                            {n.summary}
-                          </p>
+                  {items.map((n, idx) => (
+                    <li
+                      key={n.id}
+                      className="glass flex gap-4 rounded-3xl px-5 py-5 transition-apple hover:bg-fill/40 md:gap-6 md:px-6"
+                    >
+                      <span className="mt-1 w-7 shrink-0 text-[0.875rem] tabular-nums text-muted-foreground">
+                        {idx + 1}.
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="rounded-full bg-fill px-2.5 py-0.5 text-[0.7rem] font-medium uppercase tracking-[0.06em] text-muted-foreground">
+                            {kindLabel(n.kind)}
+                          </span>
+                          {n.solution_slug ? (
+                            <Link
+                              to="/tools/$slug"
+                              params={{ slug: n.solution_slug }}
+                              className="rounded-full bg-primary/10 px-2.5 py-0.5 text-[0.7rem] font-medium text-primary transition-apple hover:bg-primary/15"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              Tool · {toolLabel(n.solution_slug)}
+                            </Link>
+                          ) : null}
                         </div>
-                      </>
-                    );
-                    const className =
-                      "glass group flex gap-4 rounded-3xl px-5 py-5 transition-apple hover:bg-fill/50 md:gap-6 md:px-6";
-                    return (
-                      <li key={n.id}>
                         {n.slug ? (
-                          <Link to="/latest/$slug" params={{ slug: n.slug }} className={className}>
-                            {inner}
+                          <Link to="/latest/$slug" params={{ slug: n.slug }} className="group block">
+                            <h3 className="type-title mt-2 text-[1.25rem] tracking-[-0.02em] transition-apple group-hover:text-primary md:text-[1.45rem]">
+                              {n.title}
+                            </h3>
+                            <p className="mt-2 line-clamp-2 text-[0.9375rem] leading-7 text-muted-foreground">
+                              {n.summary}
+                            </p>
                           </Link>
                         ) : (
-                          <div className={className}>{inner}</div>
+                          <>
+                            <h3 className="type-title mt-2 text-[1.25rem] tracking-[-0.02em] md:text-[1.45rem]">
+                              {n.title}
+                            </h3>
+                            <p className="mt-2 line-clamp-2 text-[0.9375rem] leading-7 text-muted-foreground">
+                              {n.summary}
+                            </p>
+                          </>
                         )}
-                      </li>
-                    );
-                  })}
+                        <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[0.8125rem]">
+                          {n.solution_slug ? (
+                            <Link
+                              to="/tools/$slug"
+                              params={{ slug: n.solution_slug }}
+                              className="font-medium text-primary transition-apple hover:opacity-70"
+                            >
+                              Open {toolLabel(n.solution_slug)}
+                            </Link>
+                          ) : null}
+                          {n.slug ? (
+                            <Link
+                              to="/latest/$slug"
+                              params={{ slug: n.slug }}
+                              className="text-muted-foreground transition-apple hover:text-foreground"
+                            >
+                              Read article
+                            </Link>
+                          ) : null}
+                        </div>
+                      </div>
+                    </li>
+                  ))}
                 </ol>
               </motion.section>
             ))}

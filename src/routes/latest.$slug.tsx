@@ -116,7 +116,11 @@ function NewsDetail() {
             params={{ slug: item.solution_slug }}
             className="rounded-full bg-primary px-5 py-2.5 text-[0.875rem] font-medium text-primary-foreground transition-apple hover:brightness-110"
           >
-            View in catalog
+            Open{" "}
+            {item.solution_slug
+              .split("-")
+              .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+              .join(" ")}
           </Link>
         ) : null}
         <a
