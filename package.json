@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "vite",
     "sitemap": "node scripts/generate-sitemap.mjs",
+    "indexnow:submit": "node scripts/submit-indexnow.mjs --sitemap",
     "prebuild": "node scripts/generate-sitemap.mjs",
     "build": "vite build",
     "postbuild": "node scripts/prerender-tools.mjs",

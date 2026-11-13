@@ -2,6 +2,11 @@ import { createClient } from "@supabase/supabase-js";
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import {
+  absoluteUrls,
+  resolveIndexNowKey,
+  submitIndexNow,
+} from "./lib/indexnow.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -240,6 +245,28 @@ Sitemap: ${siteUrl ? `${siteUrl}/sitemap.xml` : "/sitemap.xml"}
 
   writeFileSync(join(ROOT, "public", "llms.txt"), llms.trim() + "\n", "utf8");
   console.log("[sitemap] Updated public/llms.txt");
+
+  // IndexNow: notify Bing & peers after sitemap refresh (best-effort).
+  // Skip when INDEXNOW_SUBMIT=0, or when site is not production HTTPS.
+  const indexNowOff = String(env.INDEXNOW_SUBMIT ?? "1") === "0";
+  const key = resolveIndexNowKey(ROOT, env);
+  if (!indexNowOff && key && siteUrl.startsWith("https://")) {
+    try {
+      const host = new URL(siteUrl).host;
+      const urlList = absoluteUrls(siteUrl, paths);
+      console.log(`[indexnow] Submitting ${urlList.length} URL(s)…`);
+      const result = await submitIndexNow({ host, key, urlList });
+      for (const r of result.results) {
+        console.log(
+          `[indexnow] status=${r.status} count=${r.count}${r.body ? ` ${r.body}` : ""}`,
+        );
+      }
+    } catch (err) {
+      console.warn("[indexnow] submit failed (non-fatal):", err.message || err);
+    }
+  } else if (!key) {
+    console.log("[indexnow] skipped — no key file / INDEXNOW_KEY");
+  }
 }
 
 main().catch((err) => {
