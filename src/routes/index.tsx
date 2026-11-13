@@ -10,6 +10,7 @@ import {
   LayoutGrid,
   Music2,
   PenLine,
+  Puzzle,
   Search,
   Sparkles,
   Video,
@@ -42,6 +43,7 @@ const EXAMPLES = [
 /** Curated home “top” categories (Aixploria-style), not the full taxonomy. */
 const HOME_TOP_CATEGORY_SLUGS = [
   "ai-assistants",
+  "skills",
   "writing-content",
   "image-generation",
   "video-generation",
@@ -83,6 +85,7 @@ export const Route = createFileRoute("/")({
 
 const CATEGORY_ICONS: Record<string, LucideIcon> = {
   "ai-assistants": Bot,
+  skills: Puzzle,
   "writing-content": PenLine,
   "image-generation": ImageIcon,
   "video-generation": Video,

@@ -19,7 +19,8 @@
     "catalog:seed-famous": "node scripts/seed_famous_tools.mjs",
     "catalog:seed-more": "node scripts/seed_more_tools_batch.mjs",
     "catalog:seed-max": "node scripts/seed_popular_verified_max.mjs",
-    "catalog:seed-max2": "node scripts/seed_popular_verified_max2.mjs"
+    "catalog:seed-max2": "node scripts/seed_popular_verified_max2.mjs",
+    "catalog:seed-skills": "node scripts/seed_skills.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

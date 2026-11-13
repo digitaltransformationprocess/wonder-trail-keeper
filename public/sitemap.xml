@@ -93,6 +93,10 @@
     <lastmod>2026-11-13</lastmod>
   </url>
   <url>
+    <loc>https://aidiscov.com/tools/agent-browser</loc>
+    <lastmod>2026-11-13</lastmod>
+  </url>
+  <url>
     <loc>https://aidiscov.com/tools/aider</loc>
     <lastmod>2026-11-13</lastmod>
   </url>
@@ -158,6 +162,10 @@
   </url>
   <url>
     <loc>https://aidiscov.com/tools/anthropic-api</loc>
+    <lastmod>2026-11-13</lastmod>
+  </url>
+  <url>
+    <loc>https://aidiscov.com/tools/anthropic-skills</loc>
     <lastmod>2026-11-13</lastmod>
   </url>
   <url>
@@ -629,6 +637,10 @@
     <lastmod>2026-11-13</lastmod>
   </url>
   <url>
+    <loc>https://aidiscov.com/tools/cursor-agent-skills</loc>
+    <lastmod>2026-11-13</lastmod>
+  </url>
+  <url>
     <loc>https://aidiscov.com/tools/cursor-bugbot</loc>
     <lastmod>2026-11-13</lastmod>
   </url>
@@ -857,6 +869,10 @@
     <lastmod>2026-11-13</lastmod>
   </url>
   <url>
+    <loc>https://aidiscov.com/tools/find-skills</loc>
+    <lastmod>2026-11-13</lastmod>
+  </url>
+  <url>
     <loc>https://aidiscov.com/tools/fireflies</loc>
     <lastmod>2026-11-13</lastmod>
   </url>
@@ -917,6 +933,10 @@
     <lastmod>2026-11-13</lastmod>
   </url>
   <url>
+    <loc>https://aidiscov.com/tools/frontend-design-skill</loc>
+    <lastmod>2026-11-13</lastmod>
+  </url>
+  <url>
     <loc>https://aidiscov.com/tools/galileo-ai</loc>
     <lastmod>2026-11-13</lastmod>
   </url>
@@ -946,6 +966,10 @@
   </url>
   <url>
     <loc>https://aidiscov.com/tools/gemini-live</loc>
+    <lastmod>2026-11-13</lastmod>
+  </url>
+  <url>
+    <loc>https://aidiscov.com/tools/general-legal-templates</loc>
     <lastmod>2026-11-13</lastmod>
   </url>
   <url>
@@ -1573,6 +1597,10 @@
     <lastmod>2026-11-13</lastmod>
   </url>
   <url>
+    <loc>https://aidiscov.com/tools/modern-web-guidance</loc>
+    <lastmod>2026-11-13</lastmod>
+  </url>
+  <url>
     <loc>https://aidiscov.com/tools/moises</loc>
     <lastmod>2026-11-13</lastmod>
   </url>
@@ -1981,6 +2009,10 @@
     <lastmod>2026-11-13</lastmod>
   </url>
   <url>
+    <loc>https://aidiscov.com/tools/remotion-best-practices</loc>
+    <lastmod>2026-11-13</lastmod>
+  </url>
+  <url>
     <loc>https://aidiscov.com/tools/remove-bg</loc>
     <lastmod>2026-11-13</lastmod>
   </url>
@@ -2162,6 +2194,14 @@
   </url>
   <url>
     <loc>https://aidiscov.com/tools/sitegpt</loc>
+    <lastmod>2026-11-13</lastmod>
+  </url>
+  <url>
+    <loc>https://aidiscov.com/tools/skill-creator</loc>
+    <lastmod>2026-11-13</lastmod>
+  </url>
+  <url>
+    <loc>https://aidiscov.com/tools/skills-cli</loc>
     <lastmod>2026-11-13</lastmod>
   </url>
   <url>
@@ -2465,7 +2505,19 @@
     <lastmod>2026-11-13</lastmod>
   </url>
   <url>
+    <loc>https://aidiscov.com/tools/vercel-agent-skills</loc>
+    <lastmod>2026-11-13</lastmod>
+  </url>
+  <url>
     <loc>https://aidiscov.com/tools/vercel-ai-sdk</loc>
+    <lastmod>2026-11-13</lastmod>
+  </url>
+  <url>
+    <loc>https://aidiscov.com/tools/vercel-labs-ui</loc>
+    <lastmod>2026-11-13</lastmod>
+  </url>
+  <url>
+    <loc>https://aidiscov.com/tools/vercel-react-best-practices</loc>
     <lastmod>2026-11-13</lastmod>
   </url>
   <url>
@@ -2534,6 +2586,10 @@
   </url>
   <url>
     <loc>https://aidiscov.com/tools/weaviate</loc>
+    <lastmod>2026-11-13</lastmod>
+  </url>
+  <url>
+    <loc>https://aidiscov.com/tools/web-design-guidelines</loc>
     <lastmod>2026-11-13</lastmod>
   </url>
   <url>
@@ -2694,6 +2750,10 @@
   </url>
   <url>
     <loc>https://aidiscov.com/categories/robotics-hardware</loc>
+    <lastmod>2026-11-13</lastmod>
+  </url>
+  <url>
+    <loc>https://aidiscov.com/categories/skills</loc>
     <lastmod>2026-11-13</lastmod>
   </url>
   <url>
