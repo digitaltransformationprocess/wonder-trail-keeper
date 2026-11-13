@@ -177,7 +177,9 @@ function Detail() {
           rel="noreferrer"
           className="rounded-full bg-primary px-5 py-2.5 text-[0.875rem] font-medium text-primary-foreground transition-apple hover:brightness-110"
         >
-          Official website
+          {/skills\.sh/i.test(s.url) || s.categorySlugs.includes("skills")
+            ? "View skill"
+            : "Official website"}
         </a>
         {s.apiDocsUrl ? (
           <a

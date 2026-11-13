@@ -160,7 +160,11 @@ function CategoryTopCard({
               href={s.url}
               target="_blank"
               rel="noopener noreferrer"
-              aria-label={`Open ${s.name} website`}
+              aria-label={
+                /skills\.sh/i.test(s.url) || s.categorySlugs.includes("skills")
+                  ? `Open ${s.name} skill`
+                  : `Open ${s.name} website`
+              }
               className="shrink-0 rounded-lg p-1 text-muted-foreground opacity-0 transition-apple group-hover/row:opacity-100 hover:bg-fill hover:text-foreground focus-visible:opacity-100"
             >
               <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={1.75} />

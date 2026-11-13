@@ -56,21 +56,22 @@ const CATEGORY = {
 /** Popular, verifiable skill packs / skill tooling (GitHub + official docs). */
 const TOOLS = [
   {
-    name: "Vercel UI SDK",
+    name: "ui-sdk",
     slug: "vercel-labs-ui",
     publisher: "Vercel Labs",
-    url: "https://github.com/vercel-labs/ui",
+    url: "https://skills.sh/vercel-labs/ui/ui-sdk",
+    repository: "https://github.com/vercel-labs/ui",
     summary:
-      "Official Vercel UI SDK and agent skills for building accessible, unstyled components across React and other frameworks.",
+      "Official Vercel UI SDK agent skill for building accessible, unstyled components across React and other frameworks.",
     description:
-      "vercel-labs/ui is the open-source UI SDK (behaviors + adapters) with companion agent skills (write-code, docs, unslop, expert-review) used to build and review UI components with coding agents.",
+      "ui-sdk is the agent skill for vercel-labs/ui — behaviors + adapters used to build and review UI components with coding agents.",
     pricing_model: "Open source",
     price_display: "Free",
     open_source: true,
     api_available: false,
     local_available: true,
     keywords: ["skills", "ui-sdk", "vercel", "cursor", "a11y", "components"],
-    strengths: ["Official Vercel stack", "Agent skills included", "Multi-framework"],
+    strengths: ["Official Vercel stack", "Direct skills.sh page", "Multi-framework"],
     limits: ["Skills target the UI SDK workflow"],
     audience: ["Developers", "Design engineers"],
     categories: ["skills", "coding-development", "design-creativity"],
@@ -79,21 +80,22 @@ const TOOLS = [
     popularity: 92,
   },
   {
-    name: "Modern Web Guidance",
+    name: "modern-web-guidance",
     slug: "modern-web-guidance",
     publisher: "Google Chrome",
-    url: "https://github.com/GoogleChrome/modern-web-guidance-src",
+    url: "https://skills.sh/googlechrome/modern-web-guidance/modern-web-guidance",
+    repository: "https://github.com/GoogleChrome/modern-web-guidance",
     summary:
-      "Chrome’s modern web guidance corpus and analyzer for updating sites to current platform best practices.",
+      "Chrome’s modern web guidance Agent Skill for updating sites to current platform best practices.",
     description:
-      "modern-web-guidance-src powers the Modern Web Guidance analyzer (npx modern-web-guidance) with keep/drop criteria for legacy patterns like dark-mode toggles, helping agents and humans modernize frontends safely.",
+      "modern-web-guidance is the installable Agent Skill (and CLI) from Google Chrome for searchable modern web guidance and legacy-pattern scans.",
     pricing_model: "Open source",
     price_display: "Free",
     open_source: true,
     api_available: false,
     local_available: true,
     keywords: ["skills", "web-platform", "chrome", "legacy-scan", "guidance"],
-    strengths: ["Backed by Chrome", "Deterministic legacy scans", "Actionable keep/drop rules"],
+    strengths: ["Backed by Chrome", "Direct skills.sh skill page", "Actionable keep/drop rules"],
     limits: ["Guidance coverage expands over time"],
     audience: ["Frontend developers", "Agents"],
     categories: ["skills", "coding-development"],
@@ -106,6 +108,7 @@ const TOOLS = [
     slug: "general-legal-templates",
     publisher: "General Legal",
     url: "https://github.com/General-Legal/legal-templates",
+    repository: "https://github.com/General-Legal/legal-templates",
     summary:
       "Open legal document templates (privacy, terms, cookies, and more) useful for product and agent workflows.",
     description:
@@ -125,21 +128,22 @@ const TOOLS = [
     popularity: 82,
   },
   {
-    name: "Anthropic Skills",
+    name: "frontend-design (Anthropic pack)",
     slug: "anthropic-skills",
     publisher: "Anthropic",
-    url: "https://github.com/anthropics/skills",
+    url: "https://skills.sh/anthropics/skills/frontend-design",
+    repository: "https://github.com/anthropics/skills",
     summary:
-      "Anthropic’s official public Agent Skills repository, including document and creative skill examples.",
+      "Anthropic’s top Agent Skill for distinctive, production-minded frontend UI generation.",
     description:
-      "anthropics/skills is the reference collection of Agent Skills for Claude — covering skill creation patterns and popular skills such as frontend-design and document workflows (DOCX, PDF, PPTX, XLSX).",
+      "frontend-design is the highest-install skill from anthropics/skills — guiding agents to produce polished UI instead of generic layouts. Full Anthropic pack lives on the linked repository.",
     pricing_model: "Open source",
     price_display: "Free",
     open_source: true,
     api_available: false,
     local_available: true,
     keywords: ["skills", "claude", "anthropic", "agent-skills", "frontend-design"],
-    strengths: ["Official Anthropic source", "Widely installed skills", "Skill-creator patterns"],
+    strengths: ["Official Anthropic skill page", "Very high installs", "Direct skills.sh link"],
     limits: ["Claude-oriented examples"],
     audience: ["Developers", "Claude users"],
     categories: ["skills", "coding-development", "automation-agents"],
@@ -148,21 +152,22 @@ const TOOLS = [
     popularity: 98,
   },
   {
-    name: "Vercel Agent Skills",
+    name: "vercel-react-best-practices (pack)",
     slug: "vercel-agent-skills",
     publisher: "Vercel Labs",
-    url: "https://github.com/vercel-labs/agent-skills",
+    url: "https://skills.sh/vercel-labs/agent-skills/vercel-react-best-practices",
+    repository: "https://github.com/vercel-labs/agent-skills",
     summary:
-      "Vercel’s official collection of high-traffic agent skills for React, design guidelines, and agent tooling.",
+      "Vercel’s top React best-practices Agent Skill from the official agent-skills pack.",
     description:
-      "vercel-labs/agent-skills hosts widely used skills such as web-design-guidelines, vercel-react-best-practices, find-skills, and agent-browser — installable via skills.sh for Cursor and other agents.",
+      "vercel-react-best-practices is the highest-install skill in vercel-labs/agent-skills — encoding Vercel React/Next patterns for coding agents.",
     pricing_model: "Open source",
     price_display: "Free",
     open_source: true,
     api_available: false,
     local_available: true,
     keywords: ["skills", "vercel", "react", "agent-browser", "find-skills"],
-    strengths: ["Very high install volume", "Official Vercel Labs", "Cursor-ready"],
+    strengths: ["Very high install volume", "Direct skills.sh skill page", "Cursor-ready"],
     limits: ["Focused on web/React/agent ops"],
     audience: ["Developers", "Cursor users"],
     categories: ["skills", "coding-development", "automation-agents"],
@@ -174,7 +179,8 @@ const TOOLS = [
     name: "Skills CLI (skills.sh)",
     slug: "skills-cli",
     publisher: "Vercel Labs",
-    url: "https://github.com/vercel-labs/skills",
+    url: "https://skills.sh",
+    repository: "https://github.com/vercel-labs/skills",
     summary:
       "The skills.sh CLI and registry for discovering and installing agent skills across Cursor, Claude Code, Codex, and more.",
     description:
@@ -378,10 +384,11 @@ const TOOLS = [
     popularity: 94,
   },
   {
-    name: "Microsoft Foundry Skills",
+    name: "microsoft-foundry",
     slug: "microsoft-foundry-skills",
     publisher: "Microsoft",
     url: "https://skills.sh/microsoft/azure-skills/microsoft-foundry",
+    repository: "https://github.com/microsoft/azure-skills",
     summary:
       "Microsoft’s high-install Foundry Agent Skill for Azure AI / Foundry workflows in coding agents.",
     description:
@@ -392,7 +399,7 @@ const TOOLS = [
     api_available: false,
     local_available: true,
     keywords: ["skills", "microsoft", "azure", "foundry", "ai"],
-    strengths: ["Official Microsoft", "Very high install volume"],
+    strengths: ["Official Microsoft skill page", "Direct skills.sh link"],
     limits: ["Azure/Foundry-specific"],
     audience: ["Azure developers", "Enterprise teams"],
     categories: ["skills", "coding-development", "data-analytics"],
@@ -401,21 +408,22 @@ const TOOLS = [
     popularity: 91,
   },
   {
-    name: "Microsoft Azure Skills",
+    name: "azure-deploy",
     slug: "microsoft-azure-skills",
     publisher: "Microsoft",
-    url: "https://github.com/microsoft/azure-skills",
+    url: "https://skills.sh/microsoft/azure-skills/azure-deploy",
+    repository: "https://github.com/microsoft/azure-skills",
     summary:
-      "Official Microsoft Azure Agent Skills pack (deploy, storage, diagnostics, compliance, and more).",
+      "Microsoft Azure deploy Agent Skill for cloud deployment workflows with coding agents.",
     description:
-      "microsoft/azure-skills is the vendor collection powering many of the highest-install Azure skills on skills.sh — deploy, storage, AI gateway, Kubernetes, and related cloud workflows for agents.",
+      "azure-deploy is a top skill from microsoft/azure-skills — guiding agents through Azure deployment patterns alongside diagnostics, storage, and related cloud skills.",
     pricing_model: "Open source",
     price_display: "Free",
     open_source: true,
     api_available: false,
     local_available: true,
     keywords: ["skills", "azure", "microsoft", "cloud", "devops"],
-    strengths: ["Largest official vendor pack", "Broad Azure coverage"],
+    strengths: ["Official Microsoft skill page", "Direct skills.sh link"],
     limits: ["Requires Azure context"],
     audience: ["Cloud engineers", "DevOps"],
     categories: ["skills", "coding-development", "automation-agents"],
@@ -493,21 +501,22 @@ const TOOLS = [
     popularity: 88,
   },
   {
-    name: "Remotion Skills",
+    name: "remotion-best-practices (pack)",
     slug: "remotion-skills",
     publisher: "Remotion",
-    url: "https://github.com/remotion-dev/skills",
+    url: "https://skills.sh/remotion-dev/skills/remotion-best-practices",
+    repository: "https://github.com/remotion-dev/skills",
     summary:
-      "Official Remotion Agent Skills pack (create, render, captions, markup) for React video.",
+      "Official Remotion best-practices Agent Skill for React video with coding agents.",
     description:
-      "remotion-dev/skills is the official collection behind remotion-best-practices, remotion-render, remotion-create, and related high-traffic video skills on skills.sh.",
+      "remotion-best-practices is the flagship skill from remotion-dev/skills — companion skills cover render, create, captions, and markup.",
     pricing_model: "Open source",
     price_display: "Free",
     open_source: true,
     api_available: false,
     local_available: true,
     keywords: ["skills", "remotion", "react-video", "render", "captions"],
-    strengths: ["Official Remotion", "Multiple specialized skills"],
+    strengths: ["Official Remotion skill page", "Direct skills.sh link"],
     limits: ["Remotion ecosystem only"],
     audience: ["Creative developers"],
     categories: ["skills", "video-generation", "coding-development"],
@@ -539,22 +548,23 @@ const TOOLS = [
     popularity: 84,
   },
   {
-    name: "Supabase Skills",
+    name: "supabase-postgres-best-practices",
     slug: "supabase-skills",
     publisher: "Supabase",
-    url: "https://skills.sh/supabase",
+    url: "https://skills.sh/supabase/agent-skills/supabase-postgres-best-practices",
+    repository: "https://github.com/supabase/agent-skills",
     summary:
-      "Official Supabase Agent Skills for database, auth, storage, and edge function workflows.",
+      "Official Supabase Agent Skill for Postgres performance, schema, and RLS best practices.",
     description:
-      "Supabase’s skills.sh vendor pack helps coding agents work correctly with Postgres, Auth, Storage, and Edge Functions in Supabase projects.",
+      "supabase-postgres-best-practices is the top Supabase skill on skills.sh — guiding agents through query tuning, indexing, RLS, and schema design.",
     pricing_model: "Open source",
     price_display: "Free",
     open_source: true,
     api_available: false,
     local_available: true,
     keywords: ["skills", "supabase", "postgres", "auth", "edge-functions"],
-    strengths: ["Official vendor", "High relevance for app backends"],
-    limits: ["Supabase-specific"],
+    strengths: ["Official vendor skill page", "Direct skills.sh link"],
+    limits: ["Supabase/Postgres-focused"],
     audience: ["Full-stack developers"],
     categories: ["skills", "coding-development", "data-analytics"],
     type: "open-source",
@@ -562,21 +572,22 @@ const TOOLS = [
     popularity: 85,
   },
   {
-    name: "Firebase Skills",
+    name: "firebase-basics",
     slug: "firebase-skills",
     publisher: "Firebase",
-    url: "https://skills.sh/firebase",
+    url: "https://skills.sh/firebase/agent-skills/firebase-basics",
+    repository: "https://github.com/firebase/agent-skills",
     summary:
-      "Official Firebase Agent Skills pack for Google Firebase app backends and client SDKs.",
+      "Official Firebase basics Agent Skill for project setup and CLI workflows with coding agents.",
     description:
-      "Firebase’s skills.sh collection guides agents through common Firebase product workflows — among the higher official-vendor install totals on the registry.",
+      "firebase-basics is the core Firebase skill on skills.sh for login, project init, and service setup before deeper Firebase skills.",
     pricing_model: "Open source",
     price_display: "Free",
     open_source: true,
     api_available: false,
     local_available: true,
     keywords: ["skills", "firebase", "google", "backend", "mobile"],
-    strengths: ["Official Google/Firebase", "Strong install volume"],
+    strengths: ["Official Firebase skill page", "Direct skills.sh link"],
     limits: ["Firebase-specific"],
     audience: ["App developers"],
     categories: ["skills", "coding-development"],
@@ -585,22 +596,23 @@ const TOOLS = [
     popularity: 84,
   },
   {
-    name: "GitHub Skills",
+    name: "git-commit",
     slug: "github-agent-skills",
     publisher: "GitHub",
-    url: "https://skills.sh/github",
+    url: "https://skills.sh/github/awesome-copilot/git-commit",
+    repository: "https://github.com/github/awesome-copilot",
     summary:
-      "Official GitHub Agent Skills for repository, Actions, and collaboration workflows.",
+      "Popular GitHub Agent Skill for writing clear, conventional git commits with coding agents.",
     description:
-      "GitHub’s skills.sh vendor pack is one of the largest official collections by install volume — helping agents operate safely around repos, PRs, and Actions.",
+      "git-commit is a top skill from GitHub’s awesome-copilot collection on skills.sh — helping agents craft better commit messages and repo hygiene.",
     pricing_model: "Open source",
     price_display: "Free",
     open_source: true,
     api_available: false,
     local_available: true,
     keywords: ["skills", "github", "actions", "pull-requests", "devops"],
-    strengths: ["Official GitHub", "Very high aggregate installs"],
-    limits: ["GitHub-platform focused"],
+    strengths: ["Direct skills.sh skill page", "Very high installs"],
+    limits: ["GitHub-workflow focused"],
     audience: ["Developers", "DevOps"],
     categories: ["skills", "coding-development", "automation-agents"],
     type: "open-source",
@@ -608,21 +620,22 @@ const TOOLS = [
     popularity: 86,
   },
   {
-    name: "Firecrawl Skills",
+    name: "firecrawl",
     slug: "firecrawl-skills",
     publisher: "Firecrawl",
-    url: "https://skills.sh/firecrawl",
+    url: "https://skills.sh/firecrawl/cli/firecrawl",
+    repository: "https://github.com/firecrawl/cli",
     summary:
-      "Official Firecrawl Agent Skills for web crawling and page-to-markdown extraction in agents.",
+      "Official Firecrawl Agent Skill for search, scrape, crawl, and markdown extraction.",
     description:
-      "Firecrawl’s skills.sh pack teaches agents how to scrape and structure web content via Firecrawl — a popular vendor collection for research and ingestion workflows.",
+      "firecrawl is the primary Firecrawl CLI skill on skills.sh — teaching agents to gather clean, LLM-ready web content.",
     pricing_model: "Open source",
     price_display: "Free / Firecrawl plans",
     open_source: true,
     api_available: true,
     local_available: false,
     keywords: ["skills", "firecrawl", "scraping", "crawl", "markdown"],
-    strengths: ["Official Firecrawl", "Useful for agent research"],
+    strengths: ["Official Firecrawl skill page", "Direct skills.sh link"],
     limits: ["Needs Firecrawl API access for live crawls"],
     audience: ["Builders", "Data/ingestion teams"],
     categories: ["skills", "automation-agents", "research-education"],
@@ -631,21 +644,22 @@ const TOOLS = [
     popularity: 83,
   },
   {
-    name: "Expo Skills",
+    name: "building-native-ui",
     slug: "expo-skills",
     publisher: "Expo",
-    url: "https://skills.sh/expo",
+    url: "https://skills.sh/expo/skills/building-native-ui",
+    repository: "https://github.com/expo/skills",
     summary:
-      "Official Expo Agent Skills for React Native / Expo app development with coding agents.",
+      "Official Expo Agent Skill for native UI, routing, and React Native patterns.",
     description:
-      "Expo’s skills.sh pack helps agents follow current Expo and React Native patterns when scaffolding and shipping mobile apps.",
+      "building-native-ui is a top Expo skill on skills.sh for Expo Router, styling, components, and platform conventions.",
     pricing_model: "Open source",
     price_display: "Free",
     open_source: true,
     api_available: false,
     local_available: true,
     keywords: ["skills", "expo", "react-native", "mobile"],
-    strengths: ["Official Expo", "Strong mobile relevance"],
+    strengths: ["Official Expo skill page", "Direct skills.sh link"],
     limits: ["Expo/RN-specific"],
     audience: ["Mobile developers"],
     categories: ["skills", "coding-development"],
@@ -654,21 +668,22 @@ const TOOLS = [
     popularity: 82,
   },
   {
-    name: "better-auth Skills",
+    name: "create-auth",
     slug: "better-auth-skills",
     publisher: "better-auth",
-    url: "https://skills.sh/better-auth",
+    url: "https://skills.sh/better-auth/skills/create-auth-skill",
+    repository: "https://github.com/better-auth/skills",
     summary:
-      "Official better-auth Agent Skills for modern authentication setup in TypeScript apps.",
+      "Official better-auth Agent Skill for scaffolding authentication in TypeScript apps.",
     description:
-      "better-auth’s skills.sh pack guides agents through auth configuration patterns for the popular TypeScript authentication library.",
+      "create-auth guides agents through Better Auth setup — frameworks, adapters, OAuth, and common auth plugins.",
     pricing_model: "Open source",
     price_display: "Free",
     open_source: true,
     api_available: false,
     local_available: true,
     keywords: ["skills", "auth", "better-auth", "typescript", "security"],
-    strengths: ["Official library skills", "Auth-focused"],
+    strengths: ["Official skill page", "Direct skills.sh link"],
     limits: ["better-auth specific"],
     audience: ["Full-stack developers"],
     categories: ["skills", "coding-development"],
@@ -677,21 +692,22 @@ const TOOLS = [
     popularity: 80,
   },
   {
-    name: "Cloudflare Skills",
+    name: "cloudflare",
     slug: "cloudflare-skills",
     publisher: "Cloudflare",
-    url: "https://skills.sh/cloudflare",
+    url: "https://skills.sh/cloudflare/skills/cloudflare",
+    repository: "https://github.com/cloudflare/skills",
     summary:
-      "Official Cloudflare Agent Skills for Workers, Pages, and edge deployment workflows.",
+      "Official Cloudflare Agent Skill for Workers, Pages, storage, AI, and edge products.",
     description:
-      "Cloudflare’s skills.sh vendor pack helps agents build and deploy on Workers/Pages and related Cloudflare products.",
+      "cloudflare is the primary Cloudflare platform skill on skills.sh — routing agents to the right Cloudflare product and docs.",
     pricing_model: "Open source",
     price_display: "Free",
     open_source: true,
     api_available: false,
     local_available: true,
     keywords: ["skills", "cloudflare", "workers", "edge", "pages"],
-    strengths: ["Official Cloudflare", "Edge/dev platform coverage"],
+    strengths: ["Official Cloudflare skill page", "Direct skills.sh link"],
     limits: ["Cloudflare-specific"],
     audience: ["Edge developers"],
     categories: ["skills", "coding-development", "automation-agents"],
@@ -700,21 +716,22 @@ const TOOLS = [
     popularity: 81,
   },
   {
-    name: "Sentry Skills",
+    name: "sentry-fix-issues",
     slug: "sentry-skills",
     publisher: "Sentry",
-    url: "https://skills.sh/getsentry",
+    url: "https://skills.sh/getsentry/sentry-for-ai/sentry-fix-issues",
+    repository: "https://github.com/getsentry/sentry-for-ai",
     summary:
-      "Official Sentry Agent Skills for error monitoring, tracing, and observability setup.",
+      "Official Sentry Agent Skill for finding and fixing production issues with agents.",
     description:
-      "getsentry’s skills.sh pack guides agents to instrument apps with Sentry correctly — useful for production-ready agent coding sessions.",
+      "sentry-fix-issues helps coding agents investigate Sentry errors and traces — a top skill from getsentry’s AI skill packs.",
     pricing_model: "Open source",
     price_display: "Free / Sentry plans",
     open_source: true,
     api_available: true,
     local_available: true,
     keywords: ["skills", "sentry", "observability", "errors", "tracing"],
-    strengths: ["Official Sentry", "Large skill catalog"],
+    strengths: ["Official Sentry skill page", "Direct skills.sh link"],
     limits: ["Best with a Sentry project"],
     audience: ["Backend and frontend developers"],
     categories: ["skills", "coding-development"],
@@ -723,21 +740,22 @@ const TOOLS = [
     popularity: 80,
   },
   {
-    name: "Clerk Skills",
+    name: "clerk-setup",
     slug: "clerk-skills",
     publisher: "Clerk",
-    url: "https://skills.sh/clerk",
+    url: "https://skills.sh/clerk/skills/clerk-setup",
+    repository: "https://github.com/clerk/skills",
     summary:
-      "Official Clerk Agent Skills for authentication and user management in modern web apps.",
+      "Official Clerk Agent Skill for authentication setup across modern web frameworks.",
     description:
-      "Clerk’s skills.sh pack helps agents integrate Clerk auth, sessions, and organization features with current SDK patterns.",
+      "clerk-setup walks agents through Clerk install, env keys, providers, and framework-specific quickstarts.",
     pricing_model: "Open source",
     price_display: "Free / Clerk plans",
     open_source: true,
     api_available: true,
     local_available: true,
     keywords: ["skills", "clerk", "auth", "users", "sessions"],
-    strengths: ["Official Clerk", "Auth UX focused"],
+    strengths: ["Official Clerk skill page", "Direct skills.sh link"],
     limits: ["Clerk-specific"],
     audience: ["Full-stack developers"],
     categories: ["skills", "coding-development"],
@@ -746,21 +764,22 @@ const TOOLS = [
     popularity: 79,
   },
   {
-    name: "Prisma Skills",
+    name: "prisma-client-api",
     slug: "prisma-skills",
     publisher: "Prisma",
-    url: "https://skills.sh/prisma",
+    url: "https://skills.sh/prisma/skills/prisma-client-api",
+    repository: "https://github.com/prisma/skills",
     summary:
-      "Official Prisma Agent Skills for schema design, migrations, and Prisma Client usage.",
+      "Official Prisma Agent Skill for Prisma Client API patterns in TypeScript apps.",
     description:
-      "Prisma’s skills.sh pack steers agents toward correct Prisma schema and Client patterns when building TypeScript data layers.",
+      "prisma-client-api is a top Prisma skill on skills.sh for correct Client usage alongside setup and migration skills.",
     pricing_model: "Open source",
     price_display: "Free",
     open_source: true,
     api_available: false,
     local_available: true,
     keywords: ["skills", "prisma", "orm", "postgres", "typescript"],
-    strengths: ["Official Prisma", "Common stack coverage"],
+    strengths: ["Official Prisma skill page", "Direct skills.sh link"],
     limits: ["Prisma-specific"],
     audience: ["Backend developers"],
     categories: ["skills", "coding-development", "data-analytics"],
@@ -769,21 +788,22 @@ const TOOLS = [
     popularity: 78,
   },
   {
-    name: "Neon Skills",
+    name: "neon-postgres",
     slug: "neon-skills",
     publisher: "Neon",
-    url: "https://skills.sh/neondatabase",
+    url: "https://skills.sh/neondatabase/agent-skills/neon-postgres",
+    repository: "https://github.com/neondatabase/agent-skills",
     summary:
-      "Official Neon Agent Skills for serverless Postgres branching and database workflows.",
+      "Official Neon Agent Skill for serverless Postgres and Lakebase workflows.",
     description:
-      "neondatabase’s skills.sh pack helps agents work with Neon’s serverless Postgres, branches, and connection patterns.",
+      "neon-postgres is the core Neon skill on skills.sh for branching, connections, and serverless Postgres patterns.",
     pricing_model: "Open source",
     price_display: "Free / Neon plans",
     open_source: true,
     api_available: true,
     local_available: true,
     keywords: ["skills", "neon", "postgres", "serverless", "database"],
-    strengths: ["Official Neon", "Serverless Postgres focus"],
+    strengths: ["Official Neon skill page", "Direct skills.sh link"],
     limits: ["Neon-specific"],
     audience: ["Backend developers"],
     categories: ["skills", "coding-development", "data-analytics"],
@@ -792,22 +812,23 @@ const TOOLS = [
     popularity: 77,
   },
   {
-    name: "OpenAI Skills",
+    name: "security-best-practices",
     slug: "openai-skills",
     publisher: "OpenAI",
-    url: "https://skills.sh/openai",
+    url: "https://skills.sh/openai/skills/security-best-practices",
+    repository: "https://github.com/openai/skills",
     summary:
-      "Official OpenAI Agent Skills for API, Assistants, and model integration patterns.",
+      "Official OpenAI Agent Skill covering security best practices for agent and app workflows.",
     description:
-      "OpenAI’s skills.sh vendor pack helps coding agents use OpenAI APIs and related product patterns correctly.",
+      "security-best-practices is a top skill from OpenAI’s skills.sh pack for safer coding-agent and API integration patterns.",
     pricing_model: "Open source",
     price_display: "Free / OpenAI usage",
     open_source: true,
     api_available: true,
     local_available: true,
     keywords: ["skills", "openai", "api", "assistants", "models"],
-    strengths: ["Official OpenAI", "Large skill catalog"],
-    limits: ["OpenAI platform focused"],
+    strengths: ["Official OpenAI skill page", "Direct skills.sh link"],
+    limits: ["OpenAI ecosystem oriented"],
     audience: ["AI app developers"],
     categories: ["skills", "coding-development", "ai-assistants"],
     type: "open-source",
@@ -815,21 +836,22 @@ const TOOLS = [
     popularity: 82,
   },
   {
-    name: "LangChain Skills",
+    name: "langgraph-fundamentals",
     slug: "langchain-skills",
     publisher: "LangChain",
-    url: "https://skills.sh/langchain-ai",
+    url: "https://skills.sh/langchain-ai/langchain-skills/langgraph-fundamentals",
+    repository: "https://github.com/langchain-ai/langchain-skills",
     summary:
-      "Official LangChain Agent Skills for building LLM apps, agents, and LangGraph workflows.",
+      "Official LangChain Agent Skill for LangGraph fundamentals and agent workflows.",
     description:
-      "langchain-ai’s skills.sh pack guides agents through LangChain/LangGraph patterns for tool-using LLM applications.",
+      "langgraph-fundamentals helps coding agents build correct LangGraph apps — a top skill from langchain-ai’s skills pack.",
     pricing_model: "Open source",
     price_display: "Free",
     open_source: true,
     api_available: false,
     local_available: true,
     keywords: ["skills", "langchain", "langgraph", "agents", "llm"],
-    strengths: ["Official LangChain", "Agent framework coverage"],
+    strengths: ["Official LangChain skill page", "Direct skills.sh link"],
     limits: ["Framework-specific"],
     audience: ["AI engineers"],
     categories: ["skills", "coding-development", "automation-agents"],
@@ -838,21 +860,22 @@ const TOOLS = [
     popularity: 80,
   },
   {
-    name: "browser-use Skills",
+    name: "browser-use",
     slug: "browser-use-skills",
     publisher: "browser-use",
-    url: "https://skills.sh/browser-use",
+    url: "https://skills.sh/browser-use/browser-use/browser-use",
+    repository: "https://github.com/browser-use/browser-use",
     summary:
-      "Official browser-use Agent Skills for AI-driven browser automation agents.",
+      "Official browser-use Agent Skill for AI-driven browser automation.",
     description:
-      "browser-use’s skills.sh pack helps agents control real browsers for automation and QA-style tasks using the browser-use stack.",
+      "browser-use is the core skill for controlling real browsers in agent workflows via the browser-use stack.",
     pricing_model: "Open source",
     price_display: "Free",
     open_source: true,
     api_available: false,
     local_available: true,
     keywords: ["skills", "browser-use", "automation", "agents", "qa"],
-    strengths: ["Focused browser-agent tooling", "Official pack"],
+    strengths: ["Direct skills.sh skill page", "Official pack"],
     limits: ["Needs browser runtime"],
     audience: ["Automation engineers"],
     categories: ["skills", "automation-agents", "coding-development"],
@@ -861,21 +884,22 @@ const TOOLS = [
     popularity: 78,
   },
   {
-    name: "ui-sdk-write-code",
+    name: "ui-sdk",
     slug: "ui-sdk-write-code",
     publisher: "Vercel Labs",
-    url: "https://skills.sh/vercel-labs/ui/ui-sdk-write-code",
+    url: "https://skills.sh/vercel-labs/ui/ui-sdk",
+    repository: "https://github.com/vercel-labs/ui",
     summary:
       "Vercel UI SDK skill for writing idiomatic ui-sdk component code with agents.",
     description:
-      "ui-sdk-write-code is the primary coding skill from vercel-labs/ui — used when agents author or edit UI SDK core/adapters the way framework experts would.",
+      "ui-sdk is the published coding skill from vercel-labs/ui — used when agents author or edit UI SDK core/adapters.",
     pricing_model: "Open source",
     price_display: "Free",
     open_source: true,
     api_available: false,
     local_available: true,
     keywords: ["skills", "ui-sdk", "write-code", "vercel", "components"],
-    strengths: ["Official UI SDK skill", "Expert coding bar"],
+    strengths: ["Official UI SDK skill page", "Direct skills.sh link"],
     limits: ["UI SDK repo-oriented"],
     audience: ["Component library authors"],
     categories: ["skills", "coding-development", "design-creativity"],
@@ -884,21 +908,22 @@ const TOOLS = [
     popularity: 83,
   },
   {
-    name: "ui-sdk-unslop",
+    name: "ui-sdk (review)",
     slug: "ui-sdk-unslop",
     publisher: "Vercel Labs",
-    url: "https://skills.sh/vercel-labs/ui/ui-sdk-unslop",
+    url: "https://skills.sh/vercel-labs/ui/ui-sdk",
+    repository: "https://github.com/vercel-labs/ui",
     summary:
-      "Vercel UI SDK skill that strips AI slop from component diffs before merge.",
+      "Vercel UI SDK skill page for idiomatic component work and agent code quality.",
     description:
-      "ui-sdk-unslop reviews agent-written UI SDK changes for readability and idiomatic style — part of the official vercel-labs/ui skill set.",
+      "Points to the published ui-sdk skill from vercel-labs/ui — the current public skill for UI SDK agent workflows.",
     pricing_model: "Open source",
     price_display: "Free",
     open_source: true,
     api_available: false,
     local_available: true,
     keywords: ["skills", "ui-sdk", "unslop", "review", "vercel"],
-    strengths: ["Quality gate for agent code", "Official Vercel Labs"],
+    strengths: ["Official UI SDK skill page", "Direct skills.sh link"],
     limits: ["UI SDK focused"],
     audience: ["Component authors"],
     categories: ["skills", "coding-development"],
@@ -907,21 +932,22 @@ const TOOLS = [
     popularity: 81,
   },
   {
-    name: "AWS Skills",
+    name: "aws-serverless",
     slug: "aws-agent-skills",
     publisher: "Amazon Web Services",
-    url: "https://skills.sh/aws",
+    url: "https://skills.sh/aws/agent-toolkit-for-aws/aws-serverless",
+    repository: "https://github.com/aws/agent-toolkit-for-aws",
     summary:
-      "Official AWS Agent Skills for cloud architecture and service workflows with coding agents.",
+      "Official AWS Agent Skill for serverless architecture and service workflows.",
     description:
-      "AWS’s skills.sh vendor pack helps agents work with common AWS services and deployment patterns.",
+      "aws-serverless is a top skill from AWS’s agent toolkit on skills.sh for Lambda and related serverless patterns.",
     pricing_model: "Open source",
     price_display: "Free",
     open_source: true,
     api_available: false,
     local_available: true,
     keywords: ["skills", "aws", "cloud", "devops", "infrastructure"],
-    strengths: ["Official AWS", "Broad cloud coverage"],
+    strengths: ["Official AWS skill page", "Direct skills.sh link"],
     limits: ["AWS-specific"],
     audience: ["Cloud engineers"],
     categories: ["skills", "coding-development", "automation-agents"],
@@ -1024,9 +1050,33 @@ async function upsertTool(sb, tool, sourceId) {
     .select("id")
     .eq("slug", tool.slug)
     .maybeSingle();
+
+  const publisherId = await ensurePublisher(sb, tool.publisher);
+  const logo_url = logoFor(tool.url);
+  const payload = {
+    name: tool.name,
+    publisher_id: publisherId,
+    summary: tool.summary,
+    description: tool.description,
+    official_url: tool.url,
+    repository_url: tool.repository ?? null,
+    logo_url,
+    pricing_model: tool.pricing_model,
+    price_display: tool.price_display,
+    open_source: tool.open_source,
+    api_available: tool.api_available,
+    local_available: tool.local_available,
+    keywords: tool.keywords,
+    strengths: tool.strengths,
+    limits: tool.limits,
+    audience: tool.audience,
+    last_verified_at: new Date().toISOString().slice(0, 10),
+    updated_at: new Date().toISOString(),
+  };
+
   if (existing) {
-    console.log(`[tool] skip existing ${tool.slug}`);
-    // Still ensure category link
+    const { error: updErr } = await sb.from("tools").update(payload).eq("id", existing.id);
+    if (updErr) throw updErr;
     const catId = await idBySlug(sb, "categories", "skills");
     if (catId) {
       await sb.from("tool_categories").upsert({
@@ -1035,33 +1085,16 @@ async function upsertTool(sb, tool, sourceId) {
         is_primary: true,
       });
     }
-    return "skipped";
+    console.log(`[tool] updated ${tool.slug} → ${tool.url}`);
+    return "updated";
   }
-
-  const publisherId = await ensurePublisher(sb, tool.publisher);
-  const logo_url = logoFor(tool.url);
 
   const { data: inserted, error } = await sb
     .from("tools")
     .insert({
-      name: tool.name,
+      ...payload,
       slug: tool.slug,
-      publisher_id: publisherId,
-      summary: tool.summary,
-      description: tool.description,
-      official_url: tool.url,
-      logo_url,
-      pricing_model: tool.pricing_model,
-      price_display: tool.price_display,
-      open_source: tool.open_source,
-      api_available: tool.api_available,
-      local_available: tool.local_available,
-      keywords: tool.keywords,
-      strengths: tool.strengths,
-      limits: tool.limits,
-      audience: tool.audience,
       status: "pending_review",
-      last_verified_at: new Date().toISOString().slice(0, 10),
     })
     .select("id")
     .single();
@@ -1172,13 +1205,13 @@ async function main() {
   const sourceId = await ensureSource(sb);
 
   let inserted = 0;
-  let skipped = 0;
+  let updated = 0;
   let failed = 0;
   for (const tool of TOOLS) {
     try {
       const r = await upsertTool(sb, tool, sourceId);
       if (r === "inserted") inserted += 1;
-      else skipped += 1;
+      else updated += 1;
     } catch (err) {
       failed += 1;
       console.error(`[fail] ${tool.slug}:`, err.message || err);
@@ -1192,7 +1225,7 @@ async function main() {
     .select("*", { count: "exact", head: true })
     .eq("category_id", await idBySlug(sb, "categories", "skills"));
 
-  console.log(`[done] inserted=${inserted} skipped=${skipped} failed=${failed}`);
+  console.log(`[done] inserted=${inserted} updated=${updated} failed=${failed}`);
   console.log(`[done] skills category links=${count}`);
 }
 
