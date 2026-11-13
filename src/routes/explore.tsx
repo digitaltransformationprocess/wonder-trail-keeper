@@ -1,7 +1,7 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { AnimatePresence, motion, useDragControls, useReducedMotion } from "motion/react";
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState, type ReactNode } from "react";
 import { z } from "zod";
 import { SiteShell, SolutionCard } from "@/components/SiteShell";
 import {
@@ -109,92 +109,121 @@ function Explore() {
   const field =
     "w-full rounded-xl glass px-3.5 py-2.5 text-[0.875rem] outline-none transition-apple focus:ring-1 focus:ring-signal/40";
 
+  const filterField = (label: string, control: ReactNode) => (
+    <label className="flex min-w-0 flex-col gap-1.5">
+      <span className="text-[0.6875rem] font-medium uppercase tracking-[0.12em] text-muted-foreground">
+        {label}
+      </span>
+      {control}
+    </label>
+  );
+
   const filters = (
     <>
-      <input
-        className={`${field} md:col-span-2`}
-        placeholder="Name, publisher, use case…"
-        value={qDraft}
-        onChange={(e) => setQDraft(e.target.value)}
-      />
-      <Select
-        value={s.cat ?? "all"}
-        onValueChange={(v) => set({ cat: v === "all" ? undefined : v })}
-      >
-        <SelectTrigger aria-label="Category">
-          <SelectValue placeholder="All categories" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">All categories</SelectItem>
-          {categories.map((c) => (
-            <SelectItem key={c.slug} value={c.slug}>
-              {c.name}
-            </SelectItem>
+      {filterField(
+        "Search",
+        <input
+          className={field}
+          placeholder="Name, publisher, use case…"
+          value={qDraft}
+          onChange={(e) => setQDraft(e.target.value)}
+        />,
+      )}
+      {filterField(
+        "Category",
+        <Select
+          value={s.cat ?? "all"}
+          onValueChange={(v) => set({ cat: v === "all" ? undefined : v })}
+        >
+          <SelectTrigger aria-label="Category">
+            <SelectValue placeholder="All categories" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All categories</SelectItem>
+            {categories.map((c) => (
+              <SelectItem key={c.slug} value={c.slug}>
+                {c.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>,
+      )}
+      {filterField(
+        "Type",
+        <Select
+          value={s.type ?? "all"}
+          onValueChange={(v) => set({ type: v === "all" ? undefined : v })}
+        >
+          <SelectTrigger aria-label="Type">
+            <SelectValue placeholder="All types" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All types</SelectItem>
+            {types.map((c) => (
+              <SelectItem key={c.slug} value={c.name}>
+                {c.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>,
+      )}
+      {filterField(
+        "Pricing",
+        <Select
+          value={s.price ?? "all"}
+          onValueChange={(v) => set({ price: v === "all" ? undefined : v })}
+        >
+          <SelectTrigger aria-label="Pricing">
+            <SelectValue placeholder="All pricing" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All pricing</SelectItem>
+            {["Free", "Freemium", "Paid", "Open source"].map((c) => (
+              <SelectItem key={c} value={c}>
+                {c}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>,
+      )}
+      {filterField(
+        "Sort",
+        <Select
+          value={s.sort ?? "name"}
+          onValueChange={(v) => set({ sort: v as "name" | "recent" })}
+        >
+          <SelectTrigger aria-label="Sort">
+            <SelectValue placeholder="Sort" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="name">Name</SelectItem>
+            <SelectItem value="recent">Last updated</SelectItem>
+          </SelectContent>
+        </Select>,
+      )}
+      <div className="flex flex-col gap-1.5 md:col-span-2">
+        <span className="text-[0.6875rem] font-medium uppercase tracking-[0.12em] text-muted-foreground">
+          Options
+        </span>
+        <div className="flex flex-wrap items-center gap-4 text-[0.875rem]">
+          {(
+            [
+              ["api", "API"],
+              ["oss", "Open source"],
+              ["local", "Local"],
+            ] as const
+          ).map(([k, l]) => (
+            <label key={k} className="flex items-center gap-2 text-muted-foreground">
+              <input
+                type="checkbox"
+                className="accent-primary"
+                checked={!!s[k]}
+                onChange={(e) => set({ [k]: e.target.checked || undefined })}
+              />
+              {l}
+            </label>
           ))}
-        </SelectContent>
-      </Select>
-      <Select
-        value={s.type ?? "all"}
-        onValueChange={(v) => set({ type: v === "all" ? undefined : v })}
-      >
-        <SelectTrigger aria-label="Type">
-          <SelectValue placeholder="All types" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">All types</SelectItem>
-          {types.map((c) => (
-            <SelectItem key={c.slug} value={c.name}>
-              {c.name}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      <Select
-        value={s.price ?? "all"}
-        onValueChange={(v) => set({ price: v === "all" ? undefined : v })}
-      >
-        <SelectTrigger aria-label="Pricing">
-          <SelectValue placeholder="All pricing" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">All pricing</SelectItem>
-          {["Free", "Freemium", "Paid", "Open source"].map((c) => (
-            <SelectItem key={c} value={c}>
-              {c}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      <Select
-        value={s.sort ?? "name"}
-        onValueChange={(v) => set({ sort: v as "name" | "recent" })}
-      >
-        <SelectTrigger aria-label="Sort">
-          <SelectValue placeholder="Sort" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="name">Sort: name</SelectItem>
-          <SelectItem value="recent">Sort: last updated</SelectItem>
-        </SelectContent>
-      </Select>
-      <div className="flex flex-wrap items-center gap-4 text-[0.875rem] md:col-span-2">
-        {(
-          [
-            ["api", "API"],
-            ["oss", "Open source"],
-            ["local", "Local"],
-          ] as const
-        ).map(([k, l]) => (
-          <label key={k} className="flex items-center gap-2 text-muted-foreground">
-            <input
-              type="checkbox"
-              className="accent-primary"
-              checked={!!s[k]}
-              onChange={(e) => set({ [k]: e.target.checked || undefined })}
-            />
-            {l}
-          </label>
-        ))}
+        </div>
       </div>
     </>
   );
@@ -218,21 +247,47 @@ function Explore() {
           </button>
         </motion.div>
 
-        <motion.div variants={fadeUp} className="glass mt-8 hidden grid-cols-4 gap-3 rounded-3xl p-4 md:grid">
+        <motion.div
+          variants={fadeUp}
+          className="glass mt-8 hidden grid-cols-2 gap-x-3 gap-y-4 rounded-3xl p-4 md:grid lg:grid-cols-3"
+        >
           {filters}
         </motion.div>
 
-        <motion.div variants={fadeUp} className="mt-6 flex flex-wrap gap-2">
-          {categories.slice(0, 12).map((c) => (
-            <Link
-              key={c.slug}
-              to="/categories/$slug"
-              params={{ slug: c.slug }}
-              className="rounded-full glass px-3 py-1.5 text-[0.75rem] text-muted-foreground transition-apple hover:text-foreground"
+        <motion.div variants={fadeUp} className="mt-6">
+          <p className="mb-2 text-[0.6875rem] font-medium uppercase tracking-[0.12em] text-muted-foreground">
+            Quick category
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => set({ cat: undefined })}
+              className={`rounded-full px-3 py-1.5 text-[0.75rem] transition-apple ${
+                !s.cat
+                  ? "bg-primary text-primary-foreground"
+                  : "glass text-muted-foreground hover:text-foreground"
+              }`}
             >
-              {c.name}
-            </Link>
-          ))}
+              All
+            </button>
+            {categories.map((c) => {
+              const active = s.cat === c.slug;
+              return (
+                <button
+                  key={c.slug}
+                  type="button"
+                  onClick={() => set({ cat: active ? undefined : c.slug })}
+                  className={`rounded-full px-3 py-1.5 text-[0.75rem] transition-apple ${
+                    active
+                      ? "bg-primary text-primary-foreground"
+                      : "glass text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {c.name}
+                </button>
+              );
+            })}
+          </div>
         </motion.div>
 
         <motion.p variants={fadeUp} className="mt-8 text-[0.8125rem] text-muted-foreground">
