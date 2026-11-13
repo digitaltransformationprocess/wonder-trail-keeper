@@ -5,6 +5,13 @@ import { Suspense, useState } from "react";
 import { z } from "zod";
 import { SiteShell, SolutionCard } from "@/components/SiteShell";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   categoriesQuery,
   filterSolutions,
   solutionTypesQuery,
@@ -86,48 +93,66 @@ function Explore() {
         value={s.q ?? ""}
         onChange={(e) => set({ q: e.target.value || undefined })}
       />
-      <select
-        className={field}
-        value={s.cat ?? ""}
-        onChange={(e) => set({ cat: e.target.value || undefined })}
+      <Select
+        value={s.cat ?? "all"}
+        onValueChange={(v) => set({ cat: v === "all" ? undefined : v })}
       >
-        <option value="">All categories</option>
-        {categories.map((c) => (
-          <option key={c.slug} value={c.slug}>
-            {c.name}
-          </option>
-        ))}
-      </select>
-      <select
-        className={field}
-        value={s.type ?? ""}
-        onChange={(e) => set({ type: e.target.value || undefined })}
+        <SelectTrigger aria-label="Category">
+          <SelectValue placeholder="All categories" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">All categories</SelectItem>
+          {categories.map((c) => (
+            <SelectItem key={c.slug} value={c.slug}>
+              {c.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Select
+        value={s.type ?? "all"}
+        onValueChange={(v) => set({ type: v === "all" ? undefined : v })}
       >
-        <option value="">All types</option>
-        {types.map((c) => (
-          <option key={c.slug} value={c.name}>
-            {c.name}
-          </option>
-        ))}
-      </select>
-      <select
-        className={field}
-        value={s.price ?? ""}
-        onChange={(e) => set({ price: e.target.value || undefined })}
+        <SelectTrigger aria-label="Type">
+          <SelectValue placeholder="All types" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">All types</SelectItem>
+          {types.map((c) => (
+            <SelectItem key={c.slug} value={c.name}>
+              {c.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Select
+        value={s.price ?? "all"}
+        onValueChange={(v) => set({ price: v === "all" ? undefined : v })}
       >
-        <option value="">All pricing</option>
-        {["Free", "Freemium", "Paid", "Open source"].map((c) => (
-          <option key={c}>{c}</option>
-        ))}
-      </select>
-      <select
-        className={field}
+        <SelectTrigger aria-label="Pricing">
+          <SelectValue placeholder="All pricing" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">All pricing</SelectItem>
+          {["Free", "Freemium", "Paid", "Open source"].map((c) => (
+            <SelectItem key={c} value={c}>
+              {c}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Select
         value={s.sort ?? "name"}
-        onChange={(e) => set({ sort: e.target.value })}
+        onValueChange={(v) => set({ sort: v as "name" | "recent" })}
       >
-        <option value="name">Sort: name</option>
-        <option value="recent">Sort: last updated</option>
-      </select>
+        <SelectTrigger aria-label="Sort">
+          <SelectValue placeholder="Sort" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="name">Sort: name</SelectItem>
+          <SelectItem value="recent">Sort: last updated</SelectItem>
+        </SelectContent>
+      </Select>
       <div className="flex flex-wrap items-center gap-4 text-[0.875rem] md:col-span-2">
         {(
           [
