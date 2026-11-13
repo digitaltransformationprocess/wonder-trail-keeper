@@ -202,13 +202,23 @@ export function SiteShell({
   );
 }
 
-export function SolutionCard({ s, children }: { s: Solution; children?: ReactNode }) {
+export function SolutionCard({
+  s,
+  children,
+  lite = false,
+}: {
+  s: Solution;
+  children?: ReactNode;
+  /** Skip hover motion (safer for long lists / mobile). */
+  lite?: boolean;
+}) {
   const { has, toggle } = useCompare();
   const reduce = useReducedMotion();
+  const motionProps = lite || reduce ? {} : pressScale;
 
   return (
     <motion.article
-      {...(reduce ? {} : pressScale)}
+      {...motionProps}
       className="glass flex h-full flex-col rounded-3xl p-6"
     >
       <div className="flex items-start justify-between gap-3">

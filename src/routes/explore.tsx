@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { AnimatePresence, motion, useDragControls, useReducedMotion } from "motion/react";
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { z } from "zod";
 import { SiteShell, SolutionCard } from "@/components/SiteShell";
 import {
@@ -17,8 +17,10 @@ import {
   solutionTypesQuery,
   solutionsQuery,
 } from "@/lib/solutions";
-import { fadeUp, springSheet, springSoft, staggerChildren } from "@/lib/motion";
+import { fadeUp, springSheet, staggerChildren } from "@/lib/motion";
 import { mergeHead, pageSeo } from "@/lib/seo";
+
+const PAGE_SIZE = 24;
 
 export const Route = createFileRoute("/explore")({
   validateSearch: z.object({
@@ -74,13 +76,35 @@ function Explore() {
   const set = (patch: Record<string, unknown>) =>
     navigate({ search: (p) => ({ ...p, ...patch }), replace: true });
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [qDraft, setQDraft] = useState(s.q ?? "");
+  const [visible, setVisible] = useState(PAGE_SIZE);
   const reduce = useReducedMotion();
   const dragControls = useDragControls();
 
   const { data: solutions } = useSuspenseQuery(solutionsQuery);
   const { data: categories } = useSuspenseQuery(categoriesQuery);
   const { data: types } = useSuspenseQuery(solutionTypesQuery);
-  const list = filterSolutions(solutions, s);
+
+  useEffect(() => {
+    setQDraft(s.q ?? "");
+  }, [s.q]);
+
+  useEffect(() => {
+    const handle = window.setTimeout(() => {
+      const next = qDraft.trim() || undefined;
+      if (next !== (s.q || undefined)) set({ q: next });
+    }, 250);
+    return () => window.clearTimeout(handle);
+  }, [qDraft]); // eslint-disable-line react-hooks/exhaustive-deps -- debounce draft only
+
+  const list = useMemo(() => filterSolutions(solutions, s), [solutions, s]);
+
+  useEffect(() => {
+    setVisible(PAGE_SIZE);
+  }, [s.q, s.cat, s.type, s.price, s.api, s.oss, s.local, s.sort]);
+
+  const shown = list.slice(0, visible);
+  const hasMore = visible < list.length;
 
   const field =
     "w-full rounded-xl glass px-3.5 py-2.5 text-[0.875rem] outline-none transition-apple focus:ring-1 focus:ring-signal/40";
@@ -90,8 +114,8 @@ function Explore() {
       <input
         className={`${field} md:col-span-2`}
         placeholder="Name, publisher, use case…"
-        value={s.q ?? ""}
-        onChange={(e) => set({ q: e.target.value || undefined })}
+        value={qDraft}
+        onChange={(e) => setQDraft(e.target.value)}
       />
       <Select
         value={s.cat ?? "all"}
@@ -212,29 +236,36 @@ function Explore() {
         </motion.div>
 
         <motion.p variants={fadeUp} className="mt-8 text-[0.8125rem] text-muted-foreground">
-          {list.length} solution{list.length === 1 ? "" : "s"}
+          {list.length === 0
+            ? "0 solutions"
+            : `Showing ${shown.length} of ${list.length} solution${list.length === 1 ? "" : "s"}`}
         </motion.p>
-
-        {list.length === 0 ? (
-          <motion.p
-            variants={fadeUp}
-            className="glass mt-6 rounded-3xl px-6 py-12 text-center text-muted-foreground"
-          >
-            No results. Try broader filters.
-          </motion.p>
-        ) : (
-          <motion.div
-            variants={staggerChildren}
-            className="mt-5 grid gap-4 md:grid-cols-2 lg:grid-cols-3"
-          >
-            {list.map((x) => (
-              <motion.div key={x.slug} variants={fadeUp} transition={springSoft}>
-                <SolutionCard s={x} />
-              </motion.div>
-            ))}
-          </motion.div>
-        )}
       </motion.div>
+
+      {list.length === 0 ? (
+        <p className="glass mt-6 rounded-3xl px-6 py-12 text-center text-muted-foreground">
+          No results. Try broader filters.
+        </p>
+      ) : (
+        <>
+          <div className="mt-5 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {shown.map((x) => (
+              <SolutionCard key={x.slug} s={x} lite />
+            ))}
+          </div>
+          {hasMore ? (
+            <div className="mt-8 flex justify-center">
+              <button
+                type="button"
+                className="glass rounded-full px-5 py-2.5 text-[0.875rem] font-medium text-foreground transition-apple hover:bg-fill/50"
+                onClick={() => setVisible((n) => n + PAGE_SIZE)}
+              >
+                Load more
+              </button>
+            </div>
+          ) : null}
+        </>
+      )}
 
       <AnimatePresence>
         {sheetOpen && (

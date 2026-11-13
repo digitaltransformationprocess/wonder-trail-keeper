@@ -74,7 +74,7 @@ const TOOLS = [
     strengths: ["Official Vercel stack", "Direct skills.sh page", "Multi-framework"],
     limits: ["Skills target the UI SDK workflow"],
     audience: ["Developers", "Design engineers"],
-    categories: ["skills", "coding-development", "design-creativity"],
+    categories: ["skills"],
     type: "open-source",
     platforms: ["web"],
     popularity: 92,
@@ -98,7 +98,7 @@ const TOOLS = [
     strengths: ["Backed by Chrome", "Direct skills.sh skill page", "Actionable keep/drop rules"],
     limits: ["Guidance coverage expands over time"],
     audience: ["Frontend developers", "Agents"],
-    categories: ["skills", "coding-development"],
+    categories: ["skills"],
     type: "open-source",
     platforms: ["web"],
     popularity: 90,
@@ -122,7 +122,7 @@ const TOOLS = [
     strengths: ["Practical starter templates", "Open GitHub source"],
     limits: ["Not legal advice — must be customized"],
     audience: ["Founders", "Product teams", "Agents"],
-    categories: ["skills", "finance-legal"],
+    categories: ["skills"],
     type: "open-source",
     platforms: ["web"],
     popularity: 82,
@@ -146,7 +146,7 @@ const TOOLS = [
     strengths: ["Official Anthropic skill page", "Very high installs", "Direct skills.sh link"],
     limits: ["Claude-oriented examples"],
     audience: ["Developers", "Claude users"],
-    categories: ["skills", "coding-development", "automation-agents"],
+    categories: ["skills"],
     type: "open-source",
     platforms: ["web"],
     popularity: 98,
@@ -170,7 +170,7 @@ const TOOLS = [
     strengths: ["Very high install volume", "Direct skills.sh skill page", "Cursor-ready"],
     limits: ["Focused on web/React/agent ops"],
     audience: ["Developers", "Cursor users"],
-    categories: ["skills", "coding-development", "automation-agents"],
+    categories: ["skills"],
     type: "open-source",
     platforms: ["web"],
     popularity: 96,
@@ -194,7 +194,7 @@ const TOOLS = [
     strengths: ["De-facto skills installer", "Multi-agent support", "Open registry"],
     limits: ["Requires network to install packs"],
     audience: ["Developers", "Agent builders"],
-    categories: ["skills", "coding-development", "automation-agents"],
+    categories: ["skills"],
     type: "open-source",
     platforms: ["web", "macos", "windows", "linux"],
     popularity: 97,
@@ -217,7 +217,7 @@ const TOOLS = [
     strengths: ["Massive install base", "Meta-skill for skill discovery"],
     limits: ["Depends on skills registry availability"],
     audience: ["Developers", "Agent users"],
-    categories: ["skills", "automation-agents"],
+    categories: ["skills"],
     type: "open-source",
     platforms: ["web"],
     popularity: 99,
@@ -240,7 +240,7 @@ const TOOLS = [
     strengths: ["Top install counts", "Practical browser workflows"],
     limits: ["Needs a browser runtime in the agent environment"],
     audience: ["Developers", "QA with agents"],
-    categories: ["skills", "automation-agents", "coding-development"],
+    categories: ["skills"],
     type: "open-source",
     platforms: ["web"],
     popularity: 95,
@@ -263,7 +263,7 @@ const TOOLS = [
     strengths: ["Very high adoption", "Official Anthropic skill"],
     limits: ["Design taste still needs human review"],
     audience: ["Frontend developers", "Design engineers"],
-    categories: ["skills", "design-creativity", "coding-development"],
+    categories: ["skills"],
     type: "open-source",
     platforms: ["web"],
     popularity: 94,
@@ -286,7 +286,7 @@ const TOOLS = [
     strengths: ["Popular on skills.sh", "Pairs with React best practices"],
     limits: ["Opinionated toward Vercel design taste"],
     audience: ["Frontend developers"],
-    categories: ["skills", "design-creativity", "coding-development"],
+    categories: ["skills"],
     type: "open-source",
     platforms: ["web"],
     popularity: 91,
@@ -309,7 +309,7 @@ const TOOLS = [
     strengths: ["Official Vercel guidance", "High install volume"],
     limits: ["React/Next-centric"],
     audience: ["React developers"],
-    categories: ["skills", "coding-development"],
+    categories: ["skills"],
     type: "open-source",
     platforms: ["web"],
     popularity: 93,
@@ -332,7 +332,7 @@ const TOOLS = [
     strengths: ["Category leader for Remotion", "Strong community installs"],
     limits: ["Remotion-specific"],
     audience: ["Video engineers", "Creative developers"],
-    categories: ["skills", "video-generation", "coding-development"],
+    categories: ["skills"],
     type: "open-source",
     platforms: ["web"],
     popularity: 88,
@@ -355,7 +355,7 @@ const TOOLS = [
     strengths: ["Official authoring guidance", "Widely referenced"],
     limits: ["Oriented to Agent Skills format"],
     audience: ["Skill authors", "Developers"],
-    categories: ["skills", "automation-agents", "coding-development"],
+    categories: ["skills"],
     type: "open-source",
     platforms: ["web"],
     popularity: 86,
@@ -378,7 +378,7 @@ const TOOLS = [
     strengths: ["Native Cursor integration", "Personal + project skills"],
     limits: ["Docs evolve with Cursor releases"],
     audience: ["Cursor users", "Developers"],
-    categories: ["skills", "coding-development", "automation-agents"],
+    categories: ["skills"],
     type: "platform",
     platforms: ["macos", "windows", "linux"],
     popularity: 94,
@@ -402,7 +402,7 @@ const TOOLS = [
     strengths: ["Official Microsoft skill page", "Direct skills.sh link"],
     limits: ["Azure/Foundry-specific"],
     audience: ["Azure developers", "Enterprise teams"],
-    categories: ["skills", "coding-development", "data-analytics"],
+    categories: ["skills"],
     type: "open-source",
     platforms: ["web"],
     popularity: 91,
@@ -426,7 +426,7 @@ const TOOLS = [
     strengths: ["Official Microsoft skill page", "Direct skills.sh link"],
     limits: ["Requires Azure context"],
     audience: ["Cloud engineers", "DevOps"],
-    categories: ["skills", "coding-development", "automation-agents"],
+    categories: ["skills"],
     type: "open-source",
     platforms: ["web"],
     popularity: 90,
@@ -449,7 +449,7 @@ const TOOLS = [
     strengths: ["Huge install base", "Improves agent requirement gathering"],
     limits: ["Adds back-and-forth before coding"],
     audience: ["Developers", "Tech leads"],
-    categories: ["skills", "coding-development", "productivity"],
+    categories: ["skills"],
     type: "open-source",
     platforms: ["web"],
     popularity: 89,
@@ -472,7 +472,7 @@ const TOOLS = [
     strengths: ["Docs-aware clarification", "Strong community adoption"],
     limits: ["Needs readable project docs"],
     audience: ["Developers"],
-    categories: ["skills", "coding-development", "productivity"],
+    categories: ["skills"],
     type: "open-source",
     platforms: ["web"],
     popularity: 87,
@@ -495,7 +495,7 @@ const TOOLS = [
     strengths: ["High install volume", "Official HeyGen skill"],
     limits: ["Creative/video-oriented"],
     audience: ["Creators", "Video engineers"],
-    categories: ["skills", "video-generation", "design-creativity"],
+    categories: ["skills"],
     type: "open-source",
     platforms: ["web"],
     popularity: 88,
@@ -519,7 +519,7 @@ const TOOLS = [
     strengths: ["Official Remotion skill page", "Direct skills.sh link"],
     limits: ["Remotion ecosystem only"],
     audience: ["Creative developers"],
-    categories: ["skills", "video-generation", "coding-development"],
+    categories: ["skills"],
     type: "open-source",
     platforms: ["web"],
     popularity: 87,
@@ -542,7 +542,7 @@ const TOOLS = [
     strengths: ["Task-specific", "Strong Remotion adoption"],
     limits: ["Render pipeline must be available"],
     audience: ["Video engineers"],
-    categories: ["skills", "video-generation"],
+    categories: ["skills"],
     type: "open-source",
     platforms: ["web"],
     popularity: 84,
@@ -566,7 +566,7 @@ const TOOLS = [
     strengths: ["Official vendor skill page", "Direct skills.sh link"],
     limits: ["Supabase/Postgres-focused"],
     audience: ["Full-stack developers"],
-    categories: ["skills", "coding-development", "data-analytics"],
+    categories: ["skills"],
     type: "open-source",
     platforms: ["web"],
     popularity: 85,
@@ -590,7 +590,7 @@ const TOOLS = [
     strengths: ["Official Firebase skill page", "Direct skills.sh link"],
     limits: ["Firebase-specific"],
     audience: ["App developers"],
-    categories: ["skills", "coding-development"],
+    categories: ["skills"],
     type: "open-source",
     platforms: ["web"],
     popularity: 84,
@@ -614,7 +614,7 @@ const TOOLS = [
     strengths: ["Direct skills.sh skill page", "Very high installs"],
     limits: ["GitHub-workflow focused"],
     audience: ["Developers", "DevOps"],
-    categories: ["skills", "coding-development", "automation-agents"],
+    categories: ["skills"],
     type: "open-source",
     platforms: ["web"],
     popularity: 86,
@@ -638,7 +638,7 @@ const TOOLS = [
     strengths: ["Official Firecrawl skill page", "Direct skills.sh link"],
     limits: ["Needs Firecrawl API access for live crawls"],
     audience: ["Builders", "Data/ingestion teams"],
-    categories: ["skills", "automation-agents", "research-education"],
+    categories: ["skills"],
     type: "open-source",
     platforms: ["web"],
     popularity: 83,
@@ -662,7 +662,7 @@ const TOOLS = [
     strengths: ["Official Expo skill page", "Direct skills.sh link"],
     limits: ["Expo/RN-specific"],
     audience: ["Mobile developers"],
-    categories: ["skills", "coding-development"],
+    categories: ["skills"],
     type: "open-source",
     platforms: ["web"],
     popularity: 82,
@@ -686,7 +686,7 @@ const TOOLS = [
     strengths: ["Official skill page", "Direct skills.sh link"],
     limits: ["better-auth specific"],
     audience: ["Full-stack developers"],
-    categories: ["skills", "coding-development"],
+    categories: ["skills"],
     type: "open-source",
     platforms: ["web"],
     popularity: 80,
@@ -710,7 +710,7 @@ const TOOLS = [
     strengths: ["Official Cloudflare skill page", "Direct skills.sh link"],
     limits: ["Cloudflare-specific"],
     audience: ["Edge developers"],
-    categories: ["skills", "coding-development", "automation-agents"],
+    categories: ["skills"],
     type: "open-source",
     platforms: ["web"],
     popularity: 81,
@@ -734,7 +734,7 @@ const TOOLS = [
     strengths: ["Official Sentry skill page", "Direct skills.sh link"],
     limits: ["Best with a Sentry project"],
     audience: ["Backend and frontend developers"],
-    categories: ["skills", "coding-development"],
+    categories: ["skills"],
     type: "open-source",
     platforms: ["web"],
     popularity: 80,
@@ -758,7 +758,7 @@ const TOOLS = [
     strengths: ["Official Clerk skill page", "Direct skills.sh link"],
     limits: ["Clerk-specific"],
     audience: ["Full-stack developers"],
-    categories: ["skills", "coding-development"],
+    categories: ["skills"],
     type: "open-source",
     platforms: ["web"],
     popularity: 79,
@@ -782,7 +782,7 @@ const TOOLS = [
     strengths: ["Official Prisma skill page", "Direct skills.sh link"],
     limits: ["Prisma-specific"],
     audience: ["Backend developers"],
-    categories: ["skills", "coding-development", "data-analytics"],
+    categories: ["skills"],
     type: "open-source",
     platforms: ["web"],
     popularity: 78,
@@ -806,7 +806,7 @@ const TOOLS = [
     strengths: ["Official Neon skill page", "Direct skills.sh link"],
     limits: ["Neon-specific"],
     audience: ["Backend developers"],
-    categories: ["skills", "coding-development", "data-analytics"],
+    categories: ["skills"],
     type: "open-source",
     platforms: ["web"],
     popularity: 77,
@@ -830,7 +830,7 @@ const TOOLS = [
     strengths: ["Official OpenAI skill page", "Direct skills.sh link"],
     limits: ["OpenAI ecosystem oriented"],
     audience: ["AI app developers"],
-    categories: ["skills", "coding-development", "ai-assistants"],
+    categories: ["skills"],
     type: "open-source",
     platforms: ["web"],
     popularity: 82,
@@ -854,7 +854,7 @@ const TOOLS = [
     strengths: ["Official LangChain skill page", "Direct skills.sh link"],
     limits: ["Framework-specific"],
     audience: ["AI engineers"],
-    categories: ["skills", "coding-development", "automation-agents"],
+    categories: ["skills"],
     type: "open-source",
     platforms: ["web"],
     popularity: 80,
@@ -878,7 +878,7 @@ const TOOLS = [
     strengths: ["Direct skills.sh skill page", "Official pack"],
     limits: ["Needs browser runtime"],
     audience: ["Automation engineers"],
-    categories: ["skills", "automation-agents", "coding-development"],
+    categories: ["skills"],
     type: "open-source",
     platforms: ["web"],
     popularity: 78,
@@ -902,7 +902,7 @@ const TOOLS = [
     strengths: ["Official UI SDK skill page", "Direct skills.sh link"],
     limits: ["UI SDK repo-oriented"],
     audience: ["Component library authors"],
-    categories: ["skills", "coding-development", "design-creativity"],
+    categories: ["skills"],
     type: "open-source",
     platforms: ["web"],
     popularity: 83,
@@ -926,7 +926,7 @@ const TOOLS = [
     strengths: ["Official UI SDK skill page", "Direct skills.sh link"],
     limits: ["UI SDK focused"],
     audience: ["Component authors"],
-    categories: ["skills", "coding-development"],
+    categories: ["skills"],
     type: "open-source",
     platforms: ["web"],
     popularity: 81,
@@ -950,7 +950,7 @@ const TOOLS = [
     strengths: ["Official AWS skill page", "Direct skills.sh link"],
     limits: ["AWS-specific"],
     audience: ["Cloud engineers"],
-    categories: ["skills", "coding-development", "automation-agents"],
+    categories: ["skills"],
     type: "open-source",
     platforms: ["web"],
     popularity: 79,
@@ -1044,6 +1044,35 @@ async function ensureSource(sb) {
   return data.id;
 }
 
+/** Skills catalog entries must only belong to the Skills category. */
+async function syncSkillsOnlyCategories(sb, toolId) {
+  const skillsId = await idBySlug(sb, "categories", "skills");
+  if (!skillsId) throw new Error("skills category missing");
+
+  const { data: links, error } = await sb
+    .from("tool_categories")
+    .select("category_id")
+    .eq("tool_id", toolId);
+  if (error) throw error;
+
+  for (const link of links ?? []) {
+    if (link.category_id === skillsId) continue;
+    const { error: delErr } = await sb
+      .from("tool_categories")
+      .delete()
+      .eq("tool_id", toolId)
+      .eq("category_id", link.category_id);
+    if (delErr) throw delErr;
+  }
+
+  const { error: upErr } = await sb.from("tool_categories").upsert({
+    tool_id: toolId,
+    category_id: skillsId,
+    is_primary: true,
+  });
+  if (upErr) throw upErr;
+}
+
 async function upsertTool(sb, tool, sourceId) {
   const { data: existing } = await sb
     .from("tools")
@@ -1077,14 +1106,7 @@ async function upsertTool(sb, tool, sourceId) {
   if (existing) {
     const { error: updErr } = await sb.from("tools").update(payload).eq("id", existing.id);
     if (updErr) throw updErr;
-    const catId = await idBySlug(sb, "categories", "skills");
-    if (catId) {
-      await sb.from("tool_categories").upsert({
-        tool_id: existing.id,
-        category_id: catId,
-        is_primary: true,
-      });
-    }
+    await syncSkillsOnlyCategories(sb, existing.id);
     console.log(`[tool] updated ${tool.slug} → ${tool.url}`);
     return "updated";
   }
@@ -1101,18 +1123,7 @@ async function upsertTool(sb, tool, sourceId) {
   if (error) throw error;
   const toolId = inserted.id;
 
-  for (let i = 0; i < tool.categories.length; i++) {
-    const catId = await idBySlug(sb, "categories", tool.categories[i]);
-    if (!catId) {
-      console.warn(`[warn] missing category ${tool.categories[i]} for ${tool.slug}`);
-      continue;
-    }
-    await sb.from("tool_categories").upsert({
-      tool_id: toolId,
-      category_id: catId,
-      is_primary: i === 0,
-    });
-  }
+  await syncSkillsOnlyCategories(sb, toolId);
 
   const typeSlug = TYPE_ALIASES[tool.type] ?? tool.type;
   const typeId = await idBySlug(sb, "solution_types", typeSlug);
