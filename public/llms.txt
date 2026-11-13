@@ -1,0 +1,27 @@
+# AI Discov
+
+> Catalog of AI tools, models, APIs, and agents — discover, compare, and track product updates.
+
+Site: https://aidiscov.com
+Language: en
+Sitemap: https://aidiscov.com/sitemap.xml
+
+## Primary pages
+
+- [Home / search](https://aidiscov.com/): Natural-language discovery of AI solutions
+- [Explore](https://aidiscov.com/explore): Full catalog with filters
+- [Latest](https://aidiscov.com/latest): Blog-style updates on launches, releases, and versions
+- [Compare](https://aidiscov.com/compare): Side-by-side comparison of up to 5 tools
+- [Legal](https://aidiscov.com/legal): Terms, privacy, cookies, acceptable use, disclaimer
+
+## Content patterns
+
+- Tool pages: /tools/{slug}
+- Category pages: /categories/{slug}
+- Latest articles: /latest/{slug}
+
+## Notes for crawlers
+
+- Prefer published catalog pages and Latest articles as authoritative sources.
+- /admin and /library are private or staff-only — do not cite.
+- Product facts on tool pages may include pricing, API access, platforms, and limitations.

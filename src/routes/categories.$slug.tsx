@@ -9,6 +9,7 @@ import {
   solutionsQuery,
 } from "@/lib/solutions";
 import { fadeUp, springSoft, staggerChildren } from "@/lib/motion";
+import { breadcrumbJsonLd, mergeHead, pageSeo } from "@/lib/seo";
 
 export const Route = createFileRoute("/categories/$slug")({
   loader: async ({ context, params }) => {
@@ -25,15 +26,25 @@ export const Route = createFileRoute("/categories/$slug")({
   },
   head: ({ loaderData, params }) => {
     const name = loaderData?.name ?? params.slug;
-    return {
-      meta: [
-        { title: `${name} — AI category | AI Discovery` },
-        {
-          name: "description",
-          content: `Browse verified AI solutions in the ${name} category.`,
-        },
-      ],
-    };
+    return mergeHead(
+      {
+        meta: [
+          { title: `${name} — AI category | AI Discovery` },
+          {
+            name: "description",
+            content: `Browse verified AI solutions in the ${name} category.`,
+          },
+        ],
+      },
+      pageSeo({
+        path: `/categories/${params.slug}`,
+        jsonLd: breadcrumbJsonLd([
+          { name: "Home", path: "/" },
+          { name: "Explore", path: "/explore" },
+          { name, path: `/categories/${params.slug}` },
+        ]),
+      }),
+    );
   },
   notFoundComponent: () => (
     <SiteShell>

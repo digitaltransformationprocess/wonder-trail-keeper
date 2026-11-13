@@ -6,21 +6,26 @@ import { z } from "zod";
 import { SiteShell } from "@/components/SiteShell";
 import { fadeUp, staggerChildren } from "@/lib/motion";
 import { displayApi, solutionsBySlugsQuery, type Solution } from "@/lib/solutions";
+import { mergeHead, pageSeo } from "@/lib/seo";
 import { setCompareSlugs, useCompare } from "@/lib/store";
 
 export const Route = createFileRoute("/compare")({
   validateSearch: z.object({
     tools: z.string().optional(),
   }),
-  head: () => ({
-    meta: [
-      { title: "Compare — AI solution comparison | AI Discovery" },
+  head: () =>
+    mergeHead(
       {
-        name: "description",
-        content: "Compare up to 5 AI solutions by pricing, API access, platforms, and limitations.",
+        meta: [
+          { title: "Compare — AI solution comparison | AI Discovery" },
+          {
+            name: "description",
+            content: "Compare up to 5 AI solutions by pricing, API access, platforms, and limitations.",
+          },
+        ],
       },
-    ],
-  }),
+      pageSeo({ path: "/compare" }),
+    ),
   component: Compare,
 });
 

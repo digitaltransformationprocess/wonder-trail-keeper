@@ -14,15 +14,20 @@ import {
 } from "@/lib/library";
 import { fadeUp, springSoft, staggerChildren } from "@/lib/motion";
 import { solutionsBySlugsQuery } from "@/lib/solutions";
+import { mergeHead, pageSeo } from "@/lib/seo";
 import { useFavorites } from "@/lib/store";
 
 export const Route = createFileRoute("/library")({
-  head: () => ({
-    meta: [
-      { title: "My Library — Your saved AI solutions | AI Discovery" },
-      { name: "description", content: "Find the AI solutions you have saved." },
-    ],
-  }),
+  head: () =>
+    mergeHead(
+      {
+        meta: [
+          { title: "My Library — Your saved AI solutions | AI Discovery" },
+          { name: "description", content: "Find the AI solutions you have saved." },
+        ],
+      },
+      pageSeo({ path: "/library", noindex: true }),
+    ),
   component: Library,
 });
 

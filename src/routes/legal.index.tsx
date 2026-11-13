@@ -2,17 +2,22 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion, useReducedMotion } from "motion/react";
 import { LEGAL, LEGAL_DOCS } from "@/lib/legal/config";
 import { fadeUp, staggerChildren } from "@/lib/motion";
+import { mergeHead, pageSeo } from "@/lib/seo";
 
 export const Route = createFileRoute("/legal/")({
-  head: () => ({
-    meta: [
-      { title: `Legal — ${LEGAL.productName}` },
+  head: () =>
+    mergeHead(
       {
-        name: "description",
-        content: "Terms of Use, Privacy Policy, Cookie Notice, Acceptable Use, and Disclaimer.",
+        meta: [
+          { title: `Legal — ${LEGAL.productName}` },
+          {
+            name: "description",
+            content: "Terms of Use, Privacy Policy, Cookie Notice, Acceptable Use, and Disclaimer.",
+          },
+        ],
       },
-    ],
-  }),
+      pageSeo({ path: "/legal" }),
+    ),
   component: LegalIndex,
 });
 

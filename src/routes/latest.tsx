@@ -5,6 +5,7 @@ import { z } from "zod";
 import { SiteShell } from "@/components/SiteShell";
 import { newsQuery, type NewsFilters, type NewsRow } from "@/lib/news";
 import { fadeUp, staggerChildren } from "@/lib/motion";
+import { mergeHead, pageSeo } from "@/lib/seo";
 
 export const Route = createFileRoute("/latest")({
   validateSearch: z.object({
@@ -25,16 +26,20 @@ export const Route = createFileRoute("/latest")({
     if (deps.since) filters.since = deps.since;
     await context.queryClient.ensureQueryData(newsQuery(filters));
   },
-  head: () => ({
-    meta: [
-      { title: "Latest — New AI tools, releases & versions | AI Discov" },
+  head: () =>
+    mergeHead(
       {
-        name: "description",
-        content:
-          "Updates on new AI tools, model releases, version upgrades, pricing, and product launches.",
+        meta: [
+          { title: "Latest — New AI tools, releases & versions | AI Discov" },
+          {
+            name: "description",
+            content:
+              "Updates on new AI tools, model releases, version upgrades, pricing, and product launches.",
+          },
+        ],
       },
-    ],
-  }),
+      pageSeo({ path: "/latest" }),
+    ),
   component: LatestLayout,
 });
 

@@ -72,6 +72,39 @@ async function fetchCategorySlugs(supabase) {
   return (data ?? []).map((row) => row.slug).filter(Boolean);
 }
 
+async function fetchNewsSlugs(supabase) {
+  const slugs = [];
+  const pageSize = 1000;
+  let from = 0;
+
+  for (;;) {
+    const { data, error } = await supabase
+      .from("news_items")
+      .select("slug")
+      .eq("status", "published")
+      .not("slug", "is", null)
+      .order("published_at", { ascending: false })
+      .range(from, from + pageSize - 1);
+
+    if (error) throw new Error(`Supabase news: ${error.message}`);
+    if (!data?.length) break;
+    slugs.push(...data.map((row) => row.slug).filter(Boolean));
+    if (data.length < pageSize) break;
+    from += pageSize;
+  }
+
+  return slugs;
+}
+
+const LEGAL_PATHS = [
+  "/legal",
+  "/legal/terms",
+  "/legal/privacy",
+  "/legal/cookies",
+  "/legal/acceptable-use",
+  "/legal/disclaimer",
+];
+
 async function main() {
   // Prefer local .env, then production public env (used on Vercel after .env was untracked).
   const env = {
@@ -90,15 +123,19 @@ async function main() {
   }
 
   const supabase = createClient(supabaseUrl, supabaseKey);
-  const [slugs, categorySlugs] = await Promise.all([
+  const [slugs, categorySlugs, newsSlugs] = await Promise.all([
     fetchPublishedSlugs(supabase),
     fetchCategorySlugs(supabase),
+    fetchNewsSlugs(supabase),
   ]);
-  const staticPaths = ["/", "/explore", "/latest", "/compare", "/library"];
+
+  // /library is personal → noindex, keep out of sitemap
+  const staticPaths = ["/", "/explore", "/latest", "/compare", ...LEGAL_PATHS];
   const paths = [
     ...staticPaths,
     ...slugs.map((slug) => `/tools/${slug}`),
     ...categorySlugs.map((slug) => `/categories/${slug}`),
+    ...newsSlugs.map((slug) => `/latest/${slug}`),
   ];
   const lastmod = new Date().toISOString().slice(0, 10);
 
@@ -123,16 +160,86 @@ ${urls}
   const sitemapLine = siteUrl
     ? `Sitemap: ${siteUrl}/sitemap.xml`
     : "Sitemap: /sitemap.xml";
+  const hostLine = siteUrl ? `Host: ${siteUrl}` : "";
 
-  const robots = `User-agent: *
+  const robots = `# AI Discov — crawl rules for search + generative engines
+User-agent: *
 Allow: /
 Disallow: /admin
+Disallow: /library
 
+# Explicit allow for major search / AI crawlers (GEO)
+User-agent: Googlebot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Applebot
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+${hostLine}
 ${sitemapLine}
 `;
 
-  writeFileSync(join(ROOT, "public", "robots.txt"), robots, "utf8");
+  writeFileSync(join(ROOT, "public", "robots.txt"), robots.trim() + "\n", "utf8");
   console.log("[sitemap] Updated public/robots.txt");
+
+  const llms = `# AI Discov
+
+> Catalog of AI tools, models, APIs, and agents — discover, compare, and track product updates.
+
+Site: ${siteUrl || "https://aidiscov.com"}
+Language: en
+Sitemap: ${siteUrl ? `${siteUrl}/sitemap.xml` : "/sitemap.xml"}
+
+## Primary pages
+
+- [Home / search](${siteUrl || ""}/): Natural-language discovery of AI solutions
+- [Explore](${siteUrl || ""}/explore): Full catalog with filters
+- [Latest](${siteUrl || ""}/latest): Blog-style updates on launches, releases, and versions
+- [Compare](${siteUrl || ""}/compare): Side-by-side comparison of up to 5 tools
+- [Legal](${siteUrl || ""}/legal): Terms, privacy, cookies, acceptable use, disclaimer
+
+## Content patterns
+
+- Tool pages: /tools/{slug}
+- Category pages: /categories/{slug}
+- Latest articles: /latest/{slug}
+
+## Notes for crawlers
+
+- Prefer published catalog pages and Latest articles as authoritative sources.
+- /admin and /library are private or staff-only — do not cite.
+- Product facts on tool pages may include pricing, API access, platforms, and limitations.
+`;
+
+  writeFileSync(join(ROOT, "public", "llms.txt"), llms.trim() + "\n", "utf8");
+  console.log("[sitemap] Updated public/llms.txt");
 }
 
 main().catch((err) => {

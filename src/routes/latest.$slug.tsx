@@ -6,6 +6,7 @@ import { BlogContent } from "@/components/BlogContent";
 import { SiteShell } from "@/components/SiteShell";
 import { newsBySlugQuery } from "@/lib/news";
 import { fadeUp, staggerChildren } from "@/lib/motion";
+import { mergeHead, pageSeo } from "@/lib/seo";
 
 export const Route = createFileRoute("/latest/$slug")({
   loader: async ({ context, params }) => {
@@ -16,12 +17,16 @@ export const Route = createFileRoute("/latest/$slug")({
       throw error;
     }
   },
-  head: ({ loaderData: _ld, params }) => ({
-    meta: [
-      { title: `${params.slug} — Latest | AI Discov` },
-      { name: "description", content: "AI product update, release, or version deep-dive." },
-    ],
-  }),
+  head: ({ loaderData: _ld, params }) =>
+    mergeHead(
+      {
+        meta: [
+          { title: `${params.slug} — Latest | AI Discov` },
+          { name: "description", content: "AI product update, release, or version deep-dive." },
+        ],
+      },
+      pageSeo({ path: `/latest/${params.slug}`, ogType: "article" }),
+    ),
   notFoundComponent: () => (
     <SiteShell>
       <p className="text-muted-foreground">

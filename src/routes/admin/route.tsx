@@ -3,6 +3,12 @@ import { AdminShell } from "@/components/admin/AdminShell";
 import { getProfile, getSession, isStaffRole } from "@/lib/auth";
 
 export const Route = createFileRoute("/admin")({
+  head: () => ({
+    meta: [
+      { name: "robots", content: "noindex, nofollow" },
+      { name: "googlebot", content: "noindex, nofollow" },
+    ],
+  }),
   beforeLoad: async ({ location }) => {
     // Login is public; all other /admin routes require staff.
     if (location.pathname === "/admin/login") return;

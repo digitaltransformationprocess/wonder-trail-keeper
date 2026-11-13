@@ -7,6 +7,7 @@ import { z } from "zod";
 import { SiteShell, SolutionCard } from "@/components/SiteShell";
 import { discover, discoverSmart, discoverViaFts, extractConstraints } from "@/lib/discover";
 import { fadeUp, springSoft, staggerChildren } from "@/lib/motion";
+import { mergeHead, pageSeo } from "@/lib/seo";
 import { solutionsQuery } from "@/lib/solutions";
 
 export const Route = createFileRoute("/")({
@@ -14,16 +15,20 @@ export const Route = createFileRoute("/")({
   loader: async ({ context }) => {
     await context.queryClient.ensureQueryData(solutionsQuery);
   },
-  head: () => ({
-    meta: [
-      { title: "AI Discov — Find the right AI solution for your needs" },
+  head: () =>
+    mergeHead(
       {
-        name: "description",
-        content:
-          "Describe what you want to accomplish and find verified AI solutions with clear explanations and comparisons.",
+        meta: [
+          { title: "AI Discov — Find the right AI solution for your needs" },
+          {
+            name: "description",
+            content:
+              "Describe what you want to accomplish and find verified AI solutions with clear explanations and comparisons.",
+          },
+        ],
       },
-    ],
-  }),
+      pageSeo({ path: "/" }),
+    ),
   component: Discover,
 });
 

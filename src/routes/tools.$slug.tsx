@@ -3,7 +3,13 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { motion, useReducedMotion } from "motion/react";
 import { Suspense } from "react";
 import { SiteShell, SolutionCard } from "@/components/SiteShell";
-import { absoluteUrl, toolJsonLd, toolPageTitle } from "@/lib/seo";
+import {
+  breadcrumbJsonLd,
+  mergeHead,
+  pageSeo,
+  toolJsonLd,
+  toolPageTitle,
+} from "@/lib/seo";
 import { displayApi, solutionQuery } from "@/lib/solutions";
 import { useCompare, useFavorites } from "@/lib/store";
 import { fadeUp, springSoft, staggerChildren } from "@/lib/motion";
@@ -29,29 +35,32 @@ export const Route = createFileRoute("/tools/$slug")({
     const s = loaderData.solution;
     const title = toolPageTitle(s.name);
     const description = s.summary;
-    const pageUrl = absoluteUrl(`/tools/${params.slug}`);
-    const canonicalHref = pageUrl.startsWith("/") ? undefined : pageUrl;
 
-    return {
-      meta: [
-        { title },
-        { name: "description", content: description },
-        { property: "og:title", content: title },
-        { property: "og:description", content: description },
-        { property: "og:type", content: "website" },
-        ...(canonicalHref ? [{ property: "og:url", content: canonicalHref }] : []),
-        { name: "twitter:card", content: "summary_large_image" },
-        { name: "twitter:title", content: title },
-        { name: "twitter:description", content: description },
-      ],
-      links: canonicalHref ? [{ rel: "canonical", href: canonicalHref }] : [],
-      scripts: [
-        {
-          type: "application/ld+json",
-          children: JSON.stringify(toolJsonLd(s, params.slug)),
-        },
-      ],
-    };
+    return mergeHead(
+      {
+        meta: [
+          { title },
+          { name: "description", content: description },
+          { property: "og:title", content: title },
+          { property: "og:description", content: description },
+          { name: "twitter:card", content: "summary_large_image" },
+          { name: "twitter:title", content: title },
+          { name: "twitter:description", content: description },
+        ],
+      },
+      pageSeo({
+        path: `/tools/${params.slug}`,
+        image: s.logoUrl,
+        jsonLd: [
+          toolJsonLd(s, params.slug),
+          breadcrumbJsonLd([
+            { name: "Home", path: "/" },
+            { name: "Explore", path: "/explore" },
+            { name: s.name, path: `/tools/${params.slug}` },
+          ]),
+        ],
+      }),
+    );
   },
   notFoundComponent: () => (
     <SiteShell>

@@ -4,7 +4,7 @@ export const LEGAL = {
   companyName: "AI Discov",
   siteUrl:
     (typeof import.meta !== "undefined" && import.meta.env?.VITE_SITE_URL) ||
-    "https://wonder-trail-keeper.vercel.app",
+    "https://aidiscov.com",
   contactEmail: "legal@aidiscov.com",
   privacyEmail: "privacy@aidiscov.com",
   supportEmail: "support@aidiscov.com",

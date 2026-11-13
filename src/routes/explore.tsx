@@ -11,6 +11,7 @@ import {
   solutionsQuery,
 } from "@/lib/solutions";
 import { fadeUp, springSheet, springSoft, staggerChildren } from "@/lib/motion";
+import { mergeHead, pageSeo } from "@/lib/seo";
 
 export const Route = createFileRoute("/explore")({
   validateSearch: z.object({
@@ -30,15 +31,19 @@ export const Route = createFileRoute("/explore")({
       context.queryClient.ensureQueryData(solutionTypesQuery),
     ]);
   },
-  head: () => ({
-    meta: [
-      { title: "Explore — AI solution catalog | AI Discovery" },
+  head: () =>
+    mergeHead(
       {
-        name: "description",
-        content: "Browse AI tools, models, APIs, and agents by category, pricing, and platform.",
+        meta: [
+          { title: "Explore — AI solution catalog | AI Discovery" },
+          {
+            name: "description",
+            content: "Browse AI tools, models, APIs, and agents by category, pricing, and platform.",
+          },
+        ],
       },
-    ],
-  }),
+      pageSeo({ path: "/explore" }),
+    ),
   component: ExplorePage,
 });
 

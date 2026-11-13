@@ -9,6 +9,7 @@ import {
 } from "@tanstack/react-router";
 import { CookieConsent } from "@/components/CookieConsent";
 import { VercelAnalytics } from "@/components/VercelAnalytics";
+import { sitewideHead } from "@/lib/seo";
 import { ThemeProvider } from "@/lib/theme";
 
 function NotFoundComponent() {
@@ -69,12 +70,18 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
-  head: () => ({
-    meta: [
-      { title: "AI Discov" },
-      { name: "description", content: "Find the right AI solution for your needs." },
-    ],
-  }),
+  head: () => {
+    const seo = sitewideHead();
+    return {
+      meta: [
+        { title: "AI Discov" },
+        { name: "description", content: "Find the right AI solution for your needs." },
+        ...seo.meta,
+      ],
+      links: seo.links,
+      scripts: seo.scripts,
+    };
+  },
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
   errorComponent: ErrorComponent,

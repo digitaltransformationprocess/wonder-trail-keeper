@@ -4,6 +4,7 @@ import { BlogContent } from "@/components/BlogContent";
 import { LEGAL, LEGAL_DOCS } from "@/lib/legal/config";
 import { getLegalDoc } from "@/lib/legal/documents";
 import { fadeUp, staggerChildren } from "@/lib/motion";
+import { mergeHead, pageSeo } from "@/lib/seo";
 
 export const Route = createFileRoute("/legal/$slug")({
   loader: ({ params }) => {
@@ -13,12 +14,15 @@ export const Route = createFileRoute("/legal/$slug")({
   },
   head: ({ params }) => {
     const doc = getLegalDoc(params.slug);
-    return {
-      meta: [
-        { title: `${doc?.title ?? "Legal"} — ${LEGAL.productName}` },
-        { name: "description", content: doc?.subtitle ?? "Legal document" },
-      ],
-    };
+    return mergeHead(
+      {
+        meta: [
+          { title: `${doc?.title ?? "Legal"} — ${LEGAL.productName}` },
+          { name: "description", content: doc?.subtitle ?? "Legal document" },
+        ],
+      },
+      pageSeo({ path: `/legal/${params.slug}` }),
+    );
   },
   notFoundComponent: () => (
     <p className="text-muted-foreground">
