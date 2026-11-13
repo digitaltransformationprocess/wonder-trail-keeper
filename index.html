@@ -4,17 +4,22 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="msvalidate.01" content="07CC2587D3D6D6027C2DE36D217177AF" />
+    <meta name="color-scheme" content="light dark" />
     <script>
       (function () {
         try {
           var stored = localStorage.getItem("ai-discovery-theme");
+          var meta = document.querySelector('meta[name="color-scheme"]');
+          if (meta) {
+            meta.content =
+              stored === "light" || stored === "dark" ? stored : "light dark";
+          }
           var dark =
             stored === "dark" ||
             ((stored == null || stored === "system") &&
               window.matchMedia("(prefers-color-scheme: dark)").matches);
           if (stored === "light") dark = false;
           document.documentElement.classList.toggle("dark", dark);
-          document.documentElement.style.colorScheme = dark ? "dark" : "light";
         } catch (e) {}
       })();
     </script>

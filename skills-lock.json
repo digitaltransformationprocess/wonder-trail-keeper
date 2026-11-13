@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "ui-sdk-write-code": {
+      "source": "vercel-labs/ui",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/ui-sdk-write-code/SKILL.md",
+      "computedHash": "5f228dd65e84075082f72f53553728f536a986042ee58852f44bcddbef50d7ac"
+    }
+  }
+}

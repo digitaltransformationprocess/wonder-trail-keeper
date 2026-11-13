@@ -554,6 +554,41 @@ export const categoriesQuery = queryOptions({
   staleTime: 300_000,
 });
 
+/** Ordered top tool slugs per category (internal popularity/trust). Scores are not returned. */
+export async function homeTopToolsByCategory(
+  categorySlugs: string[],
+  limit = 10,
+): Promise<Map<string, string[]>> {
+  const { data, error } = await supabase.rpc("home_top_tools_by_category", {
+    p_category_slugs: categorySlugs,
+    p_limit: limit,
+  });
+  if (error) throw new Error(`Home category tops unavailable: ${error.message}`);
+
+  const rows = [...(data ?? [])].sort(
+    (a, b) =>
+      String(a.category_slug).localeCompare(String(b.category_slug)) ||
+      Number(a.list_position) - Number(b.list_position),
+  );
+  const map = new Map<string, string[]>();
+  for (const row of rows) {
+    const cat = String(row.category_slug);
+    const slug = String(row.tool_slug);
+    const list = map.get(cat) ?? [];
+    list.push(slug);
+    map.set(cat, list);
+  }
+  return map;
+}
+
+export function homeTopToolsByCategoryQuery(categorySlugs: string[], limit = 10) {
+  return queryOptions({
+    queryKey: ["home-top-tools", [...categorySlugs].sort().join(","), limit],
+    queryFn: () => homeTopToolsByCategory(categorySlugs, limit),
+    staleTime: 300_000,
+  });
+}
+
 export const solutionTypesQuery = queryOptions({
   queryKey: ["solution-types"],
   queryFn: listSolutionTypes,

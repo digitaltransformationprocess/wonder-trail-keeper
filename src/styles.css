@@ -165,15 +165,20 @@
   }
 
   html {
-    color-scheme: light;
+    color-scheme: light dark;
     font-optical-sizing: auto;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
   }
 
-  html.dark {
+  /* Sync CSS color-scheme with <meta name="color-scheme"> (modern-web-guidance). */
+  html:has(> head > meta[name="color-scheme"][content="dark"]) {
     color-scheme: dark;
+  }
+
+  html:has(> head > meta[name="color-scheme"][content="light"]) {
+    color-scheme: light;
   }
 
   html,
@@ -447,15 +452,15 @@
   .search-box {
     display: flex;
     width: 100%;
-    max-width: 560px;
+    max-width: 680px;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     border: 1px solid rgba(30, 34, 42, 0.12);
-    border-radius: 14px;
+    border-radius: 16px;
     background: rgba(255, 255, 255, 0.72);
     backdrop-filter: blur(18px);
     box-shadow: 0 16px 40px rgba(40, 48, 70, 0.1);
-    padding: 7px 8px 7px 18px;
+    padding: 8px 8px 8px 20px;
     transition: border-color 0.2s, box-shadow 0.2s;
   }
 
@@ -482,7 +487,7 @@
     background: transparent;
     color: oklch(0.2 0.01 260);
     outline: none;
-    font-size: 0.875rem;
+    font-size: 0.9375rem;
   }
 
   .dark .search-box input {
@@ -498,17 +503,17 @@
   }
 
   .search-box button {
-    height: 49px;
+    height: 52px;
     border: 0;
-    border-radius: 10px;
-    padding: 0 18px;
+    border-radius: 12px;
+    padding: 0 20px;
     color: var(--primary-foreground);
     background: linear-gradient(
       180deg,
       color-mix(in oklch, var(--primary) 92%, white),
       var(--primary)
     );
-    font-size: 0.8125rem;
+    font-size: 0.875rem;
     font-weight: 600;
     cursor: pointer;
     transition: filter 0.2s, transform 0.2s;

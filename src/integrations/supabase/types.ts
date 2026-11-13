@@ -1071,6 +1071,17 @@ export type Database = {
           summary: string
         }[]
       }
+      home_top_tools_by_category: {
+        Args: {
+          p_category_slugs?: string[] | null
+          p_limit?: number
+        }
+        Returns: {
+          category_slug: string
+          tool_slug: string
+          list_position: number
+        }[]
+      }
     }
     Enums: {
       app_role:

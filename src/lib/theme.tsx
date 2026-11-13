@@ -42,10 +42,16 @@ function resolvePreference(preference: ThemePreference): ResolvedTheme {
   return systemPrefersDark() ? "dark" : "light";
 }
 
-export function applyThemeClass(resolved: ResolvedTheme) {
+export function applyThemeClass(resolved: ResolvedTheme, preference: ThemePreference = "system") {
   const root = document.documentElement;
   root.classList.toggle("dark", resolved === "dark");
-  root.style.colorScheme = resolved;
+  const meta = document.querySelector('meta[name="color-scheme"]');
+  if (meta) {
+    meta.setAttribute(
+      "content",
+      preference === "light" || preference === "dark" ? preference : "light dark",
+    );
+  }
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
@@ -65,7 +71,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     }
     const next = resolvePreference(value);
     setResolved(next);
-    applyThemeClass(next);
+    applyThemeClass(next, value);
   }, []);
 
   const toggle = useCallback(() => {
@@ -75,7 +81,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const next = resolvePreference(preference);
     setResolved(next);
-    applyThemeClass(next);
+    applyThemeClass(next, preference);
 
     if (preference !== "system") return;
 
@@ -83,7 +89,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     const onChange = () => {
       const systemResolved = media.matches ? "dark" : "light";
       setResolved(systemResolved);
-      applyThemeClass(systemResolved);
+      applyThemeClass(systemResolved, "system");
     };
     media.addEventListener("change", onChange);
     return () => media.removeEventListener("change", onChange);
