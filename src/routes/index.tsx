@@ -3,14 +3,20 @@ import { useQuery } from "@tanstack/react-query";
 import {
   ArrowRight,
   ArrowUpRight,
+  BarChart3,
   Bot,
+  Briefcase,
   Code2,
   Columns2,
+  GraduationCap,
+  HeartPulse,
   ImageIcon,
   LayoutGrid,
   Music2,
+  Palette,
   PenLine,
   Puzzle,
+  Scale,
   Search,
   Sparkles,
   Video,
@@ -51,6 +57,12 @@ const HOME_TOP_CATEGORY_SLUGS = [
   "automation-agents",
   "audio-music",
   "productivity",
+  "research-education",
+  "business-marketing",
+  "design-creativity",
+  "data-analytics",
+  "finance-legal",
+  "healthcare",
 ] as const;
 
 const TOOLS_PER_CATEGORY = 10;
@@ -93,6 +105,12 @@ const CATEGORY_ICONS: Record<string, LucideIcon> = {
   "automation-agents": Workflow,
   "audio-music": Music2,
   productivity: Sparkles,
+  "research-education": GraduationCap,
+  "business-marketing": Briefcase,
+  "design-creativity": Palette,
+  "data-analytics": BarChart3,
+  "finance-legal": Scale,
+  healthcare: HeartPulse,
 };
 
 function toolsInCategory(solutions: Solution[], slug: string): Solution[] {
@@ -217,12 +235,13 @@ function CategoryTopCard({
       <Link
         to="/categories/$slug"
         params={{ slug: category.slug }}
-        className="mt-3 flex items-center justify-between gap-2 rounded-xl border hairline bg-background/40 px-3.5 py-2.5 text-[0.8125rem] font-medium text-foreground transition-apple hover:border-primary/30 hover:bg-primary/5 hover:text-primary"
+        aria-label={`Browse all ${category.name} (${total})`}
+        className="mt-3 flex h-10 items-center justify-between gap-3 rounded-xl border hairline bg-background/40 px-3.5 text-[0.8125rem] font-medium text-foreground transition-apple hover:border-primary/30 hover:bg-primary/5 hover:text-primary"
       >
-        <span>Browse all in {category.name.split("&")[0]?.trim() ?? category.name}</span>
-        <span className="tabular-nums text-muted-foreground">
+        <span className="truncate">Browse all</span>
+        <span className="flex shrink-0 items-center gap-1.5 tabular-nums text-muted-foreground">
           {total}
-          <span className="ml-1 inline-block transition-transform group-hover/card:translate-x-0.5">
+          <span aria-hidden className="transition-transform group-hover/card:translate-x-0.5">
             →
           </span>
         </span>
