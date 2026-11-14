@@ -1,5 +1,6 @@
 import { createFileRoute, Link, notFound, redirect } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
+import { Github } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import { Suspense } from "react";
 import { SiteShell, SolutionCard } from "@/components/SiteShell";
@@ -196,8 +197,11 @@ function Detail() {
             href={s.repositoryUrl}
             target="_blank"
             rel="noreferrer"
-            className="glass rounded-full px-5 py-2.5 text-[0.875rem] transition-apple hover:brightness-105"
+            className="glass inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[0.875rem] transition-apple hover:brightness-105"
           >
+            {/github\.com/i.test(s.repositoryUrl) ? (
+              <Github className="h-4 w-4 shrink-0" strokeWidth={1.75} aria-hidden />
+            ) : null}
             Repository
           </a>
         ) : null}
@@ -326,12 +330,15 @@ function Detail() {
                     <span className="text-[0.7rem] text-muted-foreground">{src.claimKey}</span>
                   </div>
                   <a
-                    className="break-all text-[0.8125rem] text-primary transition-apple hover:opacity-70"
+                    className="inline-flex max-w-full items-start gap-1.5 break-all text-[0.8125rem] text-primary transition-apple hover:opacity-70"
                     href={src.url}
                     target="_blank"
                     rel="noreferrer"
                   >
-                    {src.url}
+                    {/github\.com/i.test(src.url) ? (
+                      <Github className="mt-0.5 h-3.5 w-3.5 shrink-0" strokeWidth={1.75} aria-hidden />
+                    ) : null}
+                    <span>{src.url}</span>
                   </a>
                 </li>
               ))}

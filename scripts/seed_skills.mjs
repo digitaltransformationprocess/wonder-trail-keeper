@@ -38,8 +38,66 @@ function domainFromUrl(url) {
   }
 }
 
-function logoFor(url) {
-  const domain = domainFromUrl(url);
+const PUBLISHER_LOGO_DOMAIN = {
+  "Vercel Labs": "vercel.com",
+  Anthropic: "anthropic.com",
+  Microsoft: "microsoft.com",
+  Cursor: "cursor.com",
+  "Google Chrome": "google.com",
+  Remotion: "remotion.dev",
+  "Matt Pocock": "mattpocock.com",
+  HeyGen: "heygen.com",
+  Supabase: "supabase.com",
+  Firebase: "firebase.google.com",
+  GitHub: "github.com",
+  Firecrawl: "firecrawl.dev",
+  Expo: "expo.dev",
+  "better-auth": "better-auth.com",
+  Cloudflare: "cloudflare.com",
+  Sentry: "sentry.io",
+  Clerk: "clerk.com",
+  Prisma: "prisma.io",
+  Neon: "neon.tech",
+  OpenAI: "openai.com",
+  LangChain: "langchain.com",
+  "browser-use": "browser-use.com",
+  "Amazon Web Services": "aws.amazon.com",
+  "General Legal": "github.com",
+};
+
+function githubOrgFromRepo(repoUrl) {
+  const m = String(repoUrl || "").match(/github\.com\/([^/?#]+)/i);
+  return m?.[1] ?? null;
+}
+
+/** Infer https://github.com/{owner}/{repo} from skills.sh/{owner}/{repo}/… */
+function inferRepoFromSkillUrl(url) {
+  try {
+    const u = new URL(url);
+    if (!/(^|\.)skills\.sh$/i.test(u.hostname)) return null;
+    const parts = u.pathname.split("/").filter(Boolean);
+    if (parts.length < 2) return null;
+    return `https://github.com/${parts[0]}/${parts[1]}`;
+  } catch {
+    return null;
+  }
+}
+
+function resolveRepository(tool) {
+  return tool.repository || inferRepoFromSkillUrl(tool.url) || null;
+}
+
+/** Prefer GitHub org avatar; never use skills.sh generic favicon. */
+function logoFor(tool) {
+  const repo = resolveRepository(tool);
+  const org = githubOrgFromRepo(repo);
+  if (org) return `https://github.com/${org}.png?size=128`;
+
+  const host = domainFromUrl(tool.url);
+  const domain =
+    PUBLISHER_LOGO_DOMAIN[tool.publisher] ||
+    (host && host !== "skills.sh" && host !== "www.skills.sh" ? host : null);
+
   return domain
     ? `https://www.google.com/s2/favicons?sz=128&domain=${encodeURIComponent(domain)}`
     : null;
@@ -1081,14 +1139,15 @@ async function upsertTool(sb, tool, sourceId) {
     .maybeSingle();
 
   const publisherId = await ensurePublisher(sb, tool.publisher);
-  const logo_url = logoFor(tool.url);
+  const repository_url = resolveRepository(tool);
+  const logo_url = logoFor(tool);
   const payload = {
     name: tool.name,
     publisher_id: publisherId,
     summary: tool.summary,
     description: tool.description,
     official_url: tool.url,
-    repository_url: tool.repository ?? null,
+    repository_url,
     logo_url,
     pricing_model: tool.pricing_model,
     price_display: tool.price_display,
