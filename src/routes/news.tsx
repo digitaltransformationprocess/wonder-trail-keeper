@@ -29,13 +29,18 @@ export const Route = createFileRoute("/news")({
     page: search.page,
   }),
   loader: async ({ context, deps }) => {
-    await context.queryClient.ensureQueryData(
-      truncatedNewsQuery({
-        ...(deps.q ? { q: deps.q } : {}),
-        ...(deps.category ? { category: deps.category } : {}),
-        ...(deps.page ? { page: deps.page } : {}),
-      }),
-    );
+    // Prefetch, but never throw — API blips should show the in-page error UI.
+    try {
+      await context.queryClient.ensureQueryData(
+        truncatedNewsQuery({
+          ...(deps.q ? { q: deps.q } : {}),
+          ...(deps.category ? { category: deps.category } : {}),
+          ...(deps.page ? { page: deps.page } : {}),
+        }),
+      );
+    } catch {
+      /* useQuery handles the error state */
+    }
   },
   head: () =>
     mergeHead(
