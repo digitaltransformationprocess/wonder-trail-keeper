@@ -713,16 +713,6 @@ function NewsPage() {
         >
           AI Discov News aggregates publisher-linked AI coverage for discovery
           and citation. Headlines and article text belong to their publishers.
-          Data:{" "}
-          <a
-            href="https://truncated.ai"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline decoration-hairline underline-offset-2 transition-apple hover:text-foreground"
-          >
-            Truncated (truncated.ai)
-          </a>
-          .
         </motion.p>
       </motion.div>
     </SiteShell>
