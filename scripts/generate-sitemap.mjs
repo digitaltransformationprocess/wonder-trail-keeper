@@ -135,7 +135,7 @@ async function main() {
   ]);
 
   // /library is personal → noindex, keep out of sitemap
-  const staticPaths = ["/", "/explore", "/latest", "/compare", ...LEGAL_PATHS];
+  const staticPaths = ["/", "/explore", "/latest", "/news", "/compare", ...LEGAL_PATHS];
   const paths = [
     ...staticPaths,
     ...slugs.map((slug) => `/tools/${slug}`),
@@ -227,6 +227,7 @@ Sitemap: ${siteUrl ? `${siteUrl}/sitemap.xml` : "/sitemap.xml"}
 - [Home / search](${siteUrl || ""}/): Natural-language discovery of AI solutions
 - [Explore](${siteUrl || ""}/explore): Full catalog with filters
 - [Latest](${siteUrl || ""}/latest): Blog-style updates on launches, releases, and versions
+- [News](${siteUrl || ""}/news): AI news briefings on models, agents, tools, safety, and policy with links to original publishers
 - [Compare](${siteUrl || ""}/compare): Side-by-side comparison of up to 5 tools
 - [Legal](${siteUrl || ""}/legal): Terms, privacy, cookies, acceptable use, disclaimer
 

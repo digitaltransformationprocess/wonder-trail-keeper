@@ -95,6 +95,38 @@ export async function triggerDiscoverDaily() {
   };
 }
 
+async function edgeInvokeErrorMessage(error: unknown, data: unknown): Promise<string> {
+  if (data && typeof data === "object" && "error" in data && (data as { error?: unknown }).error) {
+    return String((data as { error: unknown }).error);
+  }
+  if (error && typeof error === "object") {
+    const err = error as { message?: string; context?: Response; name?: string };
+    const ctx = err.context;
+    if (ctx && typeof ctx.json === "function") {
+      try {
+        const body = await ctx.clone().json();
+        if (body?.message) return String(body.message);
+        if (body?.error) return String(body.error);
+        if (body?.code) return `${body.code}: ${body.message ?? "Edge Function error"}`;
+      } catch {
+        try {
+          const text = await ctx.clone().text();
+          if (text) return text.slice(0, 400);
+        } catch {
+          /* ignore */
+        }
+      }
+    }
+    if (err.message) {
+      if (/Failed to send a request to the Edge Function/i.test(err.message)) {
+        return "discover-news est inaccessible ou plante au démarrage. Redéploie la fonction (voir scripts/deploy-discover-news.ps1).";
+      }
+      return err.message;
+    }
+  }
+  return "Edge Function call failed";
+}
+
 export async function triggerDiscoverNews(options: { publish?: boolean; days?: number } = {}) {
   const { data, error } = await supabase.functions.invoke("discover-news", {
     body: {
@@ -103,8 +135,9 @@ export async function triggerDiscoverNews(options: { publish?: boolean; days?: n
       days: options.days ?? 7,
     },
   });
-  if (error) throw new Error(error.message);
-  if (data?.error) throw new Error(String(data.error));
+  if (error || (data && typeof data === "object" && "error" in data && (data as { error?: unknown }).error)) {
+    throw new Error(await edgeInvokeErrorMessage(error, data));
+  }
   return data as {
     ok: boolean;
     stats: Record<string, number | string>;

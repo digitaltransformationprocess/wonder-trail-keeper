@@ -259,12 +259,10 @@ Deno.serve(async (req) => {
       publish?: boolean;
       limit?: number;
       days?: number;
+      ping?: boolean;
     };
-    const publish = Boolean(body.publish);
-    const limit = Math.max(1, Math.min(Number(body.limit ?? 12), 20));
-    // Blog regen often needs a wider window than same-day only.
-    const daysWindow = Math.max(1, Math.min(Number(body.days ?? 7), 21));
 
+    // Health check used after deploy (still requires staff JWT or cron secret).
     const cronHeader = req.headers.get("x-ingest-secret");
     let supabase: SupabaseClient;
     if (cronHeader) {
@@ -274,6 +272,20 @@ Deno.serve(async (req) => {
       const auth = await requireStaff(req.headers.get("Authorization"));
       supabase = auth.service;
     }
+
+    if (body.ping) {
+      return jsonResponse({
+        ok: true,
+        ping: true,
+        function: "discover-news",
+        has_firecrawl_env: Boolean(Deno.env.get("FIRECRAWL_API_KEY")),
+      });
+    }
+
+    const publish = Boolean(body.publish);
+    const limit = Math.max(1, Math.min(Number(body.limit ?? 12), 20));
+    // Blog regen often needs a wider window than same-day only.
+    const daysWindow = Math.max(1, Math.min(Number(body.days ?? 7), 21));
 
     const today = todayParis();
     const allowedDates = new Set<string>();

@@ -564,6 +564,27 @@
       padding: 0 14px;
     }
   }
+
+  /* Horizontal category chips with edge fades (more content → scroll) */
+  .news-chip-scroll {
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    scroll-padding-inline: 1.25rem;
+    --fade-size: 1.75rem;
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      #000 var(--fade-size),
+      #000 calc(100% - var(--fade-size)),
+      transparent
+    );
+  }
+
+  .news-chip-scroll::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

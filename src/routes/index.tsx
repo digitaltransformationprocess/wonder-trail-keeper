@@ -83,12 +83,12 @@ export const Route = createFileRoute("/")({
       {
         meta: [
           { title: "AI Discov — Find the right AI solution for your needs" },
-          {
-            name: "description",
-            content:
-              "Describe what you want to accomplish and find verified AI solutions with clear explanations and comparisons.",
-          },
-        ],
+      {
+        name: "description",
+        content:
+          "Describe what you want to accomplish and find verified AI solutions with clear explanations and comparisons.",
+      },
+    ],
       },
       pageSeo({ path: "/" }),
     ),
@@ -453,7 +453,7 @@ function Discover() {
             </motion.div>
           </motion.div>
 
-          <motion.div
+            <motion.div
             className="mt-10 grid gap-3 sm:grid-cols-3"
             initial={reduce ? false : "hidden"}
             animate="show"

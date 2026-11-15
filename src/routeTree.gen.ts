@@ -16,6 +16,7 @@ import { Route as ExploreRouteImport } from './routes/explore'
 import { Route as LatestRouteImport } from './routes/latest'
 import { Route as LegalRouteImport } from './routes/legal'
 import { Route as LibraryRouteImport } from './routes/library'
+import { Route as NewsRouteImport } from './routes/news'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminChangesRouteImport } from './routes/admin/changes'
 import { Route as AdminImportRouteImport } from './routes/admin/import'
@@ -68,6 +69,11 @@ const LegalRoute = LegalRouteImport.update({
 const LibraryRoute = LibraryRouteImport.update({
   id: '/library',
   path: '/library',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NewsRoute = NewsRouteImport.update({
+  id: '/news',
+  path: '/news',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
@@ -169,6 +175,7 @@ export interface FileRoutesByFullPath {
   '/latest': typeof LatestRouteWithChildren
   '/legal': typeof LegalRouteWithChildren
   '/library': typeof LibraryRoute
+  '/news': typeof NewsRoute
   '/admin/changes': typeof AdminChangesRoute
   '/admin/import': typeof AdminImportRoute
   '/admin/login': typeof AdminLoginRoute
@@ -194,6 +201,7 @@ export interface FileRoutesByTo {
   '/explore': typeof ExploreRoute
   '/latest': typeof LatestRouteWithChildren
   '/library': typeof LibraryRoute
+  '/news': typeof NewsRoute
   '/admin/changes': typeof AdminChangesRoute
   '/admin/import': typeof AdminImportRoute
   '/admin/login': typeof AdminLoginRoute
@@ -222,6 +230,7 @@ export interface FileRoutesById {
   '/latest': typeof LatestRouteWithChildren
   '/legal': typeof LegalRouteWithChildren
   '/library': typeof LibraryRoute
+  '/news': typeof NewsRoute
   '/admin/changes': typeof AdminChangesRoute
   '/admin/import': typeof AdminImportRoute
   '/admin/login': typeof AdminLoginRoute
@@ -251,6 +260,7 @@ export interface FileRouteTypes {
     | '/latest'
     | '/legal'
     | '/library'
+    | '/news'
     | '/admin/changes'
     | '/admin/import'
     | '/admin/login'
@@ -276,6 +286,7 @@ export interface FileRouteTypes {
     | '/explore'
     | '/latest'
     | '/library'
+    | '/news'
     | '/admin/changes'
     | '/admin/import'
     | '/admin/login'
@@ -303,6 +314,7 @@ export interface FileRouteTypes {
     | '/latest'
     | '/legal'
     | '/library'
+    | '/news'
     | '/admin/changes'
     | '/admin/import'
     | '/admin/login'
@@ -331,6 +343,7 @@ export interface RootRouteChildren {
   LatestRoute: typeof LatestRouteWithChildren
   LegalRoute: typeof LegalRouteWithChildren
   LibraryRoute: typeof LibraryRoute
+  NewsRoute: typeof NewsRoute
   CategoriesSlugRoute: typeof CategoriesSlugRoute
   ToolsSlugRoute: typeof ToolsSlugRoute
 }
@@ -384,6 +397,13 @@ declare module '@tanstack/react-router' {
       path: '/library'
       fullPath: '/library'
       preLoaderRoute: typeof LibraryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/news': {
+      id: '/news'
+      path: '/news'
+      fullPath: '/news'
+      preLoaderRoute: typeof NewsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/': {
@@ -582,6 +602,7 @@ const rootRouteChildren: RootRouteChildren = {
   LatestRoute: LatestRouteWithChildren,
   LegalRoute: LegalRouteWithChildren,
   LibraryRoute: LibraryRoute,
+  NewsRoute: NewsRoute,
   CategoriesSlugRoute: CategoriesSlugRoute,
   ToolsSlugRoute: ToolsSlugRoute,
 }
