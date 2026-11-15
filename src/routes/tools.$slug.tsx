@@ -103,6 +103,43 @@ function ReliabilityBadge({ level }: { level: string }) {
   );
 }
 
+/** Prefer the tool's full URL when a linked source is only a bare publisher origin. */
+function resolveSourceHref(
+  src: { url: string; claimKey: string },
+  tool: { url: string; repositoryUrl: string | null; apiDocsUrl: string | null },
+): string {
+  const raw = src.url.trim();
+  if (!raw) return tool.url;
+
+  let bareOrigin = false;
+  let host = "";
+  try {
+    const u = new URL(raw);
+    host = u.hostname.replace(/^www\./i, "").toLowerCase();
+    bareOrigin = u.pathname === "/" || u.pathname === "";
+  } catch {
+    return raw;
+  }
+
+  const claim = src.claimKey.toLowerCase();
+  const isGithub = host === "github.com" || host.endsWith(".github.com");
+
+  if (
+    (claim.includes("repositor") || claim.includes("github") || isGithub) &&
+    tool.repositoryUrl
+  ) {
+    return tool.repositoryUrl;
+  }
+  if (claim.includes("api") && tool.apiDocsUrl) {
+    return tool.apiDocsUrl;
+  }
+  if (bareOrigin) {
+    if (isGithub && tool.repositoryUrl) return tool.repositoryUrl;
+    if (tool.url) return tool.url;
+  }
+  return raw;
+}
+
 function Detail() {
   const { slug } = Route.useParams();
   const { data } = useSuspenseQuery(solutionQuery(slug));
@@ -323,25 +360,28 @@ function Detail() {
             <p className="mt-2 text-[0.8125rem] italic text-muted-foreground">No source linked yet.</p>
           ) : (
             <ul className="mt-2 space-y-3">
-              {s.sources.map((src) => (
-                <li key={`${src.claimKey}-${src.url}`} className="space-y-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <ReliabilityBadge level={src.reliabilityLevel} />
-                    <span className="text-[0.7rem] text-muted-foreground">{src.claimKey}</span>
-                  </div>
-                  <a
-                    className="inline-flex max-w-full items-start gap-1.5 break-all text-[0.8125rem] text-primary transition-apple hover:opacity-70"
-                    href={src.url}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    {/github\.com/i.test(src.url) ? (
-                      <Github className="mt-0.5 h-3.5 w-3.5 shrink-0" strokeWidth={1.75} aria-hidden />
-                    ) : null}
-                    <span>{src.url}</span>
-                  </a>
-                </li>
-              ))}
+              {s.sources.map((src) => {
+                const href = resolveSourceHref(src, s);
+                return (
+                  <li key={`${src.claimKey}-${src.url}`} className="space-y-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <ReliabilityBadge level={src.reliabilityLevel} />
+                      <span className="text-[0.7rem] text-muted-foreground">{src.claimKey}</span>
+                    </div>
+                    <a
+                      className="inline-flex max-w-full items-start gap-1.5 break-all text-[0.8125rem] text-primary transition-apple hover:opacity-70"
+                      href={href}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {/github\.com/i.test(href) ? (
+                        <Github className="mt-0.5 h-3.5 w-3.5 shrink-0" strokeWidth={1.75} aria-hidden />
+                      ) : null}
+                      <span>{href}</span>
+                    </a>
+                  </li>
+                );
+              })}
             </ul>
           )}
           <a
