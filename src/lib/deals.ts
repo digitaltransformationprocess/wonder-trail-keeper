@@ -11,6 +11,8 @@ export type DealCategory =
   | "education"
   | "other";
 
+export type DealOfferType = "discount" | "trial" | "partner" | "code";
+
 export interface Deal {
   id: string;
   name: string;
@@ -18,6 +20,9 @@ export interface Deal {
   summary: string;
   pricing: DealPricing;
   category: DealCategory;
+  offerType: DealOfferType;
+  /** Short feature chips shown on the deal card */
+  features: string[];
   /** Percent off when known (0–100). Link-only deals can omit. */
   discountPercent?: number;
   /** Promo / coupon code; omit when the discount is applied via affiliate link only. */
@@ -45,15 +50,22 @@ export const DEAL_PRICING_LABELS: Record<DealPricing, string> = {
 };
 
 export const DEAL_CATEGORY_LABELS: Record<DealCategory, string> = {
-  video: "AI video",
-  image: "AI image",
-  writing: "Writing",
+  video: "AI Video Generation",
+  image: "AI Image Generation",
+  writing: "AI Writing",
   productivity: "Productivity",
-  coding: "Coding",
-  audio: "Audio",
-  marketing: "Marketing",
-  education: "Courses",
+  coding: "AI Coding",
+  audio: "AI Voice & Audio",
+  marketing: "AI Marketing",
+  education: "AI Courses",
   other: "Other",
+};
+
+export const DEAL_OFFER_TYPE_LABELS: Record<DealOfferType, string> = {
+  discount: "Discount",
+  trial: "Free trial",
+  partner: "Partner offer",
+  code: "Promo code",
 };
 
 /** Curated deals — expand as affiliate partnerships are approved. */
@@ -63,27 +75,33 @@ export const DEALS: Deal[] = [
     name: "Higgsfield AI",
     slug: "higgsfield",
     summary:
-      "AI video studio for clips, ads, animations, and camera effects from text or image — with consistent characters.",
+      "Create cinematic videos, dynamic scenes and visual stories with AI.",
     pricing: "freemium",
     category: "video",
-    discountPercent: 50,
+    offerType: "discount",
+    features: ["Text to video", "Cinematic styles", "High quality"],
+    discountPercent: 65,
     offerUrl: "https://higgsfield.ai?fpr=aidiscov-e700b5",
+    toolSlug: "higgsfield",
     logoUrl: "https://www.google.com/s2/favicons?domain=higgsfield.ai&sz=128",
     verified: true,
     featured: true,
     updatedAt: "2026-11-16",
     notes:
-      "Discount of up to 50% applies for a limited window after you open the offer link (Higgsfield affiliate terms).",
+      "Black Friday promo: up to 65% off shown on Higgsfield via the partner link (confirm at checkout; offer is time-limited).",
   },
   {
     id: "elevenlabs",
     name: "ElevenLabs",
     slug: "elevenlabs",
     summary:
-      "AI voice platform for realistic speech, voice cloning, dubbing, and audio production in 70+ languages.",
+      "Generate realistic speech, clone voices, and produce audio in 70+ languages.",
     pricing: "freemium",
     category: "audio",
+    offerType: "partner",
+    features: ["Text to speech", "Voice cloning", "Dubbing"],
     offerUrl: "https://try.elevenlabs.io/svxp5cd3i356",
+    toolSlug: "elevenlabs",
     logoUrl: "https://www.google.com/s2/favicons?domain=elevenlabs.io&sz=128",
     verified: true,
     updatedAt: "2026-11-16",
@@ -116,8 +134,23 @@ export function featuredDeal(deals: Deal[] = DEALS): Deal | undefined {
   )[0];
 }
 
+/** Active deal for a catalog tool page, if any. */
+export function dealForToolSlug(toolSlug: string, deals: Deal[] = DEALS): Deal | undefined {
+  const key = toolSlug.trim().toLowerCase();
+  if (!key) return undefined;
+  return deals.find((d) => d.toolSlug?.toLowerCase() === key || d.slug.toLowerCase() === key);
+}
+
 export function maxDealDiscount(deals: Deal[] = DEALS): number {
   return deals.reduce((max, d) => Math.max(max, d.discountPercent ?? 0), 0);
+}
+
+export function formatDealDate(iso: string): string {
+  return new Date(iso).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 }
 
 export function filterDeals(
@@ -134,7 +167,7 @@ export function filterDeals(
     if (opts.pricing && opts.pricing !== "all" && d.pricing !== opts.pricing) return false;
     if (opts.category && opts.category !== "all" && d.category !== opts.category) return false;
     if (!q) return true;
-    const hay = `${d.name} ${d.summary} ${d.code ?? ""} ${d.category}`.toLowerCase();
+    const hay = `${d.name} ${d.summary} ${d.code ?? ""} ${d.category} ${d.features.join(" ")}`.toLowerCase();
     return hay.includes(q);
   });
 

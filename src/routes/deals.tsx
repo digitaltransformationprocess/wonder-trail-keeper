@@ -1,5 +1,14 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { Check, Copy, ExternalLink, Percent, Search, Sparkles, Tag } from "lucide-react";
+import {
+  ArrowRight,
+  CalendarDays,
+  Check,
+  Copy,
+  Percent,
+  Search,
+  Sparkles,
+  Tag,
+} from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import { useEffect, useId, useRef, useState } from "react";
 import { z } from "zod";
@@ -13,12 +22,14 @@ import {
 } from "@/components/ui/select";
 import {
   DEAL_CATEGORY_LABELS,
+  DEAL_OFFER_TYPE_LABELS,
   DEAL_PRICING_LABELS,
   DEALS,
   DEALS_FAQS,
   dealsUpdatedLabel,
   featuredDeal,
   filterDeals,
+  formatDealDate,
   maxDealDiscount,
   type Deal,
   type DealCategory,
@@ -232,7 +243,7 @@ function DealsPage() {
             <>
               {" "}
               · savings up to{" "}
-              <span className="font-medium text-signal">−{maxDiscount}%</span>
+              <span className="font-medium text-deal-ink">−{maxDiscount}%</span>
             </>
           ) : null}
           .
@@ -349,13 +360,13 @@ function DealsPage() {
         ) : (
           <motion.ul
             variants={staggerChildren}
-            className="mt-8 grid list-none gap-3 p-0 sm:mt-10 sm:grid-cols-2 sm:gap-4"
+            className="mt-8 grid list-none gap-4 p-0 sm:mt-10 sm:grid-cols-2 sm:gap-5"
           >
             {deals.map((deal) => (
               <motion.li
                 key={deal.id}
                 variants={fadeUp}
-                className="[content-visibility:auto] [contain-intrinsic-size:auto_220px]"
+                className="[content-visibility:auto] [contain-intrinsic-size:auto_280px]"
               >
                 <DealCard deal={deal} />
               </motion.li>
@@ -446,19 +457,21 @@ function SortSelect({
 }
 
 function FeaturedDeal({ deal, reduce }: { deal: Deal; reduce: boolean }) {
+  const toolSlug = deal.toolSlug;
+
   return (
-    <article className="relative overflow-hidden rounded-[1.75rem] border border-signal/25 bg-gradient-to-br from-signal/12 via-background to-background p-5 md:rounded-3xl md:p-7">
+    <article className="relative overflow-hidden rounded-[1.75rem] border border-deal/35 bg-gradient-to-br from-deal/18 via-background to-background p-5 transition-apple has-[a.card-link:hover]:border-deal/55 has-[a.card-link:focus-visible]:ring-2 has-[a.card-link:focus-visible]:ring-deal/40 md:rounded-3xl md:p-7">
       <div
-        className="pointer-events-none absolute -right-8 -top-10 h-36 w-36 rounded-full bg-signal/20 blur-3xl"
+        className="pointer-events-none absolute -right-8 -top-10 h-36 w-36 rounded-full bg-deal/25 blur-3xl"
         aria-hidden
       />
       <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
         <div className="min-w-0 flex-1">
-          <p className="inline-flex items-center gap-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.1em] text-signal">
+          <p className="inline-flex items-center gap-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.1em] text-deal-ink">
             <Sparkles className="h-3.5 w-3.5" aria-hidden />
             Featured deal
             {!reduce ? (
-              <span className="ml-0.5 inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-signal" />
+              <span className="ml-0.5 inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-deal" />
             ) : null}
           </p>
           <div className="mt-2.5 flex items-start gap-3">
@@ -475,7 +488,17 @@ function FeaturedDeal({ deal, reduce }: { deal: Deal; reduce: boolean }) {
             ) : null}
             <div className="min-w-0">
               <h2 className="type-title text-[1.25rem] tracking-[-0.02em] text-foreground md:text-[1.45rem]">
-                {deal.name}
+                {toolSlug ? (
+                  <Link
+                    to="/tools/$slug"
+                    params={{ slug: toolSlug }}
+                    className="card-link after:absolute after:inset-0 after:z-0 after:content-[''] focus-visible:outline-none"
+                  >
+                    {deal.name}
+                  </Link>
+                ) : (
+                  deal.name
+                )}
               </h2>
               <p className="mt-1 text-[0.875rem] leading-6 text-muted-foreground text-pretty">
                 {deal.summary}
@@ -484,9 +507,9 @@ function FeaturedDeal({ deal, reduce }: { deal: Deal; reduce: boolean }) {
           </div>
         </div>
 
-        <div className="flex shrink-0 flex-col gap-3 sm:items-end">
+        <div className="relative z-10 flex shrink-0 flex-col gap-3 sm:items-end">
           {deal.discountPercent != null ? (
-            <p className="inline-flex items-center gap-1.5 self-start rounded-2xl bg-signal px-3.5 py-2 text-[1.05rem] font-semibold tracking-tight text-background sm:self-end">
+            <p className="pointer-events-none inline-flex items-center gap-1.5 self-start rounded-2xl bg-deal px-3.5 py-2 text-[1.05rem] font-semibold tracking-tight text-deal-foreground sm:self-end">
               <Percent className="h-4 w-4" aria-hidden />
               Up to −{deal.discountPercent}%
             </p>
@@ -495,10 +518,10 @@ function FeaturedDeal({ deal, reduce }: { deal: Deal; reduce: boolean }) {
             href={deal.offerUrl}
             target="_blank"
             rel="sponsored noopener noreferrer"
-            className="inline-flex min-h-11 w-full items-center justify-center gap-1.5 rounded-full bg-primary px-5 py-2.5 text-[0.875rem] font-medium text-primary-foreground transition-apple hover:opacity-90 sm:w-auto"
+            className="inline-flex min-h-11 w-full items-center justify-center gap-1.5 rounded-full bg-deal px-5 py-2.5 text-[0.875rem] font-semibold text-deal-foreground transition-apple hover:brightness-105 sm:w-auto"
           >
-            Claim offer
-            <ExternalLink className="h-3.5 w-3.5" aria-hidden />
+            Get Deal
+            <ArrowRight className="h-3.5 w-3.5" aria-hidden />
           </a>
         </div>
       </div>
@@ -511,6 +534,8 @@ function DealCard({ deal }: { deal: Deal }) {
   const [copyState, setCopyState] = useState<"idle" | "ok" | "fail">("idle");
   const timerRef = useRef<number | null>(null);
   const codeId = useId();
+  const toolSlug = deal.toolSlug;
+  const verifiedLabel = formatDealDate(deal.updatedAt);
 
   useEffect(() => {
     return () => {
@@ -543,101 +568,166 @@ function DealCard({ deal }: { deal: Deal }) {
   }
 
   return (
-    <article className="glass flex h-full flex-col rounded-[1.5rem] p-4 sm:rounded-3xl sm:p-6">
-      <div className="flex items-start gap-3 sm:gap-3.5">
+    <article
+      className={[
+        "glass relative flex h-full flex-col rounded-[1.5rem] p-5 transition-apple sm:rounded-3xl sm:p-6",
+        "hover:bg-fill/35",
+        "has-[a.card-link:hover]:bg-fill/45",
+        "has-[a.card-link:focus-visible]:ring-2 has-[a.card-link:focus-visible]:ring-deal/35",
+        "[&_a:not(.card-link)]:relative [&_a:not(.card-link)]:z-10",
+        "[&_button]:relative [&_button]:z-10",
+      ].join(" ")}
+    >
+      <header className="flex items-start gap-3">
         {deal.logoUrl ? (
           <img
             src={deal.logoUrl}
             alt=""
-            width={40}
-            height={40}
-            className="h-10 w-10 shrink-0 rounded-xl bg-fill object-contain p-1.5"
+            width={48}
+            height={48}
+            className="h-12 w-12 shrink-0 rounded-2xl bg-fill object-contain p-2"
             loading="lazy"
             decoding="async"
           />
         ) : (
           <span
-            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-fill text-muted-foreground"
+            className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-fill text-muted-foreground"
             aria-hidden
           >
-            <Tag className="h-4 w-4" />
+            <Tag className="h-5 w-5" />
           </span>
         )}
+
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            <h3 className="type-title text-[1.05rem] tracking-[-0.01em] text-foreground">
-              {deal.name}
-            </h3>
-            {deal.discountPercent != null ? (
-              <span className="rounded-full bg-signal/15 px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-[0.06em] text-signal">
-                −{deal.discountPercent}%
-              </span>
-            ) : null}
-            {deal.verified ? (
-              <span className="text-[0.6875rem] font-medium uppercase tracking-[0.08em] text-muted-foreground">
-                Verified
-              </span>
-            ) : null}
-          </div>
-          <p className="mt-1 text-[0.75rem] text-muted-foreground">
-            {DEAL_CATEGORY_LABELS[deal.category]} · {DEAL_PRICING_LABELS[deal.pricing]}
+          <h3 className="type-title text-[1.1rem] tracking-[-0.02em] text-foreground">
+            {toolSlug ? (
+              <Link
+                to="/tools/$slug"
+                params={{ slug: toolSlug }}
+                className="card-link after:absolute after:inset-0 after:z-0 after:content-[''] focus-visible:outline-none"
+              >
+                {deal.name}
+              </Link>
+            ) : (
+              deal.name
+            )}
+          </h3>
+          <p className="mt-1.5">
+            <span className="inline-flex rounded-full bg-fill px-2.5 py-0.5 text-[0.6875rem] font-medium text-muted-foreground">
+              {DEAL_CATEGORY_LABELS[deal.category]}
+            </span>
           </p>
         </div>
+
+        {deal.discountPercent != null ? (
+          <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-deal-soft px-2.5 py-1 text-[0.75rem] font-semibold text-deal-ink">
+            <Tag className="h-3.5 w-3.5" aria-hidden />
+            Up to {deal.discountPercent}% Off
+          </span>
+        ) : deal.verified ? (
+          <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-fill px-2.5 py-1 text-[0.6875rem] font-medium text-muted-foreground">
+            Verified
+          </span>
+        ) : null}
+      </header>
+
+      <div className="mt-4 flex flex-1 flex-col gap-3">
+        <p className="text-[0.875rem] leading-6 text-muted-foreground text-pretty">
+          {deal.summary}
+        </p>
+
+        {deal.features.length > 0 ? (
+          <ul className="flex list-none flex-wrap gap-1.5 p-0">
+            {deal.features.map((feature) => (
+              <li
+                key={feature}
+                className="inline-flex items-center gap-1 rounded-full bg-fill px-2.5 py-1 text-[0.6875rem] text-foreground/85"
+              >
+                <Check className="h-3 w-3 text-deal-ink" strokeWidth={2.5} aria-hidden />
+                {feature}
+              </li>
+            ))}
+          </ul>
+        ) : null}
       </div>
 
-      <p className="mt-3 flex-1 text-[0.875rem] leading-6 text-muted-foreground sm:mt-4">
-        {deal.summary}
-      </p>
-
-      {deal.notes ? (
-        <p className="mt-2 text-[0.75rem] leading-5 text-muted-foreground sm:mt-3">{deal.notes}</p>
+      {deal.code ? (
+        <div className="relative z-10 mt-4 flex items-center gap-1">
+          <code
+            id={codeId}
+            className="rounded-xl bg-fill px-3 py-2.5 font-mono text-[0.8125rem] text-foreground"
+          >
+            {deal.code}
+          </code>
+          <span className="relative inline-flex">
+            <button
+              type="button"
+              onClick={() => void copyCode()}
+              className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl text-muted-foreground transition-apple hover:bg-fill hover:text-foreground"
+              aria-label={`Copy promo code ${deal.code}`}
+              data-copied={copyState === "ok" ? "" : undefined}
+              data-failed={copyState === "fail" ? "" : undefined}
+            >
+              {copyState === "ok" ? (
+                <Check className="h-4 w-4" aria-hidden />
+              ) : (
+                <Copy className="h-4 w-4" aria-hidden />
+              )}
+            </button>
+            <span
+              ref={tipRef}
+              role="status"
+              className={`pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 rounded-md bg-foreground px-2 py-0.5 text-[0.6875rem] text-background transition-opacity ${
+                copyState === "idle" ? "opacity-0" : "opacity-100"
+              }`}
+            />
+          </span>
+        </div>
       ) : null}
 
-      <div className="mt-4 flex flex-col gap-2 sm:mt-5 sm:flex-row sm:flex-wrap sm:items-center">
-        {deal.code ? (
-          <div className="relative flex items-center gap-1">
-            <code
-              id={codeId}
-              className="rounded-xl bg-fill px-3 py-2.5 font-mono text-[0.8125rem] text-foreground"
+      <footer className="mt-5 flex flex-col gap-4 border-t border-border/70 pt-4 sm:flex-row sm:items-end sm:justify-between sm:gap-3">
+        <dl className="grid grid-cols-2 gap-3 sm:flex sm:flex-1 sm:gap-5">
+          <div className="flex items-start gap-2.5">
+            <span
+              className="mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-fill text-muted-foreground"
+              aria-hidden
             >
-              {deal.code}
-            </code>
-            <span className="relative inline-flex">
-              <button
-                type="button"
-                onClick={() => void copyCode()}
-                className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl text-muted-foreground transition-apple hover:bg-fill hover:text-foreground"
-                aria-label={`Copy promo code ${deal.code}`}
-                data-copied={copyState === "ok" ? "" : undefined}
-                data-failed={copyState === "fail" ? "" : undefined}
-              >
-                {copyState === "ok" ? (
-                  <Check className="h-4 w-4" aria-hidden />
-                ) : (
-                  <Copy className="h-4 w-4" aria-hidden />
-                )}
-              </button>
-              <span
-                ref={tipRef}
-                role="status"
-                className={`pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 rounded-md bg-foreground px-2 py-0.5 text-[0.6875rem] text-background transition-opacity ${
-                  copyState === "idle" ? "opacity-0" : "opacity-100"
-                }`}
-              />
+              <Tag className="h-3.5 w-3.5" />
             </span>
+            <div>
+              <dt className="text-[0.6875rem] text-muted-foreground">Offer type</dt>
+              <dd className="mt-0.5 text-[0.8125rem] font-semibold text-foreground">
+                {DEAL_OFFER_TYPE_LABELS[deal.offerType]}
+              </dd>
+            </div>
           </div>
-        ) : null}
+          <div className="flex items-start gap-2.5">
+            <span
+              className="mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-fill text-muted-foreground"
+              aria-hidden
+            >
+              <CalendarDays className="h-3.5 w-3.5" />
+            </span>
+            <div>
+              <dt className="text-[0.6875rem] text-muted-foreground">Last verified</dt>
+              <dd className="mt-0.5 text-[0.8125rem] font-semibold text-foreground">
+                <time dateTime={deal.updatedAt}>{verifiedLabel}</time>
+              </dd>
+            </div>
+          </div>
+        </dl>
 
         <a
           href={deal.offerUrl}
           target="_blank"
           rel="sponsored noopener noreferrer"
-          className="inline-flex min-h-11 w-full items-center justify-center gap-1.5 rounded-full bg-primary px-4 py-2.5 text-[0.8125rem] font-medium text-primary-foreground transition-apple hover:opacity-90 sm:w-auto"
+          className="inline-flex min-h-11 w-full shrink-0 items-center justify-center gap-1.5 rounded-2xl bg-deal px-4 py-2.5 text-[0.875rem] font-semibold text-deal-foreground transition-apple hover:brightness-105 sm:w-auto sm:rounded-full"
         >
-          Get deal
-          <ExternalLink className="h-3.5 w-3.5" aria-hidden />
+          Get Deal
+          <ArrowRight className="h-3.5 w-3.5" aria-hidden />
+          <span className="sr-only"> for {deal.name}</span>
         </a>
-      </div>
+      </footer>
     </article>
   );
 }

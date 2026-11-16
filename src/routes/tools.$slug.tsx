@@ -1,9 +1,10 @@
 import { createFileRoute, Link, notFound, redirect } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { Github } from "lucide-react";
+import { ExternalLink, Github } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import { Suspense } from "react";
 import { SiteShell, SolutionCard } from "@/components/SiteShell";
+import { dealForToolSlug } from "@/lib/deals";
 import {
   breadcrumbJsonLd,
   mergeHead,
@@ -150,6 +151,7 @@ function Detail() {
   const fav = useFavorites();
   const cmp = useCompare();
   const reduce = useReducedMotion();
+  const deal = dealForToolSlug(slug);
 
   return (
     <motion.div initial={reduce ? false : "hidden"} animate="show" variants={staggerChildren}>
@@ -190,6 +192,18 @@ function Detail() {
         >
           {s.status === "Verified" ? "Verified" : "To verify"}
         </span>
+        {deal?.discountPercent != null ? (
+          <span className="rounded-full bg-deal-soft px-2.5 py-1 text-[0.7rem] font-semibold text-deal-ink">
+            Deal −{deal.discountPercent}%
+          </span>
+        ) : deal ? (
+          <Link
+            to="/deals"
+            className="rounded-full bg-deal-soft px-2.5 py-1 text-[0.7rem] font-semibold text-deal-ink transition-apple hover:brightness-110"
+          >
+            Deal available
+          </Link>
+        ) : null}
       </motion.div>
 
       <motion.h1
@@ -209,11 +223,27 @@ function Detail() {
       </motion.p>
 
       <motion.div variants={fadeUp} className="mt-8 flex flex-wrap gap-3">
+        {deal ? (
+          <a
+            href={deal.offerUrl}
+            target="_blank"
+            rel="sponsored noopener noreferrer"
+            className="inline-flex items-center gap-1.5 rounded-full bg-deal px-5 py-2.5 text-[0.875rem] font-semibold text-deal-foreground transition-apple hover:brightness-105"
+          >
+            Get deal
+            {deal.discountPercent != null ? ` (−${deal.discountPercent}%)` : ""}
+            <ExternalLink className="h-3.5 w-3.5" aria-hidden />
+          </a>
+        ) : null}
         <a
           href={s.url}
           target="_blank"
           rel="noreferrer"
-          className="rounded-full bg-primary px-5 py-2.5 text-[0.875rem] font-medium text-primary-foreground transition-apple hover:brightness-110"
+          className={`rounded-full px-5 py-2.5 text-[0.875rem] font-medium transition-apple hover:brightness-110 ${
+            deal
+              ? "glass text-foreground"
+              : "bg-primary text-primary-foreground"
+          }`}
         >
           {/skills\.sh/i.test(s.url) || s.categorySlugs.includes("skills")
             ? "View skill"
