@@ -37,11 +37,11 @@ export const Route = createFileRoute("/latest")({
     mergeHead(
       {
         meta: [
-          { title: "Latest — AI tool advances, releases & versions | AI Discov" },
+          { title: "Latest — New AI models, features & product updates | AI Discov" },
           {
             name: "description",
             content:
-              "Product advances only: new AI tools, releases, versions, features, pricing and access changes. Industry news lives on News.",
+              "What AI tools just shipped: new models, features, versions, pricing and access changes from OpenAI, Google, Anthropic and more. Industry headlines live on News.",
           },
         ],
       },
@@ -130,8 +130,9 @@ function Latest() {
           Latest
         </motion.h1>
         <motion.p variants={fadeUp} className="mt-4 max-w-2xl text-[1.05rem] leading-8 text-muted-foreground">
-          Product advances only — new tools in the catalog, releases, versions, features, pricing
-          and access changes. For industry headlines, see{" "}
+          What AI products just shipped — new models, features, versions, pricing and access
+          changes (e.g. a new Gemini model, a Claude Code feature). Not industry headlines; those
+          live on{" "}
           <Link to="/news" className="font-medium text-primary hover:opacity-80">
             News
           </Link>
@@ -188,7 +189,7 @@ function Latest() {
             variants={fadeUp}
             className="glass mt-12 rounded-3xl px-6 py-12 text-center text-muted-foreground"
           >
-            No product advances{search.kind ? " in this category" : ""} yet.
+            No AI product updates{search.kind ? " in this category" : ""} yet.
           </motion.p>
         ) : (
           <motion.div variants={staggerChildren} className="mt-12 space-y-12">
@@ -211,16 +212,6 @@ function Latest() {
                           <span className="rounded-full bg-fill px-2.5 py-0.5 text-[0.7rem] font-medium uppercase tracking-[0.06em] text-muted-foreground">
                             {kindLabel(n.kind)}
                           </span>
-                          {n.origin === "catalog" ? (
-                            <span className="rounded-full bg-fill px-2.5 py-0.5 text-[0.7rem] font-medium text-muted-foreground">
-                              Catalog
-                            </span>
-                          ) : null}
-                          {n.origin === "change" ? (
-                            <span className="rounded-full bg-fill px-2.5 py-0.5 text-[0.7rem] font-medium text-muted-foreground">
-                              Verified change
-                            </span>
-                          ) : null}
                           {n.solution_slug ? (
                             <Link
                               to="/tools/$slug"

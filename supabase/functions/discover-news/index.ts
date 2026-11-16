@@ -153,9 +153,9 @@ function buildQueries(today: string): string[] {
     "site:arstechnica.com",
   ];
   return [
-    `(${productSites.join(" OR ")}) (launch OR release OR version OR pricing OR feature OR API) after:${today}`,
-    `(${launchPress.join(" OR ")}) AI (tool OR model) (launch OR release OR pricing OR version) after:${today}`,
-    `AI model OR tool (launches OR released OR unveils) version OR pricing ${today}`,
+    `(${productSites.join(" OR ")}) (introducing OR launches OR "now available" OR "new model" OR "new feature" OR changelog) after:${today}`,
+    `(${launchPress.join(" OR ")}) (Gemini OR Claude OR GPT OR Copilot OR Qwen) (model OR feature OR version) (launch OR release OR ships OR unveils) after:${today}`,
+    `"new model" OR "now available" OR "Code Mode" OR changelog (OpenAI OR Anthropic OR Google OR Gemini) ${today}`,
   ];
 }
 
@@ -189,25 +189,24 @@ async function reformulateNews(
     "grok-4.20-0309-non-reasoning";
 
   const system = [
-    "You are an editor for AI Discov Blog — product posts like a tool review / release note.",
-    "Rewrite the source into a clear blog article about an AI tool, model, version, launch, or pricing change.",
+    "You are an editor for AI Discov Latest — product advance notes only.",
+    "Rewrite the source as a short release note about what an AI PRODUCT just shipped:",
+    "new model, new feature, new version, pricing change, or access/GA change.",
+    "NOT industry news, funding, lawsuits, opinion, or generic tool-overview blurbs.",
     "HARD RULES:",
     "1) Use ONLY facts present in the provided source text. Never invent prices, benchmarks, or features.",
-    "2) Prefer concrete product names, version numbers, pricing, and capabilities when present.",
+    "2) Headline must name the product + what shipped (model/feature/version).",
     "3) Neutral, practical tone — no hype, no affiliate CTA spam.",
     "4) Reply in English.",
     "5) body must use markdown sections with ## headings.",
     "OUTPUT ONLY valid JSON:",
-    '{"title":"specific headline with product + angle, max 110 chars","summary":"lead paragraph 1-3 sentences max 360 chars","body":"markdown blog body"}',
+    '{"title":"Product + what shipped, max 110 chars","summary":"1-3 sentences: what changed, for whom, max 360 chars","body":"markdown"}',
     "body structure (omit a section if source lacks facts):",
     "## What shipped",
     "## Who it is for",
-    "Pros\\n- ...",
-    "Cons\\n- ...",
     "## Pricing notes",
     "## FAQ",
     "### Question?\\nAnswer.",
-    "Verdict: one closing sentence grounded in the source.",
   ].join("\n");
 
   const excerpt = (input.markdown ?? input.summary).slice(0, 9000);
