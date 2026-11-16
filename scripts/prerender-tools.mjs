@@ -262,6 +262,121 @@ function crawlerH1(path, meta) {
   return meta.title.replace(/\s*\|\s*AI Discov\s*$/i, "").trim() || meta.title;
 }
 
+/**
+ * Substantial static HTML inside #root so Google/Bing do not Soft-404 SPA shells.
+ * React replaces #root on mount for humans.
+ */
+function crawlerRootHtml(path, meta) {
+  const h1 = escapeHtml(crawlerH1(path, meta));
+  const desc = escapeHtml(meta.description || "");
+
+  if (path === "/deals") {
+    return `<div id="root">
+      <main>
+        <h1>${h1}</h1>
+        <p>Verified promo codes and partner discounts on AI tools — video, voice, writing, and more. Updated regularly on AI Discov with clear affiliate disclosure.</p>
+        <p>Affiliate disclosure: some links are partner links. If you buy through them, AI Discov may earn a commission at no extra cost to you. Offers can change; always confirm on the vendor site.</p>
+        <h2>Featured AI deal</h2>
+        <article>
+          <h3>Higgsfield AI</h3>
+          <p>AI video studio for clips, ads, animations, and camera effects from text or image — with consistent characters. Freemium. Up to 50% off via partner offer.</p>
+          <p><a href="https://higgsfield.ai?fpr=aidiscov-e700b5" rel="sponsored noopener noreferrer">Get Higgsfield deal</a></p>
+        </article>
+        <h2>All AI deals</h2>
+        <ul>
+          <li>
+            <h3>Higgsfield AI</h3>
+            <p>AI video · Freemium · up to −50%. Discount of up to 50% applies for a limited window after you open the offer link.</p>
+            <p><a href="https://higgsfield.ai?fpr=aidiscov-e700b5" rel="sponsored noopener noreferrer">Get deal</a></p>
+          </li>
+          <li>
+            <h3>ElevenLabs</h3>
+            <p>AI voice · Freemium. Realistic speech, voice cloning, dubbing, and audio production in 70+ languages.</p>
+            <p><a href="https://try.elevenlabs.io/svxp5cd3i356" rel="sponsored noopener noreferrer">Get deal</a></p>
+          </li>
+        </ul>
+        <h2>AI deals FAQ</h2>
+        <h3>What is AI Discov Deals?</h3>
+        <p>A curated list of AI tool discounts, trials, and partner offers. Each deal shows the tool, pricing model, any promo code, and a tracked link to the vendor.</p>
+        <h3>Are these AI deals verified?</h3>
+        <p>We mark deals Verified when the partner link or promo terms were checked on our side. Offers can still change on the vendor site — always confirm price and eligibility at checkout.</p>
+        <h3>Does AI Discov earn money from these deals?</h3>
+        <p>Sometimes. Some links are affiliate links: if you subscribe, the maker may pay us a commission without changing the price you pay. That is disclosed on this page.</p>
+        <h3>How do I use an AI promo code?</h3>
+        <p>Copy the code on the deal card, open Get deal, pick the plan the offer applies to, then paste the code at checkout. Link-only deals apply the offer when you land via the partner URL.</p>
+        <p>Browse the full catalog on <a href="/explore">Explore</a> or product updates on <a href="/latest">Latest</a>.</p>
+      </main>
+    </div>`;
+  }
+
+  if (path === "/") {
+    return `<div id="root">
+      <main>
+        <h1>${h1}</h1>
+        <p>${desc}</p>
+        <p>AI Discov helps you discover, compare, and track AI tools, models, APIs, and agents. Describe a job, get matched tools with reasons, or browse Top 10 lists by category.</p>
+        <h2>Browse AI Discov</h2>
+        <ul>
+          <li><a href="/explore">Explore</a> — full AI solution catalog with filters</li>
+          <li><a href="/latest">Latest</a> — AI product updates and releases</li>
+          <li><a href="/news">News</a> — industry briefings</li>
+          <li><a href="/deals">Deals</a> — promo codes and partner discounts</li>
+          <li><a href="/compare">Compare</a> — side-by-side tool comparison</li>
+        </ul>
+      </main>
+    </div>`;
+  }
+
+  if (path === "/explore") {
+    return `<div id="root">
+      <main>
+        <h1>${h1}</h1>
+        <p>${desc}</p>
+        <p>Scan the AI Discov catalog — filter by category, pricing, API access, open source, and local tools until the signal is clear. Each listing includes summary, evidence level, and verification status.</p>
+        <p>Also see <a href="/deals">AI Deals</a>, <a href="/latest">Latest updates</a>, and <a href="/compare">Compare</a>.</p>
+      </main>
+    </div>`;
+  }
+
+  if (path === "/latest" || path === "/news" || path === "/compare" || path === "/legal") {
+    return `<div id="root">
+      <main>
+        <h1>${h1}</h1>
+        <p>${desc}</p>
+        <p>Part of AI Discov — discover the right AI solution for your use case. Continue to <a href="/explore">Explore</a> or <a href="/deals">Deals</a>.</p>
+      </main>
+    </div>`;
+  }
+
+  if (path.startsWith("/tools/")) {
+    const name = escapeHtml(crawlerH1(path, meta));
+    return `<div id="root">
+      <main>
+        <h1>${name}</h1>
+        <p>${desc}</p>
+        <p>Overview on AI Discov: pricing, features, platforms, and alternatives. Browse more tools in <a href="/explore">Explore</a> or current offers on <a href="/deals">Deals</a>.</p>
+      </main>
+    </div>`;
+  }
+
+  if (path.startsWith("/categories/")) {
+    return `<div id="root">
+      <main>
+        <h1>${h1}</h1>
+        <p>${desc}</p>
+        <p>Browse this category in the AI Discov catalog. See also <a href="/explore">Explore</a> and <a href="/deals">Deals</a>.</p>
+      </main>
+    </div>`;
+  }
+
+  return `<div id="root">
+    <main>
+      <h1>${h1}</h1>
+      <p>${desc}</p>
+    </main>
+  </div>`;
+}
+
 function applySeo(html, meta, image, path = "/") {
   let out = html;
   out = out.replace(/<title>[^<]*<\/title>/i, `<title>${escapeHtml(meta.title)}</title>`);
@@ -282,12 +397,8 @@ function applySeo(html, meta, image, path = "/") {
   out = upsertLink(out, "alternate", meta.url, "en");
   out = upsertLink(out, "alternate", meta.url, "x-default");
 
-  // Bing SEO audit reads static HTML; inject H1 inside #root for non-JS crawlers.
-  const h1 = escapeHtml(crawlerH1(path, meta));
-  out = out.replace(
-    /<div id="root">[\s\S]*?<\/div>/i,
-    `<div id="root">\n      <h1>${h1}</h1>\n    </div>`,
-  );
+  // Google Soft 404 + Bing SEO: inject substantial static HTML for non-JS crawlers.
+  out = out.replace(/<div id="root">[\s\S]*?<\/div>/i, crawlerRootHtml(path, meta));
 
   return out;
 }

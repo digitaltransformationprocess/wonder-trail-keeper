@@ -64,9 +64,21 @@
     />
   </head>
   <body>
-    <!-- Static H1 for crawlers that do not execute JS (Bing SEO audit). React replaces #root on mount. -->
+    <!-- Static HTML for crawlers (Soft 404 / Bing H1). React replaces #root on mount. -->
     <div id="root">
-      <h1>Discover the right AI solution for your use case.</h1>
+      <main>
+        <h1>Discover the right AI solution for your use case.</h1>
+        <p>
+          Find the right AI solution for your needs. Describe what you want to accomplish and find
+          verified AI tools with clear explanations and comparisons on AI Discov.
+        </p>
+        <ul>
+          <li><a href="/explore">Explore</a> AI tools catalog</li>
+          <li><a href="/latest">Latest</a> product updates</li>
+          <li><a href="/news">News</a> industry briefings</li>
+          <li><a href="/deals">Deals</a> promo codes and partner offers</li>
+        </ul>
+      </main>
     </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
