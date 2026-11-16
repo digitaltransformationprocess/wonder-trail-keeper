@@ -64,7 +64,10 @@
     />
   </head>
   <body>
-    <div id="root"></div>
+    <!-- Static H1 for crawlers that do not execute JS (Bing SEO audit). React replaces #root on mount. -->
+    <div id="root">
+      <h1>Discover the right AI solution for your use case.</h1>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

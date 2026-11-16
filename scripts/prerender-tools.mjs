@@ -95,6 +95,11 @@ function defaultMeta(path, base) {
       title: "Compare AI tools | AI Discov",
       description: "Compare up to 5 AI tools side by side on pricing, API, and limits.",
     },
+    "/deals": {
+      title: "AI Deals & promo codes — verified offers | AI Discov",
+      description:
+        "Curated AI tool deals, promo codes, and partner discounts with affiliate disclosure.",
+    },
     "/legal": {
       title: "Legal | AI Discov",
       description: "Terms, privacy, cookies, and policies for AI Discov.",
@@ -238,7 +243,26 @@ function upsertLink(html, rel, href, hreflang) {
   return html.replace(/<\/head>/i, `    ${tag}\n  </head>`);
 }
 
-function applySeo(html, meta, image) {
+function crawlerH1(path, meta) {
+  if (path === "/") return "Discover the right AI solution for your use case.";
+  if (path === "/deals") return "AI Deals & promo codes";
+  if (path === "/explore") return "Explore AI solutions";
+  if (path === "/latest") return "Latest AI product updates";
+  if (path === "/news") return "AI News";
+  if (path === "/compare") return "Compare AI tools";
+  if (path === "/legal") return "Legal";
+  if (path.startsWith("/tools/")) {
+    const name = meta.title.split("—")[0]?.trim();
+    return name || meta.title;
+  }
+  if (path.startsWith("/categories/")) {
+    const name = meta.title.split("|")[0]?.trim();
+    return name || meta.title;
+  }
+  return meta.title.replace(/\s*\|\s*AI Discov\s*$/i, "").trim() || meta.title;
+}
+
+function applySeo(html, meta, image, path = "/") {
   let out = html;
   out = out.replace(/<title>[^<]*<\/title>/i, `<title>${escapeHtml(meta.title)}</title>`);
 
@@ -257,6 +281,13 @@ function applySeo(html, meta, image) {
   out = upsertLink(out, "canonical", meta.url);
   out = upsertLink(out, "alternate", meta.url, "en");
   out = upsertLink(out, "alternate", meta.url, "x-default");
+
+  // Bing SEO audit reads static HTML; inject H1 inside #root for non-JS crawlers.
+  const h1 = escapeHtml(crawlerH1(path, meta));
+  out = out.replace(
+    /<div id="root">[\s\S]*?<\/div>/i,
+    `<div id="root">\n      <h1>${h1}</h1>\n    </div>`,
+  );
 
   return out;
 }
@@ -306,7 +337,7 @@ async function main() {
       }
     }
 
-    const html = applySeo(template, meta, image);
+    const html = applySeo(template, meta, image, path);
     const outFile = distFileForPath(path);
     mkdirSync(dirname(outFile), { recursive: true });
     writeFileSync(outFile, html, "utf8");
