@@ -32,7 +32,9 @@ export const Route = createFileRoute("/categories/$slug")({
           { title: `${name} — AI category | AI Discovery` },
           {
             name: "description",
-            content: `Browse verified AI solutions in the ${name} category.`,
+            content:
+              loaderData?.description?.trim() ||
+              `Browse verified AI solutions in the ${name} category.`,
           },
         ],
       },

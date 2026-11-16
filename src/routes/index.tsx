@@ -16,6 +16,7 @@ import {
   Music2,
   Palette,
   PenLine,
+  Plug,
   Puzzle,
   Scale,
   Search,
@@ -51,6 +52,7 @@ const EXAMPLES = [
 const HOME_TOP_CATEGORY_SLUGS = [
   "ai-assistants",
   "skills",
+  "mcp",
   "writing-content",
   "image-generation",
   "video-generation",
@@ -101,6 +103,7 @@ export const Route = createFileRoute("/")({
 const CATEGORY_ICONS: Record<string, LucideIcon> = {
   "ai-assistants": Bot,
   skills: Puzzle,
+  mcp: Plug,
   "writing-content": PenLine,
   "image-generation": ImageIcon,
   "video-generation": Video,
@@ -185,7 +188,9 @@ function CategoryTopCard({
               aria-label={
                 /skills\.sh/i.test(s.url) || s.categorySlugs.includes("skills")
                   ? `Open ${s.name} skill`
-                  : `Open ${s.name} website`
+                  : s.categorySlugs.includes("mcp") || s.type === "MCP"
+                    ? `Open ${s.name} MCP`
+                    : `Open ${s.name} website`
               }
               className="shrink-0 rounded-lg p-1 text-muted-foreground opacity-0 transition-apple group-hover/row:opacity-100 hover:bg-fill hover:text-foreground focus-visible:opacity-100"
             >

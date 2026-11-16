@@ -247,7 +247,9 @@ function Detail() {
         >
           {/skills\.sh/i.test(s.url) || s.categorySlugs.includes("skills")
             ? "View skill"
-            : "Official website"}
+            : s.categorySlugs.includes("mcp") || s.type === "MCP"
+              ? "View MCP"
+              : "Official website"}
         </a>
         {s.apiDocsUrl ? (
           <a
