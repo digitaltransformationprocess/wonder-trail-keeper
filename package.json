@@ -21,7 +21,9 @@
     "catalog:seed-more": "node scripts/seed_more_tools_batch.mjs",
     "catalog:seed-max": "node scripts/seed_popular_verified_max.mjs",
     "catalog:seed-max2": "node scripts/seed_popular_verified_max2.mjs",
-    "catalog:seed-skills": "node scripts/seed_skills.mjs"
+    "catalog:seed-skills": "node scripts/seed_skills.mjs",
+    "catalog:seed-hot": "node scripts/seed_hot_tools_nov2026.mjs",
+    "catalog:seed-hot-b": "node scripts/seed_hot_tools_nov2026_b.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
