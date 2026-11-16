@@ -33,6 +33,8 @@ export interface Deal {
   /** Optional expiry (ISO date); omit if ongoing */
   expiresAt?: string;
   notes?: string;
+  /** Spotlight on /deals (mobile + desktop) */
+  featured?: boolean;
 }
 
 export const DEAL_PRICING_LABELS: Record<DealPricing, string> = {
@@ -68,6 +70,7 @@ export const DEALS: Deal[] = [
     offerUrl: "https://higgsfield.ai?fpr=aidiscov-e700b5",
     logoUrl: "https://www.google.com/s2/favicons?domain=higgsfield.ai&sz=128",
     verified: true,
+    featured: true,
     updatedAt: "2026-11-16",
     notes:
       "Discount of up to 50% applies for a limited window after you open the offer link (Higgsfield affiliate terms).",
@@ -87,6 +90,35 @@ export const DEALS: Deal[] = [
     notes: "Partner offer link — open it to start with ElevenLabs (plans and trials set on their site).",
   },
 ];
+
+export const DEALS_FAQS: Array<{ q: string; a: string }> = [
+  {
+    q: "What is AI Discov Deals?",
+    a: "A curated list of AI tool discounts, trials, and partner offers. Each deal shows the tool, pricing model, any promo code, and a tracked link to the vendor.",
+  },
+  {
+    q: "Are these AI deals verified?",
+    a: "We mark deals Verified when the partner link or promo terms were checked on our side. Offers can still change on the vendor site — always confirm price and eligibility at checkout.",
+  },
+  {
+    q: "Does AI Discov earn money from these deals?",
+    a: "Sometimes. Some links are affiliate links: if you subscribe, the maker may pay us a commission without changing the price you pay. That is disclosed on this page.",
+  },
+  {
+    q: "How do I use an AI promo code?",
+    a: "Copy the code on the deal card, open Get deal, pick the plan the offer applies to, then paste the code at checkout. Link-only deals apply the offer when you land via the partner URL.",
+  },
+];
+
+export function featuredDeal(deals: Deal[] = DEALS): Deal | undefined {
+  return deals.find((d) => d.featured) ?? [...deals].sort(
+    (a, b) => (b.discountPercent ?? 0) - (a.discountPercent ?? 0),
+  )[0];
+}
+
+export function maxDealDiscount(deals: Deal[] = DEALS): number {
+  return deals.reduce((max, d) => Math.max(max, d.discountPercent ?? 0), 0);
+}
 
 export function filterDeals(
   deals: Deal[],

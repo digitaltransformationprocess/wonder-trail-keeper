@@ -428,7 +428,7 @@ function Discover() {
                   <br />
                   <span className="text-clarity">AI solution</span>
                   <br />
-                  for anything.
+                  for your use case.
                 </motion.h1>
 
                 <motion.p
