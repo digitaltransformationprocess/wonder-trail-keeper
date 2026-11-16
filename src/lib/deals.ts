@@ -72,6 +72,20 @@ export const DEALS: Deal[] = [
     notes:
       "Discount of up to 50% applies for a limited window after you open the offer link (Higgsfield affiliate terms).",
   },
+  {
+    id: "elevenlabs",
+    name: "ElevenLabs",
+    slug: "elevenlabs",
+    summary:
+      "AI voice platform for realistic speech, voice cloning, dubbing, and audio production in 70+ languages.",
+    pricing: "freemium",
+    category: "audio",
+    offerUrl: "https://try.elevenlabs.io/svxp5cd3i356",
+    logoUrl: "https://www.google.com/s2/favicons?domain=elevenlabs.io&sz=128",
+    verified: true,
+    updatedAt: "2026-11-16",
+    notes: "Partner offer link — open it to start with ElevenLabs (plans and trials set on their site).",
+  },
 ];
 
 export function filterDeals(
