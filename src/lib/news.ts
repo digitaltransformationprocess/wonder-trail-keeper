@@ -1,6 +1,10 @@
 import { queryOptions } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { isLatestAdvanceKind, LATEST_ADVANCE_KINDS } from "@/lib/latest";
+import {
+  isLatestAdvanceKind,
+  LATEST_ADVANCE_KINDS,
+  resolveCompanyForAdvance,
+} from "@/lib/latest";
 
 export interface NewsRow {
   id: string;
@@ -12,6 +16,8 @@ export interface NewsRow {
   body: string | null;
   solution_slug: string | null;
   source_url: string;
+  company_name: string | null;
+  company_logo_url: string | null;
 }
 
 export interface NewsFilters {
@@ -49,7 +55,12 @@ export async function listNews(filters: NewsFilters = {}): Promise<NewsRow[]> {
     throw new Error(`News unavailable: ${error.message}`);
   }
 
-  return (data ?? []).map((row) => ({ ...row, body: null }));
+  return (data ?? []).map((row) => ({
+    ...row,
+    body: null,
+    company_name: null,
+    company_logo_url: null,
+  }));
 }
 
 export async function getPublishedNewsBySlug(slug: string): Promise<NewsRow | null> {
@@ -72,7 +83,16 @@ export async function getPublishedNewsBySlug(slug: string): Promise<NewsRow | nu
   // Detail pages under /latest only serve product advances.
   if (!data || !isLatestAdvanceKind(data.kind)) return null;
 
-  return data;
+  const company = await resolveCompanyForAdvance({
+    solution_slug: data.solution_slug,
+    source_url: data.source_url,
+  });
+
+  return {
+    ...data,
+    company_name: company.company_name,
+    company_logo_url: company.company_logo_url,
+  };
 }
 
 export function newsQuery(filters: NewsFilters = {}) {

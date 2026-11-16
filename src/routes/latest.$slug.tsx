@@ -4,6 +4,7 @@ import { ArrowUpRight, CalendarDays } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import { Suspense } from "react";
 import { BlogContent } from "@/components/BlogContent";
+import { CompanyMark } from "@/components/CompanyMark";
 import { SiteShell } from "@/components/SiteShell";
 import { LATEST_KIND_LABELS, type LatestAdvanceKind } from "@/lib/latest";
 import { newsBySlugQuery } from "@/lib/news";
@@ -120,6 +121,26 @@ function NewsDetail() {
         variants={fadeUp}
         className="relative mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 text-[0.875rem] text-muted-foreground"
       >
+        {(item.company_logo_url || item.company_name || item.solution_slug) && (
+          <span className="inline-flex items-center gap-2">
+            <CompanyMark
+              name={item.company_name || (item.solution_slug ? toolLabel(item.solution_slug) : null)}
+              logoUrl={item.company_logo_url}
+              size="sm"
+            />
+            {item.solution_slug ? (
+              <Link
+                to="/tools/$slug"
+                params={{ slug: item.solution_slug }}
+                className="font-medium text-foreground transition-apple hover:text-primary"
+              >
+                {item.company_name || toolLabel(item.solution_slug)}
+              </Link>
+            ) : item.company_name ? (
+              <span className="font-medium text-foreground">{item.company_name}</span>
+            ) : null}
+          </span>
+        )}
         <span className="inline-flex items-center gap-1.5">
           <CalendarDays className="h-3.5 w-3.5 opacity-70" aria-hidden />
           <time dateTime={item.published_at}>{formatDate(item.published_at)}</time>

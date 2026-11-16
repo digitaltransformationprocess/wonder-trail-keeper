@@ -2,6 +2,7 @@ import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tan
 import { useQuery } from "@tanstack/react-query";
 import { motion, useReducedMotion } from "motion/react";
 import { z } from "zod";
+import { CompanyMark } from "@/components/CompanyMark";
 import { SiteShell } from "@/components/SiteShell";
 import {
   latestAdvancesQuery,
@@ -210,60 +211,76 @@ function Latest() {
                         </p>
                       </>
                     );
+                    const companyName = n.company_name || (n.solution_slug ? toolLabel(n.solution_slug) : null);
                     return (
                       <li
                         key={n.id}
                         className="glass rounded-3xl px-5 py-5 transition-apple hover:bg-fill/40 md:px-6"
                       >
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="rounded-full bg-fill px-2.5 py-0.5 text-[0.7rem] font-medium uppercase tracking-[0.08em] text-muted-foreground">
-                            {kindLabel(n.kind)}
-                          </span>
-                          {n.solution_slug ? (
-                            <Link
-                              to="/tools/$slug"
-                              params={{ slug: n.solution_slug }}
-                              className="rounded-full bg-primary/10 px-2.5 py-0.5 text-[0.7rem] font-medium text-primary transition-apple hover:bg-primary/15"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              {toolLabel(n.solution_slug)}
-                            </Link>
-                          ) : null}
-                        </div>
-                        {n.slug ? (
-                          <Link to="/latest/$slug" params={{ slug: n.slug }} className="group block">
-                            {titleNode}
-                          </Link>
-                        ) : n.solution_slug ? (
-                          <Link
-                            to="/tools/$slug"
-                            params={{ slug: n.solution_slug }}
-                            className="group block"
-                          >
-                            {titleNode}
-                          </Link>
-                        ) : (
-                          titleNode
-                        )}
-                        <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[0.8125rem]">
-                          {n.slug ? (
-                            <Link
-                              to="/latest/$slug"
-                              params={{ slug: n.slug }}
-                              className="font-medium text-primary transition-apple hover:opacity-70"
-                            >
-                              Read update
-                            </Link>
-                          ) : null}
-                          {n.solution_slug ? (
-                            <Link
-                              to="/tools/$slug"
-                              params={{ slug: n.solution_slug }}
-                              className="text-muted-foreground transition-apple hover:text-foreground"
-                            >
-                              Open tool
-                            </Link>
-                          ) : null}
+                        <div className="flex items-start gap-3.5">
+                          <CompanyMark
+                            name={companyName}
+                            logoUrl={n.company_logo_url}
+                            size="md"
+                          />
+                          <div className="min-w-0 flex-1">
+                            <div className="flex flex-wrap items-center gap-2">
+                              {companyName ? (
+                                n.solution_slug ? (
+                                  <Link
+                                    to="/tools/$slug"
+                                    params={{ slug: n.solution_slug }}
+                                    className="text-[0.8125rem] font-medium text-foreground transition-apple hover:text-primary"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    {companyName}
+                                  </Link>
+                                ) : (
+                                  <span className="text-[0.8125rem] font-medium text-foreground">
+                                    {companyName}
+                                  </span>
+                                )
+                              ) : null}
+                              <span className="rounded-full bg-fill px-2.5 py-0.5 text-[0.7rem] font-medium uppercase tracking-[0.08em] text-muted-foreground">
+                                {kindLabel(n.kind)}
+                              </span>
+                            </div>
+                            {n.slug ? (
+                              <Link to="/latest/$slug" params={{ slug: n.slug }} className="group block">
+                                {titleNode}
+                              </Link>
+                            ) : n.solution_slug ? (
+                              <Link
+                                to="/tools/$slug"
+                                params={{ slug: n.solution_slug }}
+                                className="group block"
+                              >
+                                {titleNode}
+                              </Link>
+                            ) : (
+                              titleNode
+                            )}
+                            <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[0.8125rem]">
+                              {n.slug ? (
+                                <Link
+                                  to="/latest/$slug"
+                                  params={{ slug: n.slug }}
+                                  className="font-medium text-primary transition-apple hover:opacity-70"
+                                >
+                                  Read update
+                                </Link>
+                              ) : null}
+                              {n.solution_slug ? (
+                                <Link
+                                  to="/tools/$slug"
+                                  params={{ slug: n.solution_slug }}
+                                  className="text-muted-foreground transition-apple hover:text-foreground"
+                                >
+                                  Open tool
+                                </Link>
+                              ) : null}
+                            </div>
+                          </div>
                         </div>
                       </li>
                     );
