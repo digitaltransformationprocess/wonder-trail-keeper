@@ -25,7 +25,7 @@ import {
 } from "lucide-react";
 import { Button } from "@ui-sdk/react/button";
 import { motion, useReducedMotion } from "motion/react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 import { SiteShell, SolutionCard } from "@/components/SiteShell";
 import { discover, discoverSmart, discoverViaFts, extractConstraints } from "@/lib/discover";
@@ -78,19 +78,20 @@ export const Route = createFileRoute("/")({
       ),
     ]);
   },
-  head: () =>
+  head: ({ match }) =>
     mergeHead(
       {
         meta: [
           { title: "AI Discov — Find the right AI solution for your needs" },
-      {
-        name: "description",
-        content:
-          "Describe what you want to accomplish and find verified AI solutions with clear explanations and comparisons.",
+          {
+            name: "description",
+            content:
+              "Describe what you want to accomplish and find verified AI solutions with clear explanations and comparisons.",
+          },
+        ],
       },
-    ],
-      },
-      pageSeo({ path: "/" }),
+      // Search result URLs (?q=) stay canonical to / and are noindex so they don't compete.
+      pageSeo({ path: "/", noindex: Boolean(match.search.q) }),
     ),
   component: Discover,
 });
@@ -322,10 +323,25 @@ function Discover() {
   const [value, setValue] = useState(q ?? "");
   const reduce = useReducedMotion();
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const resultsRef = useRef<HTMLElement>(null);
   const { data: solutions = [], isLoading, isError, error, refetch } = useQuery(solutionsQuery);
   const { data: categories = [] } = useQuery(categoriesQuery);
   const catalogKey = solutions.map((s) => s.slug).join(",");
   const enabled = Boolean(q) && solutions.length > 0 && !isLoading;
+  const searchingMode = Boolean(q);
+
+  // After a query, bring the answer into view (content-first — don't leave users stuck under the hero).
+  useEffect(() => {
+    if (!q || !resultsRef.current) return;
+    const el = resultsRef.current;
+    const id = window.requestAnimationFrame(() => {
+      el.scrollIntoView({
+        behavior: reduce ? "auto" : "smooth",
+        block: "start",
+      });
+    });
+    return () => window.cancelAnimationFrame(id);
+  }, [q, reduce]);
 
   // Fast path: show catalog matches immediately while Grok answers.
   const ftsQuery = useQuery({
@@ -379,7 +395,11 @@ function Discover() {
 
   return (
     <SiteShell flush>
-      <section className="relative min-h-0 overflow-hidden px-5 pb-10 pt-8 md:px-8 md:pb-12 md:pt-10">
+      <section
+        className={`relative min-h-0 overflow-hidden px-5 md:px-8 ${
+          searchingMode ? "pb-4 pt-4 md:pb-5 md:pt-5" : "pb-8 pt-8 md:pb-10 md:pt-10"
+        }`}
+      >
         <div className="relative z-10 mx-auto max-w-6xl">
           <motion.div
             className="relative z-10 max-w-2xl"
@@ -387,35 +407,47 @@ function Discover() {
             animate="show"
             variants={staggerChildren}
           >
-            <motion.div
-              variants={fadeUp}
-              className="mb-5 flex items-center gap-2.5 text-[0.58rem] font-medium tracking-[0.14em] text-muted-foreground sm:mb-7 sm:text-[0.625rem] sm:tracking-[0.22em]"
-            >
-              <span className="inline-block h-1.5 w-1.5 rounded-full bg-foreground/70" />
-              YOUR GATEWAY TO ARTIFICIAL INTELLIGENCE
-            </motion.div>
+            {!searchingMode ? (
+              <>
+                <motion.div
+                  variants={fadeUp}
+                  className="mb-5 flex items-center gap-2.5 text-[0.58rem] font-medium tracking-[0.14em] text-muted-foreground sm:mb-7 sm:text-[0.625rem] sm:tracking-[0.22em]"
+                >
+                  <span className="inline-block h-1.5 w-1.5 rounded-full bg-foreground/70" />
+                  YOUR GATEWAY TO ARTIFICIAL INTELLIGENCE
+                </motion.div>
 
-            <motion.h1
-              variants={fadeUp}
-              className="type-display text-[2.35rem] leading-[1.05] text-foreground sm:text-[clamp(2.6rem,5vw,4.4rem)]"
-            >
-              Discover the right
-              <br />
-              <span className="text-clarity">AI solution</span>
-              <br />
-              for anything.
-            </motion.h1>
+                <motion.h1
+                  variants={fadeUp}
+                  className="type-display text-[2.35rem] leading-[1.05] text-foreground sm:text-[clamp(2.6rem,5vw,4.4rem)]"
+                >
+                  Discover the right
+                  <br />
+                  <span className="text-clarity">AI solution</span>
+                  <br />
+                  for anything.
+                </motion.h1>
 
-            <motion.p
-              variants={fadeUp}
-              className="mt-6 max-w-md text-[0.95rem] leading-8 text-muted-foreground"
-            >
-              Describe a job, get matched tools with reasons — or jump straight to a Top 10 list.
-            </motion.p>
+                <motion.p
+                  variants={fadeUp}
+                  className="mt-6 max-w-md text-[0.95rem] leading-8 text-muted-foreground"
+                >
+                  Describe a job, get matched tools with reasons — or jump straight to a Top 10
+                  list.
+                </motion.p>
+              </>
+            ) : (
+              <motion.h1
+                variants={fadeUp}
+                className="type-title text-[1.35rem] tracking-[-0.02em] text-foreground md:text-[1.5rem]"
+              >
+                Results
+              </motion.h1>
+            )}
 
             <motion.form
               variants={fadeUp}
-              className="search-box mt-8"
+              className={`search-box ${searchingMode ? "mt-4" : "mt-8"}`}
               onSubmit={(e) => {
                 e.preventDefault();
                 if (value.trim()) go(value.trim());
@@ -435,131 +467,114 @@ function Discover() {
               </button>
             </motion.form>
 
-            <motion.div
-              variants={fadeUp}
-              className="mt-4 flex flex-wrap items-center gap-2 text-[0.7rem] text-muted-foreground/80"
-            >
-              <span className="mr-1">Try:</span>
-              {EXAMPLES.map((e) => (
-                <Button
-                  key={e.label}
+            {!searchingMode ? (
+              <motion.div
+                variants={fadeUp}
+                className="mt-4 flex flex-wrap items-center gap-2 text-[0.7rem] text-muted-foreground/80"
+              >
+                <span className="mr-1">Try:</span>
+                {EXAMPLES.map((e) => (
+                  <Button
+                    key={e.label}
+                    type="button"
+                    onClick={() => go(e.q)}
+                    className="rounded-full border hairline bg-fill/40 px-3 py-1 text-[0.7rem] text-muted-foreground transition-apple hover:border-primary/25 hover:bg-primary/5 hover:text-foreground"
+                  >
+                    {e.label}
+                  </Button>
+                ))}
+              </motion.div>
+            ) : (
+              <motion.div variants={fadeUp} className="mt-3">
+                <button
                   type="button"
-                  onClick={() => go(e.q)}
-                  className="rounded-full border hairline bg-fill/40 px-3 py-1 text-[0.7rem] text-muted-foreground transition-apple hover:border-primary/25 hover:bg-primary/5 hover:text-foreground"
+                  onClick={() => {
+                    setValue("");
+                    navigate({ search: {} });
+                  }}
+                  className="text-[0.8125rem] text-muted-foreground transition-apple hover:text-foreground"
                 >
-                  {e.label}
-                </Button>
-              ))}
-            </motion.div>
+                  ← Back to discover
+                </button>
+              </motion.div>
+            )}
           </motion.div>
 
-            <motion.div
-            className="mt-10 grid gap-3 sm:grid-cols-3"
-            initial={reduce ? false : "hidden"}
-            animate="show"
-            variants={staggerChildren}
-          >
-            <motion.div variants={fadeUp}>
-              <Button
+          {/* Compact path links — Google/Vercel density; hidden once results are the job. */}
+          {!searchingMode ? (
+            <motion.nav
+              aria-label="Quick paths"
+              className="mt-6 flex flex-wrap items-center gap-x-1 gap-y-2 border-t hairline pt-5 text-[0.8125rem]"
+              initial={reduce ? false : "hidden"}
+              animate="show"
+              variants={staggerChildren}
+            >
+              <motion.button
                 type="button"
+                variants={fadeUp}
                 onClick={focusSearch}
-                className="glass group flex h-full w-full flex-col items-start gap-3 rounded-[1.25rem] p-4 text-left transition-apple hover:bg-fill/40 md:p-5"
+                className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-muted-foreground transition-apple hover:bg-fill hover:text-foreground"
               >
-                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                  <Search className="h-4 w-4" strokeWidth={1.75} aria-hidden />
-                </span>
-                <span>
-                  <span className="block text-[0.9375rem] font-semibold text-foreground">
-                    Ask for a match
-                  </span>
-                  <span className="mt-1 block text-[0.8125rem] leading-5 text-muted-foreground">
-                    Describe the job — get ranked tools and why they fit.
-                  </span>
-                </span>
-                <span className="mt-auto inline-flex items-center gap-1 text-[0.75rem] font-medium text-primary">
-                  Start typing
-                  <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-                </span>
-              </Button>
-            </motion.div>
-
-            <motion.div variants={fadeUp}>
-              <Button
-                type="button"
-                className="glass group flex h-full w-full flex-col items-start gap-3 rounded-[1.25rem] p-4 text-left transition-apple hover:bg-fill/40 md:p-5"
-                render={<a href="#top-categories" />}
+                <Search className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden />
+                Ask for a match
+              </motion.button>
+              <span className="hidden text-muted-foreground/40 sm:inline" aria-hidden>
+                ·
+              </span>
+              <motion.a
+                variants={fadeUp}
+                href="#top-categories"
+                className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-muted-foreground transition-apple hover:bg-fill hover:text-foreground"
               >
-                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                  <LayoutGrid className="h-4 w-4" strokeWidth={1.75} aria-hidden />
-                </span>
-                <span>
-                  <span className="block text-[0.9375rem] font-semibold text-foreground">
-                    Browse Top 10s
-                  </span>
-                  <span className="mt-1 block text-[0.8125rem] leading-5 text-muted-foreground">
-                    Best-known tools by category — pick a list in seconds.
-                  </span>
-                </span>
-                <span className="mt-auto inline-flex items-center gap-1 text-[0.75rem] font-medium text-primary">
-                  Jump to lists
-                  <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-                </span>
-              </Button>
-            </motion.div>
-
-            <motion.div variants={fadeUp}>
-              <Button
-                type="button"
-                className="glass group flex h-full w-full flex-col items-start gap-3 rounded-[1.25rem] p-4 text-left transition-apple hover:bg-fill/40 md:p-5"
-                render={<Link to="/compare" />}
-              >
-                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                  <Columns2 className="h-4 w-4" strokeWidth={1.75} aria-hidden />
-                </span>
-                <span>
-                  <span className="block text-[0.9375rem] font-semibold text-foreground">
-                    Compare options
-                  </span>
-                  <span className="mt-1 block text-[0.8125rem] leading-5 text-muted-foreground">
-                    Put up to 5 tools side by side on pricing, API, and limits.
-                  </span>
-                </span>
-                <span className="mt-auto inline-flex items-center gap-1 text-[0.75rem] font-medium text-primary">
-                  Open compare
-                  <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-                </span>
-              </Button>
-            </motion.div>
-          </motion.div>
+                <LayoutGrid className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden />
+                Browse Top 10s
+              </motion.a>
+              <span className="hidden text-muted-foreground/40 sm:inline" aria-hidden>
+                ·
+              </span>
+              <motion.div variants={fadeUp}>
+                <Link
+                  to="/compare"
+                  className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-muted-foreground transition-apple hover:bg-fill hover:text-foreground"
+                >
+                  <Columns2 className="h-3.5 w-3.5" strokeWidth={1.75} aria-hidden />
+                  Compare
+                  <ArrowRight className="h-3 w-3 opacity-60" strokeWidth={1.75} aria-hidden />
+                </Link>
+              </motion.div>
+            </motion.nav>
+          ) : null}
         </div>
       </section>
 
-      {q && (
-        <section className="relative z-10 mx-auto max-w-5xl px-5 pb-20 md:px-8">
-          <div className="glass mb-8 rounded-3xl px-5 py-5 md:px-6">
-            <div className="flex flex-wrap items-baseline gap-x-3 gap-y-2">
-              <h2 className="type-title text-[1.35rem]">Matched signals</h2>
-              <p className="text-[0.875rem] text-muted-foreground">for “{q}”</p>
-            </div>
-            <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[0.8125rem]">
-              <span className="text-muted-foreground">Requirements</span>
-              {c &&
-                Object.entries({
-                  Free: c.free,
-                  "Open source": c.openSource,
-                  API: c.api,
-                  Local: c.local,
-                })
-                  .filter(([, v]) => v)
-                  .map(([k]) => (
-                    <span key={k} className="text-foreground">
-                      {k}
-                    </span>
-                  ))}
-              {c && !Object.values(c).some(Boolean) && (
-                <span className="text-muted-foreground">none detected</span>
-              )}
-            </div>
+      {q ? (
+        <section
+          ref={resultsRef}
+          id="results"
+          className="relative z-10 mx-auto max-w-5xl scroll-mt-24 px-5 pb-20 md:px-8"
+        >
+          <div className="mb-5 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+            <h2 className="type-title text-[1.2rem] md:text-[1.35rem]">Matched signals</h2>
+            <p className="text-[0.875rem] text-muted-foreground">for “{q}”</p>
+          </div>
+          <div className="mb-6 flex flex-wrap items-center gap-x-3 gap-y-1 text-[0.8125rem]">
+            <span className="text-muted-foreground">Requirements</span>
+            {c &&
+              Object.entries({
+                Free: c.free,
+                "Open source": c.openSource,
+                API: c.api,
+                Local: c.local,
+              })
+                .filter(([, v]) => v)
+                .map(([k]) => (
+                  <span key={k} className="text-foreground">
+                    {k}
+                  </span>
+                ))}
+            {c && !Object.values(c).some(Boolean) ? (
+              <span className="text-muted-foreground">none detected</span>
+            ) : null}
           </div>
 
           {(answer || waitingAi || clarificationNeeded) && (
@@ -655,7 +670,7 @@ function Discover() {
             </motion.div>
           )}
         </section>
-      )}
+      ) : null}
 
       {!q && !isLoading && !isError ? (
         <HomeCategorySections categories={categories} solutions={solutions} reduce={reduce} />

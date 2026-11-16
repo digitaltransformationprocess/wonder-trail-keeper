@@ -40,19 +40,26 @@ export const Route = createFileRoute("/explore")({
       context.queryClient.ensureQueryData(solutionTypesQuery),
     ]);
   },
-  head: () =>
-    mergeHead(
+  head: ({ match }) => {
+    const s = match.search;
+    const filtered = Boolean(
+      s.q || s.cat || s.type || s.price || s.api || s.oss || s.local || s.sort,
+    );
+    return mergeHead(
       {
         meta: [
           { title: "Explore — AI solution catalog | AI Discovery" },
           {
             name: "description",
-            content: "Browse AI tools, models, APIs, and agents by category, pricing, and platform.",
+            content:
+              "Browse AI tools, models, APIs, and agents by category, pricing, and platform.",
           },
         ],
       },
-      pageSeo({ path: "/explore" }),
-    ),
+      // Filtered explore URLs canonicalize to /explore; noindex avoids alternate-page noise.
+      pageSeo({ path: "/explore", noindex: filtered }),
+    );
+  },
   component: ExplorePage,
 });
 

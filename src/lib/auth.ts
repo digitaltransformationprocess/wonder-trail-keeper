@@ -34,6 +34,21 @@ export async function getProfile(userId: string): Promise<Profile | null> {
   return data as Profile | null;
 }
 
+/** Where auth emails (confirm / recovery) should send the user after the link. */
+export function authEmailRedirectTo(path = "/library"): string {
+  const fromEnv =
+    typeof import.meta.env.VITE_SITE_URL === "string"
+      ? import.meta.env.VITE_SITE_URL.replace(/\/$/, "")
+      : "";
+  // Prefer the page the user is on (prod → aidiscov.com, local → localhost).
+  const base =
+    typeof window !== "undefined" && window.location?.origin
+      ? window.location.origin
+      : fromEnv || "https://aidiscov.com";
+  const normalized = path.startsWith("/") ? path : `/${path}`;
+  return `${base}${normalized}`;
+}
+
 export async function signIn(email: string, password: string) {
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) throw error;
@@ -41,7 +56,17 @@ export async function signIn(email: string, password: string) {
 }
 
 export async function signUp(email: string, password: string) {
-  const { data, error } = await supabase.auth.signUp({ email, password });
+  const path =
+    typeof window !== "undefined" && window.location.pathname
+      ? window.location.pathname
+      : "/library";
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      emailRedirectTo: authEmailRedirectTo(path),
+    },
+  });
   if (error) throw error;
   return data;
 }

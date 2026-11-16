@@ -29,6 +29,13 @@
       ]
     }
   ],
+  "redirects": [
+    {
+      "source": "/:path+/",
+      "destination": "/:path+",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     {
       "source": "/((?!api/|sitemap\\.xml|robots\\.txt|llms\\.txt|_vercel/).*)",
