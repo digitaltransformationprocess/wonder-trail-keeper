@@ -44,6 +44,7 @@ export function SiteShell({
     { to: "/explore", label: "Explore", exact: false },
     { to: "/latest", label: "Latest", exact: false },
     { to: "/news", label: "News", exact: false },
+    { to: "/deals", label: "Deals", exact: false },
     {
       to: "/compare",
       label: list.length ? `Compare (${list.length})` : "Compare",

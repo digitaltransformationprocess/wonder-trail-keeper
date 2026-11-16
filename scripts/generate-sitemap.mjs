@@ -135,7 +135,7 @@ async function main() {
   ]);
 
   // /library is personal → noindex, keep out of sitemap
-  const staticPaths = ["/", "/explore", "/latest", "/news", "/compare", ...LEGAL_PATHS];
+  const staticPaths = ["/", "/explore", "/latest", "/news", "/deals", "/compare", ...LEGAL_PATHS];
   const paths = [
     ...staticPaths,
     ...slugs.map((slug) => `/tools/${slug}`),

@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteRouteImport } from './routes/admin/route'
 import { Route as CompareRouteImport } from './routes/compare'
+import { Route as DealsRouteImport } from './routes/deals'
 import { Route as ExploreRouteImport } from './routes/explore'
 import { Route as LatestRouteImport } from './routes/latest'
 import { Route as LegalRouteImport } from './routes/legal'
@@ -49,6 +50,11 @@ const AdminRouteRoute = AdminRouteRouteImport.update({
 const CompareRoute = CompareRouteImport.update({
   id: '/compare',
   path: '/compare',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DealsRoute = DealsRouteImport.update({
+  id: '/deals',
+  path: '/deals',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ExploreRoute = ExploreRouteImport.update({
@@ -171,6 +177,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteRouteWithChildren
   '/compare': typeof CompareRoute
+  '/deals': typeof DealsRoute
   '/explore': typeof ExploreRoute
   '/latest': typeof LatestRouteWithChildren
   '/legal': typeof LegalRouteWithChildren
@@ -198,6 +205,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/compare': typeof CompareRoute
+  '/deals': typeof DealsRoute
   '/explore': typeof ExploreRoute
   '/latest': typeof LatestRouteWithChildren
   '/library': typeof LibraryRoute
@@ -226,6 +234,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteRouteWithChildren
   '/compare': typeof CompareRoute
+  '/deals': typeof DealsRoute
   '/explore': typeof ExploreRoute
   '/latest': typeof LatestRouteWithChildren
   '/legal': typeof LegalRouteWithChildren
@@ -256,6 +265,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/compare'
+    | '/deals'
     | '/explore'
     | '/latest'
     | '/legal'
@@ -283,6 +293,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/compare'
+    | '/deals'
     | '/explore'
     | '/latest'
     | '/library'
@@ -310,6 +321,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/compare'
+    | '/deals'
     | '/explore'
     | '/latest'
     | '/legal'
@@ -339,6 +351,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRouteRoute: typeof AdminRouteRouteWithChildren
   CompareRoute: typeof CompareRoute
+  DealsRoute: typeof DealsRoute
   ExploreRoute: typeof ExploreRoute
   LatestRoute: typeof LatestRouteWithChildren
   LegalRoute: typeof LegalRouteWithChildren
@@ -369,6 +382,13 @@ declare module '@tanstack/react-router' {
       path: '/compare'
       fullPath: '/compare'
       preLoaderRoute: typeof CompareRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/deals': {
+      id: '/deals'
+      path: '/deals'
+      fullPath: '/deals'
+      preLoaderRoute: typeof DealsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/explore': {
@@ -598,6 +618,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRouteRoute: AdminRouteRouteWithChildren,
   CompareRoute: CompareRoute,
+  DealsRoute: DealsRoute,
   ExploreRoute: ExploreRoute,
   LatestRoute: LatestRouteWithChildren,
   LegalRoute: LegalRouteWithChildren,
