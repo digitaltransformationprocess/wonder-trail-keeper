@@ -3,7 +3,14 @@ import { useQuery } from "@tanstack/react-query";
 import { motion, useReducedMotion } from "motion/react";
 import { z } from "zod";
 import { SiteShell } from "@/components/SiteShell";
-import { newsQuery, type NewsFilters, type NewsRow } from "@/lib/news";
+import {
+  latestAdvancesQuery,
+  LATEST_ADVANCE_KINDS,
+  LATEST_KIND_LABELS,
+  type LatestAdvance,
+  type LatestFilters,
+  type LatestAdvanceKind,
+} from "@/lib/latest";
 import { fadeUp, staggerChildren } from "@/lib/motion";
 import { mergeHead, pageSeo } from "@/lib/seo";
 
@@ -21,20 +28,20 @@ export const Route = createFileRoute("/latest")({
     if (location.pathname !== "/latest" && location.pathname.startsWith("/latest/")) {
       return;
     }
-    const filters: NewsFilters = {};
+    const filters: LatestFilters = {};
     if (deps.kind) filters.kind = deps.kind;
     if (deps.since) filters.since = deps.since;
-    await context.queryClient.ensureQueryData(newsQuery(filters));
+    await context.queryClient.ensureQueryData(latestAdvancesQuery(filters));
   },
   head: () =>
     mergeHead(
       {
         meta: [
-          { title: "Latest — New AI tools, releases & versions | AI Discov" },
+          { title: "Latest — AI tool advances, releases & versions | AI Discov" },
           {
             name: "description",
             content:
-              "Updates on new AI tools, model releases, version upgrades, pricing, and product launches.",
+              "Product advances only: new AI tools, releases, versions, features, pricing and access changes. Industry news lives on News.",
           },
         ],
       },
@@ -51,25 +58,19 @@ function LatestLayout() {
   return <Latest />;
 }
 
-const KINDS = [
-  { value: "", label: "All" },
-  { value: "release", label: "Releases" },
-  { value: "version", label: "Versions" },
-  { value: "new_tool", label: "New tools" },
-  { value: "pricing", label: "Pricing" },
-  { value: "business", label: "Business" },
-] as const;
+const KINDS: { value: "" | LatestAdvanceKind; label: string }[] = [
+  { value: "", label: "All advances" },
+  ...LATEST_ADVANCE_KINDS.map((value) => ({
+    value,
+    label: LATEST_KIND_LABELS[value],
+  })),
+];
 
 function kindLabel(kind: string) {
-  const map: Record<string, string> = {
-    release: "Release",
-    version: "Version",
-    new_tool: "New tool",
-    pricing: "Pricing",
-    business: "Business",
-    news: "News",
-  };
-  return map[kind] ?? kind;
+  if (kind in LATEST_KIND_LABELS) {
+    return LATEST_KIND_LABELS[kind as LatestAdvanceKind];
+  }
+  return kind;
 }
 
 function toolLabel(slug: string) {
@@ -80,8 +81,8 @@ function toolLabel(slug: string) {
     .join(" ");
 }
 
-function groupByDate(items: NewsRow[]) {
-  const groups = new Map<string, NewsRow[]>();
+function groupByDate(items: LatestAdvance[]) {
+  const groups = new Map<string, LatestAdvance[]>();
   for (const item of items) {
     const key = item.published_at || "Undated";
     const list = groups.get(key) ?? [];
@@ -94,13 +95,19 @@ function groupByDate(items: NewsRow[]) {
 function Latest() {
   const search = Route.useSearch();
   const navigate = useNavigate({ from: "/latest" });
-  const filters: NewsFilters = {};
+  const filters: LatestFilters = {};
   if (search.kind) filters.kind = search.kind;
   if (search.since) filters.since = search.since;
 
-  const { data: news = [], isLoading, isError, error, refetch } = useQuery(newsQuery(filters));
+  const {
+    data: advances = [],
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery(latestAdvancesQuery(filters));
   const reduce = useReducedMotion();
-  const grouped = groupByDate(news);
+  const grouped = groupByDate(advances);
 
   return (
     <SiteShell>
@@ -108,7 +115,6 @@ function Latest() {
         initial={reduce ? false : "hidden"}
         animate="show"
         variants={staggerChildren}
-        // Faster entrance: Latest is a frequent nav target; long stagger feels laggy.
         transition={{ staggerChildren: 0.03, delayChildren: 0 }}
       >
         <motion.p
@@ -124,8 +130,12 @@ function Latest() {
           Latest
         </motion.h1>
         <motion.p variants={fadeUp} className="mt-4 max-w-2xl text-[1.05rem] leading-8 text-muted-foreground">
-          New AI tools, model versions, pricing changes, and product milestones — clear posts you
-          can skim in a minute.
+          Product advances only — new tools in the catalog, releases, versions, features, pricing
+          and access changes. For industry headlines, see{" "}
+          <Link to="/news" className="font-medium text-primary hover:opacity-80">
+            News
+          </Link>
+          .
         </motion.p>
 
         <motion.div variants={fadeUp} className="mt-8 flex flex-wrap gap-2">
@@ -163,7 +173,7 @@ function Latest() {
         ) : isError ? (
           <motion.div variants={fadeUp} className="glass mt-12 rounded-3xl px-6 py-12 text-center">
             <p className="text-muted-foreground">
-              Couldn’t load updates{error instanceof Error ? `: ${error.message}` : "."}
+              Couldn’t load advances{error instanceof Error ? `: ${error.message}` : "."}
             </p>
             <button
               type="button"
@@ -173,12 +183,12 @@ function Latest() {
               Retry
             </button>
           </motion.div>
-        ) : news.length === 0 ? (
+        ) : advances.length === 0 ? (
           <motion.p
             variants={fadeUp}
             className="glass mt-12 rounded-3xl px-6 py-12 text-center text-muted-foreground"
           >
-            No published updates{search.kind ? " in this category" : ""} yet.
+            No product advances{search.kind ? " in this category" : ""} yet.
           </motion.p>
         ) : (
           <motion.div variants={staggerChildren} className="mt-12 space-y-12">
@@ -201,6 +211,16 @@ function Latest() {
                           <span className="rounded-full bg-fill px-2.5 py-0.5 text-[0.7rem] font-medium uppercase tracking-[0.06em] text-muted-foreground">
                             {kindLabel(n.kind)}
                           </span>
+                          {n.origin === "catalog" ? (
+                            <span className="rounded-full bg-fill px-2.5 py-0.5 text-[0.7rem] font-medium text-muted-foreground">
+                              Catalog
+                            </span>
+                          ) : null}
+                          {n.origin === "change" ? (
+                            <span className="rounded-full bg-fill px-2.5 py-0.5 text-[0.7rem] font-medium text-muted-foreground">
+                              Verified change
+                            </span>
+                          ) : null}
                           {n.solution_slug ? (
                             <Link
                               to="/tools/$slug"
@@ -214,6 +234,19 @@ function Latest() {
                         </div>
                         {n.slug ? (
                           <Link to="/latest/$slug" params={{ slug: n.slug }} className="group block">
+                            <h3 className="type-title mt-2 text-[1.25rem] tracking-[-0.02em] transition-apple group-hover:text-primary md:text-[1.45rem]">
+                              {n.title}
+                            </h3>
+                            <p className="mt-2 line-clamp-2 text-[0.9375rem] leading-7 text-muted-foreground">
+                              {n.summary}
+                            </p>
+                          </Link>
+                        ) : n.solution_slug ? (
+                          <Link
+                            to="/tools/$slug"
+                            params={{ slug: n.solution_slug }}
+                            className="group block"
+                          >
                             <h3 className="type-title mt-2 text-[1.25rem] tracking-[-0.02em] transition-apple group-hover:text-primary md:text-[1.45rem]">
                               {n.title}
                             </h3>
@@ -247,7 +280,7 @@ function Latest() {
                               params={{ slug: n.slug }}
                               className="text-muted-foreground transition-apple hover:text-foreground"
                             >
-                              Read article
+                              Read update
                             </Link>
                           ) : null}
                         </div>

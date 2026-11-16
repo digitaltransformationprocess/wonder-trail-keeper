@@ -55,7 +55,7 @@ const NEWS_JSON_SCHEMA = {
     },
     event_kind: {
       type: "string",
-      enum: ["release", "pricing", "business", "research", "news"],
+      enum: ["new_tool", "release", "version", "feature", "pricing", "access", "news"],
     },
   },
   required: ["title", "summary", "is_article"],

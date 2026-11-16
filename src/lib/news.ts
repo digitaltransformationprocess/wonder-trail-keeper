@@ -1,5 +1,6 @@
 import { queryOptions } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { isLatestAdvanceKind, LATEST_ADVANCE_KINDS } from "@/lib/latest";
 
 export interface NewsRow {
   id: string;
@@ -19,19 +20,21 @@ export interface NewsFilters {
 }
 
 export async function listNews(filters: NewsFilters = {}): Promise<NewsRow[]> {
-  // List view does not need full article bodies — keeps the /latest loader light.
+  // Product advances only — industry news belongs on /news (Truncated).
   let query = supabase
     .from("news_items")
     .select(
       "id, slug, published_at, kind, title, summary, solution_slug, source_url",
     )
     .eq("status", "published")
+    .in("kind", [...LATEST_ADVANCE_KINDS])
     .order("published_at", { ascending: false })
     .order("created_at", { ascending: false })
     .limit(50);
 
   const kind = filters.kind?.trim();
   if (kind) {
+    if (!isLatestAdvanceKind(kind)) return [];
     query = query.eq("kind", kind);
   }
 
@@ -65,6 +68,9 @@ export async function getPublishedNewsBySlug(slug: string): Promise<NewsRow | nu
   if (error) {
     throw new Error(`News unavailable: ${error.message}`);
   }
+
+  // Detail pages under /latest only serve product advances.
+  if (!data || !isLatestAdvanceKind(data.kind)) return null;
 
   return data;
 }

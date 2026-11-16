@@ -1,8 +1,10 @@
 import { useMemo, useState } from "react";
 import type { AdminNewsInput, NewsStatus } from "@/lib/admin/news";
 import { slugify } from "@/lib/admin/catalog";
+import { LATEST_ADVANCE_KINDS, LATEST_KIND_LABELS } from "@/lib/latest";
 
 const STATUSES: NewsStatus[] = ["draft", "published", "archived"];
+const ADVANCE_KINDS = LATEST_ADVANCE_KINDS;
 
 const field =
   "w-full rounded-xl glass px-3.5 py-2.5 text-[0.875rem] outline-none transition-apple focus:ring-1 focus:ring-signal/40";
@@ -104,14 +106,22 @@ export function NewsForm({
           />
         </div>
         <div>
-          <label className={label}>Kind</label>
-          <input
+          <label className={label}>Kind (product advance)</label>
+          <select
             className={field}
-            value={kind}
+            value={ADVANCE_KINDS.includes(kind as (typeof ADVANCE_KINDS)[number]) ? kind : "release"}
             onChange={(e) => setKind(e.target.value)}
-            placeholder="release, pricing, launch…"
             required
-          />
+          >
+            {ADVANCE_KINDS.map((k) => (
+              <option key={k} value={k}>
+                {LATEST_KIND_LABELS[k]}
+              </option>
+            ))}
+          </select>
+          <p className="mt-1.5 text-[0.75rem] text-muted-foreground">
+            Latest shows product advances only. Industry headlines belong on News.
+          </p>
         </div>
         <div>
           <label className={label}>Event type (optional)</label>

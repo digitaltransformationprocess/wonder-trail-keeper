@@ -93,39 +93,69 @@ function looksLikeListing(url: string): boolean {
   }
 }
 
+/** Product advances for /latest — never industry/business news. */
+const PRODUCT_ADVANCE_KINDS = new Set([
+  "new_tool",
+  "release",
+  "version",
+  "feature",
+  "pricing",
+  "access",
+]);
+
 function inferKind(title: string, description: string, eventKind?: string): string {
   const t = `${title} ${description}`.toLowerCase();
-  if (/pric|plan|billing|free tier|subscription/.test(t)) return "pricing";
-  if (/v\d|version|update|upgrade|changelog|\d+\.\d+/.test(t)) return "version";
-  if (/new tool|launches? a|introduces?|debut|arrives|added to/.test(t)) return "new_tool";
-  if (/launch|releas|announce|introduc|unveil|generally available|ga\b/.test(t)) return "release";
-  if (/acquisit|fund|rais|ipo|merger/.test(t)) return "business";
-  if (eventKind && ["pricing", "release", "business", "news", "research"].includes(eventKind)) {
-    return eventKind === "research" ? "news" : eventKind;
+  if (/pric|plan|billing|free tier|subscription|credits?/.test(t)) return "pricing";
+  if (/api access|generally available|ga\b|waitlist|region|availability|open.?source/.test(t)) {
+    return "access";
   }
+  if (/feature|capability|adds? support|now supports|shipped|changelog/.test(t)) return "feature";
+  if (/v\d|version|upgrade|\d+\.\d+|model update|gpt-\d|claude\s?\d|gemini\s?\d/.test(t)) {
+    return "version";
+  }
+  if (/new tool|launches? a|introduces?|debut|arrives|added to|new product/.test(t)) {
+    return "new_tool";
+  }
+  if (/launch|releas|announce|introduc|unveil|generally available/.test(t)) return "release";
+  if (/acquisit|fund|rais|ipo|merger|lawsuit|regulat|politic|migrant|vulnerabilit/.test(t)) {
+    return "news";
+  }
+  if (eventKind && PRODUCT_ADVANCE_KINDS.has(eventKind)) return eventKind;
+  if (eventKind === "pricing" || eventKind === "release") return eventKind;
   return "news";
 }
 
+function isProductAdvance(kind: string, title: string, summary: string, hasTool: boolean): boolean {
+  if (!PRODUCT_ADVANCE_KINDS.has(kind)) return false;
+  const t = `${title} ${summary}`.toLowerCase();
+  // Reject obvious non-product headlines that slipped past kind inference.
+  if (/migrant|vulnerabilit|lawsuit|election|war |killed|dj\b|groove/.test(t)) return false;
+  // Prefer items linked to a catalog tool; otherwise require a strong product signal.
+  if (hasTool) return true;
+  return /launch|releas|version|pricing|feature|model|api|ga\b|tool|platform/.test(t);
+}
+
 function buildQueries(today: string): string[] {
-  const sites = [
-    "site:techcrunch.com",
-    "site:theverge.com",
-    "site:reuters.com",
-    "site:bloomberg.com",
-    "site:wired.com",
-    "site:arstechnica.com",
-    "site:venturebeat.com",
+  const productSites = [
     "site:openai.com",
     "site:anthropic.com",
     "site:blog.google",
     "site:huggingface.co/blog",
     "site:nvidia.com",
+    "site:github.blog",
+    "site:microsoft.com",
+    "site:aws.amazon.com",
+  ];
+  const launchPress = [
+    "site:techcrunch.com",
+    "site:theverge.com",
+    "site:venturebeat.com",
+    "site:arstechnica.com",
   ];
   return [
-    `(${sites.slice(0, 6).join(" OR ")}) AI (launch OR release OR announce OR model OR GPT OR Claude) after:${today}`,
-    `(${sites.slice(6).join(" OR ")}) AI (launch OR release OR announce OR update) after:${today}`,
-    `AI tool OR model launch announcement ${today}`,
-    `"AI" (released OR launches OR unveils OR announces) ${today}`,
+    `(${productSites.join(" OR ")}) (launch OR release OR version OR pricing OR feature OR API) after:${today}`,
+    `(${launchPress.join(" OR ")}) AI (tool OR model) (launch OR release OR pricing OR version) after:${today}`,
+    `AI model OR tool (launches OR released OR unveils) version OR pricing ${today}`,
   ];
 }
 
@@ -407,6 +437,17 @@ Deno.serve(async (req) => {
           `${title} ${summary}`,
         );
 
+        const kind = inferKind(title, summary, scraped.event_kind);
+        if (!isProductAdvance(kind, title, summary, Boolean(solutionSlug))) {
+          skipped += 1;
+          results.push({
+            url: hit.url,
+            status: "skipped_non_product",
+            error: `kind=${kind}`,
+          });
+          continue;
+        }
+
         const publishedAt = articleDate || today;
         const { data: row, error } = await supabase
           .from("news_items")
@@ -415,11 +456,12 @@ Deno.serve(async (req) => {
             slug: slug || null,
             summary,
             body: articleBody,
-            kind: inferKind(title, summary, scraped.event_kind),
+            kind,
             event_type: rewritten ? "discovered_reformulated" : "discovered",
             published_at: publishedAt,
             source_url: hit.url,
             solution_slug: solutionSlug,
+            // Product advances still start as draft unless explicitly published.
             status: publish ? "published" : "draft",
           })
           .select("id")

@@ -457,6 +457,16 @@ export async function getLinkedNewsForTool(toolId: string): Promise<LinkedNewsIt
         status: string;
       } | null;
       if (!n || n.status !== "published" || !n.slug) return null;
+      // Tool pages only surface product advances (not industry news kinds).
+      const advanceKinds = new Set([
+        "new_tool",
+        "release",
+        "version",
+        "feature",
+        "pricing",
+        "access",
+      ]);
+      if (!advanceKinds.has(n.kind)) return null;
       return {
         slug: n.slug,
         title: n.title,

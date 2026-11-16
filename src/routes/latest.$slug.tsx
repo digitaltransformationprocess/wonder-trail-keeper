@@ -4,6 +4,7 @@ import { motion, useReducedMotion } from "motion/react";
 import { Suspense } from "react";
 import { BlogContent } from "@/components/BlogContent";
 import { SiteShell } from "@/components/SiteShell";
+import { LATEST_KIND_LABELS, type LatestAdvanceKind } from "@/lib/latest";
 import { newsBySlugQuery } from "@/lib/news";
 import { fadeUp, staggerChildren } from "@/lib/motion";
 import { mergeHead, pageSeo } from "@/lib/seo";
@@ -22,7 +23,10 @@ export const Route = createFileRoute("/latest/$slug")({
       {
         meta: [
           { title: `${params.slug} — Latest | AI Discov` },
-          { name: "description", content: "AI product update, release, or version deep-dive." },
+          {
+            name: "description",
+            content: "AI product advance — new tool, release, version, feature, or pricing update.",
+          },
         ],
       },
       pageSeo({ path: `/latest/${params.slug}`, ogType: "article" }),
@@ -41,15 +45,10 @@ export const Route = createFileRoute("/latest/$slug")({
 });
 
 function kindLabel(kind: string) {
-  const map: Record<string, string> = {
-    release: "Release",
-    version: "Version",
-    new_tool: "New tool",
-    pricing: "Pricing",
-    business: "Business",
-    news: "News",
-  };
-  return map[kind] ?? kind;
+  if (kind in LATEST_KIND_LABELS) {
+    return LATEST_KIND_LABELS[kind as LatestAdvanceKind];
+  }
+  return kind;
 }
 
 function NewsDetailPage() {

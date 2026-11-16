@@ -396,7 +396,7 @@ function Detail() {
       {linkedNews.length > 0 ? (
         <>
           <motion.h2 variants={fadeUp} className="type-title mt-16 text-[1.75rem]">
-            Related news
+            Related updates
           </motion.h2>
           <motion.ul variants={staggerChildren} className="mt-5 space-y-3">
             {linkedNews.map((n) => (
