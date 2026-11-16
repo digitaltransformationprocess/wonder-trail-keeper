@@ -11,6 +11,7 @@ import {
   GraduationCap,
   HeartPulse,
   ImageIcon,
+  Landmark,
   LayoutGrid,
   Music2,
   Palette,
@@ -61,7 +62,8 @@ const HOME_TOP_CATEGORY_SLUGS = [
   "business-marketing",
   "design-creativity",
   "data-analytics",
-  "finance-legal",
+  "finance",
+  "legal",
   "healthcare",
 ] as const;
 
@@ -110,7 +112,8 @@ const CATEGORY_ICONS: Record<string, LucideIcon> = {
   "business-marketing": Briefcase,
   "design-creativity": Palette,
   "data-analytics": BarChart3,
-  "finance-legal": Scale,
+  finance: Landmark,
+  legal: Scale,
   healthcare: HeartPulse,
 };
 
