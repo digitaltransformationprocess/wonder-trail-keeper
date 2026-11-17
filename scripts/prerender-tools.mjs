@@ -425,7 +425,7 @@ async function main() {
     ...process.env,
   };
   const base = siteBase(env);
-  const image = `${base}/brand/aidiscov-mark-dark.png`;
+  const image = `${base}/brand/aidiscov-og-home.jpg`;
   const template = readFileSync(distIndex, "utf8");
   const paths = pathsFromSitemap(readFileSync(sitemapPath, "utf8"));
   if (!paths.includes("/")) paths.unshift("/");
