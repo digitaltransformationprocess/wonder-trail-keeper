@@ -75,7 +75,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     return {
       meta: [
         { title: "AI Discov" },
-        { name: "description", content: "Find the right AI solution for your needs." },
+        { name: "description", content: "Find the right AI solution for your use case." },
         ...seo.meta,
       ],
       links: seo.links,

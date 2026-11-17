@@ -71,7 +71,7 @@ function defaultMeta(path, base) {
   const url = path === "/" ? `${base}/` : `${base}${path}`;
   const map = {
     "/": {
-      title: "AI Discov — Find the right AI solution for your needs",
+      title: "AI Discov — Find the right AI solution for your use case",
       description:
         "Describe what you want to accomplish and find verified AI solutions with clear explanations and comparisons.",
     },
@@ -166,7 +166,7 @@ function defaultMeta(path, base) {
 
   return {
     title: "AI Discov",
-    description: "Find the right AI solution for your needs.",
+    description: "Find the right AI solution for your use case.",
     url,
     ogType: "website",
   };

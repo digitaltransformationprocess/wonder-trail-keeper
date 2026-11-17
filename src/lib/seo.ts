@@ -6,7 +6,7 @@ export const SITE_LOCALE = "en_US";
 export const DEFAULT_OG_IMAGE_PATH = "/brand/aidiscov-og-home.jpg";
 export const DEFAULT_OG_IMAGE_WIDTH = "1200";
 export const DEFAULT_OG_IMAGE_HEIGHT = "630";
-export const SITE_TAGLINE = "Discover the right AI solution for your use case.";
+export const SITE_TAGLINE = "Find the right AI solution for your use case.";
 export const SITE_DESCRIPTION =
   "Describe a job, get matched tools with reasons — or jump straight to a Top 10 list. Verified AI solutions with clear pricing and comparisons.";
 
