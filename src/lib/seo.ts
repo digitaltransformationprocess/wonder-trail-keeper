@@ -2,7 +2,13 @@ import type { Solution } from "@/lib/solutions";
 
 export const SITE_NAME = "AI Discov";
 export const SITE_LOCALE = "en_US";
-export const DEFAULT_OG_IMAGE_PATH = "/brand/aidiscov-mark-dark.png";
+/** Social preview (1200×630) — landing hero with search, not the bare mark. */
+export const DEFAULT_OG_IMAGE_PATH = "/brand/aidiscov-og-home.jpg";
+export const DEFAULT_OG_IMAGE_WIDTH = "1200";
+export const DEFAULT_OG_IMAGE_HEIGHT = "630";
+export const SITE_TAGLINE = "Discover the right AI solution for your use case.";
+export const SITE_DESCRIPTION =
+  "Describe a job, get matched tools with reasons — or jump straight to a Top 10 list. Verified AI solutions with clear pricing and comparisons.";
 
 export function siteUrl(): string {
   const raw = import.meta.env.VITE_SITE_URL;
@@ -51,9 +57,17 @@ export function sitewideHead(): SeoHeadParts {
     { property: "og:site_name", content: SITE_NAME },
     { property: "og:locale", content: SITE_LOCALE },
     { property: "og:type", content: "website" },
+    { property: "og:title", content: `${SITE_NAME} — ${SITE_TAGLINE}` },
+    { property: "og:description", content: SITE_DESCRIPTION },
     { property: "og:image", content: image },
+    { property: "og:image:width", content: DEFAULT_OG_IMAGE_WIDTH },
+    { property: "og:image:height", content: DEFAULT_OG_IMAGE_HEIGHT },
+    { property: "og:image:alt", content: `${SITE_NAME} — ${SITE_TAGLINE}` },
     { name: "twitter:card", content: "summary_large_image" },
+    { name: "twitter:title", content: `${SITE_NAME} — ${SITE_TAGLINE}` },
+    { name: "twitter:description", content: SITE_DESCRIPTION },
     { name: "twitter:image", content: image },
+    { name: "twitter:image:alt", content: `${SITE_NAME} — ${SITE_TAGLINE}` },
     { name: "theme-color", content: "#0a0a0a" },
     { name: "format-detection", content: "telephone=no" },
   ];

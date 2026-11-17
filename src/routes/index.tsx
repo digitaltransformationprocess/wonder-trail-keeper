@@ -86,11 +86,11 @@ export const Route = createFileRoute("/")({
     mergeHead(
       {
         meta: [
-          { title: "AI Discov — Find the right AI solution for your needs" },
+          { title: "AI Discov — Discover the right AI solution for your use case." },
           {
             name: "description",
             content:
-              "Describe what you want to accomplish and find verified AI solutions with clear explanations and comparisons.",
+              "Describe a job, get matched tools with reasons — or jump straight to a Top 10 list. Verified AI solutions with clear pricing and comparisons.",
           },
         ],
       },
