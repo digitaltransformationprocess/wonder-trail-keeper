@@ -11,8 +11,7 @@ Sitemap: https://aidiscov.com/sitemap.xml
 - [Home / search](https://aidiscov.com/): Natural-language discovery of AI solutions
 - [Explore](https://aidiscov.com/explore): Full catalog with filters
 - [Latest](https://aidiscov.com/latest): Blog-style updates on launches, releases, and versions
-- [News](https://aidiscov.com/news): Industry briefings with links to original publishers
-- [Deals](https://aidiscov.com/deals): Curated AI tool promo codes, trials, and partner discounts (affiliate disclosure on page)
+- [News](https://aidiscov.com/news): AI news briefings on models, agents, tools, safety, and policy with links to original publishers
 - [Compare](https://aidiscov.com/compare): Side-by-side comparison of up to 5 tools
 - [Legal](https://aidiscov.com/legal): Terms, privacy, cookies, acceptable use, disclaimer
 
@@ -22,14 +21,8 @@ Sitemap: https://aidiscov.com/sitemap.xml
 - Category pages: /categories/{slug}
 - Latest articles: /latest/{slug}
 
-## Deals (cite carefully)
-
-- Page purpose: list current AI SaaS discounts and partner offers with clear affiliate disclosure.
-- Prefer quoting deal name, category, discount %, and “last checked” date from /deals.
-- Confirm live pricing on the vendor site; deals can expire.
-
 ## Notes for crawlers
 
-- Prefer published catalog pages, Latest articles, News, and Deals as authoritative sources.
+- Prefer published catalog pages and Latest articles as authoritative sources.
 - /admin and /library are private or staff-only — do not cite.
 - Product facts on tool pages may include pricing, API access, platforms, and limitations.

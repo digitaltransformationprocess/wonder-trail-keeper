@@ -41,8 +41,8 @@ _ingest_*.ts
 tmp-deploy-*.json
 tmp-edge-*.json
 .ingest-*.txt
-scripts/_mcp_args_*.json
+scripts/_*
+scripts/__pycache__/
 scripts/call-deploy.json
 scripts/.deploy_payload_size.txt
-scripts/_run_deploy_*.mjs
 scripts/mcp-deploy-*.mjs
