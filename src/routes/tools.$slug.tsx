@@ -215,12 +215,18 @@ function Detail() {
       <motion.p variants={fadeUp} className="mt-2 text-[1rem] text-muted-foreground">
         by {s.publisher}
       </motion.p>
-      <motion.p
+      <motion.div
         variants={fadeUp}
-        className="type-body mt-6 max-w-2xl text-[1.125rem] text-foreground/90"
+        className="type-body mt-6 max-w-2xl space-y-4 text-[1.125rem] text-foreground/90"
       >
-        {s.description}
-      </motion.p>
+        {s.description
+          .split(/\n\s*\n/)
+          .map((p) => p.trim())
+          .filter(Boolean)
+          .map((p) => (
+            <p key={p.slice(0, 48)}>{p}</p>
+          ))}
+      </motion.div>
 
       <motion.div variants={fadeUp} className="mt-8 flex flex-wrap gap-3">
         {deal ? (
@@ -245,9 +251,9 @@ function Detail() {
               : "bg-primary text-primary-foreground"
           }`}
         >
-          {/skills\.sh/i.test(s.url) || s.categorySlugs.includes("skills")
+          {/skills\.sh/i.test(s.url) || s.categorySlugs[0] === "skills"
             ? "View skill"
-            : s.categorySlugs.includes("mcp") || s.type === "MCP"
+            : s.categorySlugs[0] === "mcp"
               ? "View MCP"
               : "Official website"}
         </a>

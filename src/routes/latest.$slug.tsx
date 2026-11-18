@@ -14,25 +14,51 @@ import { mergeHead, pageSeo } from "@/lib/seo";
 export const Route = createFileRoute("/latest/$slug")({
   loader: async ({ context, params }) => {
     try {
-      await context.queryClient.ensureQueryData(newsBySlugQuery(params.slug));
+      const item = await context.queryClient.ensureQueryData(newsBySlugQuery(params.slug));
+      return { item };
     } catch (error) {
       if (error instanceof Error && error.message === "NOT_FOUND") throw notFound();
       throw error;
     }
   },
-  head: ({ loaderData: _ld, params }) =>
-    mergeHead(
+  head: ({ loaderData, params }) => {
+    const item = loaderData?.item;
+    if (!item) return {};
+    const title = `${item.title} | AI Discov Latest`;
+    const description = item.summary;
+
+    return mergeHead(
       {
         meta: [
-          { title: `${params.slug} — Latest | AI Discov` },
-          {
-            name: "description",
-            content: "AI product advance — new tool, release, version, feature, or pricing update.",
-          },
+          { title },
+          { name: "description", content: description },
+          { property: "og:title", content: title },
+          { property: "og:description", content: description },
+          { name: "twitter:card", content: "summary_large_image" },
+          { name: "twitter:title", content: title },
+          { name: "twitter:description", content: description },
         ],
       },
-      pageSeo({ path: `/latest/${params.slug}`, ogType: "article" }),
-    ),
+      pageSeo({
+        path: `/latest/${params.slug}`,
+        ogType: "article",
+        jsonLd: [
+          articleJsonLd({
+            title: item.title,
+            description,
+            path: `/latest/${params.slug}`,
+            publishedAt: item.published_at,
+            sourceUrl: item.source_url,
+          }),
+          breadcrumbJsonLd([
+            { name: "Home", path: "/" },
+            { name: "Latest", path: "/latest" },
+            { name: item.title, path: `/latest/${params.slug}` },
+          ]),
+        ],
+      }),
+    );
+  },
   notFoundComponent: () => (
     <SiteShell>
       <p className="text-muted-foreground">

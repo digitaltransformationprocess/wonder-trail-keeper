@@ -186,9 +186,9 @@ function CategoryTopCard({
               target="_blank"
               rel="noopener noreferrer"
               aria-label={
-                /skills\.sh/i.test(s.url) || s.categorySlugs.includes("skills")
+                /skills\.sh/i.test(s.url) || s.categorySlugs[0] === "skills"
                   ? `Open ${s.name} skill`
-                  : s.categorySlugs.includes("mcp") || s.type === "MCP"
+                  : s.categorySlugs[0] === "mcp"
                     ? `Open ${s.name} MCP`
                     : `Open ${s.name} website`
               }

@@ -248,3 +248,38 @@ export function breadcrumbJsonLd(items: Array<{ name: string; path: string }>): 
 export function toolPageTitle(name: string): string {
   return `${name} — overview, pricing, and alternatives | AI Discovery`;
 }
+
+export function articleJsonLd(opts: {
+  title: string;
+  description: string;
+  path: string;
+  publishedAt: string;
+  modifiedAt?: string | null;
+  sourceUrl?: string | null;
+}): Record<string, unknown> {
+  const pageUrl = absoluteUrl(opts.path);
+  const payload: Record<string, unknown> = {
+    "@context": "https://schema.org",
+    "@type": "NewsArticle",
+    headline: opts.title,
+    description: opts.description,
+    datePublished: opts.publishedAt,
+    dateModified: opts.modifiedAt || opts.publishedAt,
+    mainEntityOfPage: pageUrl,
+    url: pageUrl,
+    author: { "@type": "Organization", name: SITE_NAME, url: siteUrl() || absoluteUrl("/") },
+    publisher: {
+      "@type": "Organization",
+      name: SITE_NAME,
+      logo: {
+        "@type": "ImageObject",
+        url: absoluteUrl("/brand/aidiscov-mark-dark.png"),
+      },
+    },
+    image: [defaultOgImage()],
+  };
+  if (opts.sourceUrl?.trim()) {
+    payload.isBasedOn = opts.sourceUrl.trim();
+  }
+  return payload;
+}
