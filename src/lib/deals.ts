@@ -85,6 +85,7 @@ export const DEALS: Deal[] = [
     toolSlug: "higgsfield",
     logoUrl: "https://www.google.com/s2/favicons?domain=higgsfield.ai&sz=128",
     verified: true,
+    featured: true,
     updatedAt: "2026-11-16",
     notes:
       "Black Friday promo: up to 65% off shown on Higgsfield via the partner link (confirm at checkout; offer is time-limited).",
@@ -121,7 +122,6 @@ export const DEALS: Deal[] = [
     toolSlug: "mistral-vibe",
     logoUrl: "https://www.google.com/s2/favicons?domain=mistral.ai&sz=128",
     verified: true,
-    featured: true,
     updatedAt: "2026-11-18",
     expiresAt: "2026-12-18",
     notes:
