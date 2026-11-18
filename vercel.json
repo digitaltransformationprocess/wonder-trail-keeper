@@ -38,7 +38,7 @@
   ],
   "rewrites": [
     {
-      "source": "/((?!api/|sitemap\\.xml|robots\\.txt|llms\\.txt|_vercel/).*)",
+      "source": "/((?!api/|favicon\\.ico|brand/|sitemap\\.xml|robots\\.txt|llms\\.txt|_vercel/).*)",
       "destination": "/index.html"
     }
   ]
