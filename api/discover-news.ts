@@ -58,7 +58,18 @@ const LISTING_PATH_HINTS = [
   "/technology/artificial-intelligence/?$",
 ];
 
-const FIRECRAWL_BASE = "https://api.firecrawl.dev/v2";
+/** Cloud default. Local: FIRECRAWL_API_URL=http://127.0.0.1:3002 (+ firecrawl-local serve) */
+function resolveFirecrawlBase() {
+  let raw = (process.env.FIRECRAWL_API_URL || "https://api.firecrawl.dev/v2")
+    .trim()
+    .replace(/\/$/, "");
+  if (/localhost|127\.0\.0\.1/i.test(raw) && !/\/v2$/i.test(raw)) {
+    raw = `${raw}/v2`;
+  }
+  return raw;
+}
+const FIRECRAWL_BASE = resolveFirecrawlBase();
+const FIRECRAWL_LOCAL = /localhost|127\.0\.0\.1/i.test(FIRECRAWL_BASE);
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -189,6 +200,17 @@ async function firecrawlKey(sb: SupabaseClient) {
   return runtimeSecret(sb, "FIRECRAWL_API_KEY");
 }
 
+async function firecrawlHeaders(sb: SupabaseClient): Promise<Record<string, string>> {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (FIRECRAWL_LOCAL) {
+    const token = process.env.FIRECRAWL_LOCAL_TOKEN || process.env.FIRECRAWL_API_KEY;
+    if (token) headers.Authorization = `Bearer ${token}`;
+    return headers;
+  }
+  headers.Authorization = `Bearer ${await firecrawlKey(sb)}`;
+  return headers;
+}
+
 type SearchHit = { url: string; title?: string; description?: string };
 
 async function searchNews(
@@ -196,13 +218,9 @@ async function searchNews(
   limit: number,
   sb: SupabaseClient,
 ): Promise<SearchHit[]> {
-  const key = await firecrawlKey(sb);
   const res = await fetch(`${FIRECRAWL_BASE}/search`, {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${key}`,
-      "Content-Type": "application/json",
-    },
+    headers: await firecrawlHeaders(sb),
     body: JSON.stringify({ query, limit, tbs: "qdr:d" }),
   });
   const body = await res.json();
@@ -221,38 +239,36 @@ async function searchNews(
 }
 
 async function scrapeNewsArticle(url: string, sb: SupabaseClient) {
-  const key = await firecrawlKey(sb);
-  const res = await fetch(`${FIRECRAWL_BASE}/scrape`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${key}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      url,
-      formats: [
-        "markdown",
-        {
-          type: "json",
-          prompt:
-            "Extract facts from this AI / tech news page. Only use facts on the page. published_date YYYY-MM-DD if visible. is_article=false for listings. product_names max 5. summary 1-2 sentences.",
-          schema: {
-            type: "object",
-            properties: {
-              title: { type: "string" },
-              published_date: { type: "string" },
-              summary: { type: "string" },
-              product_names: { type: "array", items: { type: "string" } },
-              is_article: { type: "boolean" },
-              event_kind: {
-                type: "string",
-                enum: ["release", "pricing", "business", "research", "news"],
-              },
-            },
-            required: ["title", "summary", "is_article"],
+  const formats: unknown[] = ["markdown"];
+  // Firecrawl Local skips json extract — cloud only.
+  if (!FIRECRAWL_LOCAL) {
+    formats.push({
+      type: "json",
+      prompt:
+        "Extract facts from this AI / tech news page. Only use facts on the page. published_date YYYY-MM-DD if visible. is_article=false for listings. product_names max 5. summary 1-2 sentences.",
+      schema: {
+        type: "object",
+        properties: {
+          title: { type: "string" },
+          published_date: { type: "string" },
+          summary: { type: "string" },
+          product_names: { type: "array", items: { type: "string" } },
+          is_article: { type: "boolean" },
+          event_kind: {
+            type: "string",
+            enum: ["release", "pricing", "business", "research", "news"],
           },
         },
-      ],
+        required: ["title", "summary", "is_article"],
+      },
+    });
+  }
+  const res = await fetch(`${FIRECRAWL_BASE}/scrape`, {
+    method: "POST",
+    headers: await firecrawlHeaders(sb),
+    body: JSON.stringify({
+      url,
+      formats,
       onlyMainContent: true,
     }),
   });
@@ -261,8 +277,21 @@ async function scrapeNewsArticle(url: string, sb: SupabaseClient) {
     throw new Error(body?.error || body?.message || `Firecrawl scrape failed (${res.status})`);
   }
   const data = body?.data ?? body;
-  const extracted = (data?.json ?? data?.extract ?? {}) as Record<string, unknown>;
   const markdown = typeof data?.markdown === "string" ? data.markdown : null;
+  let extracted = (data?.json ?? data?.extract ?? {}) as Record<string, unknown>;
+  if ((!extracted || !extracted.title) && markdown) {
+    const lines = markdown.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+    const h1 = lines.find((l) => /^#\s+/.test(l))?.replace(/^#\s+/, "") ?? "";
+    const paras = lines.filter((l) => !/^#/.test(l) && !/^[-*|]/.test(l));
+    const summary = paras.slice(0, 2).join(" ").slice(0, 400) || h1;
+    const dateHit = markdown.match(/\b(20\d{2}-\d{2}-\d{2})\b/);
+    extracted = {
+      title: h1 || summary.slice(0, 120),
+      summary,
+      is_article: true,
+      published_date: dateHit?.[1],
+    };
+  }
   return {
     title: extracted.title ? String(extracted.title) : undefined,
     published_date: extracted.published_date

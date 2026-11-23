@@ -1,7 +1,20 @@
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import type { ExtractedTool } from "./normalize.ts";
 
-const FIRECRAWL_BASE = "https://api.firecrawl.dev/v2";
+/** Cloud default. For Firecrawl Local set FIRECRAWL_API_URL=http://127.0.0.1:3002 */
+const CLOUD_BASE = "https://api.firecrawl.dev/v2";
+
+function firecrawlBase(): string {
+  let raw = (Deno.env.get("FIRECRAWL_API_URL") || CLOUD_BASE).trim().replace(/\/$/, "");
+  if (/localhost|127\.0\.0\.1/i.test(raw) && !/\/v2$/i.test(raw)) {
+    raw = `${raw}/v2`;
+  }
+  return raw;
+}
+
+function isLocalFirecrawl(base = firecrawlBase()): boolean {
+  return /localhost|127\.0\.0\.1/i.test(base);
+}
 
 const TOOL_JSON_SCHEMA = {
   type: "object",
@@ -46,10 +59,42 @@ async function firecrawlKey(supabase?: SupabaseClient) {
   const fromEnv = Deno.env.get("FIRECRAWL_API_KEY");
   if (fromEnv) return fromEnv;
   if (!supabase) throw new Error("FIRECRAWL_API_KEY secret is not set");
-  const { data, error } = await supabase.from("runtime_secrets").select("value").eq("key", "FIRECRAWL_API_KEY").maybeSingle();
+  const { data, error } = await supabase
+    .from("runtime_secrets")
+    .select("value")
+    .eq("key", "FIRECRAWL_API_KEY")
+    .maybeSingle();
   if (error) throw new Error(error.message);
   if (!data?.value) throw new Error("FIRECRAWL_API_KEY secret is not set");
   return data.value;
+}
+
+async function firecrawlHeaders(supabase?: SupabaseClient): Promise<Record<string, string>> {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  const base = firecrawlBase();
+  if (isLocalFirecrawl(base)) {
+    const token =
+      Deno.env.get("FIRECRAWL_LOCAL_TOKEN") || Deno.env.get("FIRECRAWL_API_KEY");
+    if (token) headers.Authorization = `Bearer ${token}`;
+    return headers;
+  }
+  headers.Authorization = `Bearer ${await firecrawlKey(supabase)}`;
+  return headers;
+}
+
+function extractToolFromMarkdown(markdown: string, url: string): ExtractedTool {
+  const lines = markdown.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  const h1 = lines.find((l) => /^#\s+/.test(l))?.replace(/^#\s+/, "") ?? "";
+  const paras = lines.filter((l) => !/^#/.test(l) && !/^[-*|]/.test(l));
+  const summary = (paras[0] || h1 || "To verify").slice(0, 200);
+  const description = paras.slice(0, 6).join("\n\n").slice(0, 4000) || summary;
+  return {
+    name: h1 || new URL(url).hostname.replace(/^www\./, ""),
+    summary,
+    description,
+    official_url: url,
+    source_url: url,
+  } as ExtractedTool;
 }
 
 export type ScrapeResult = {
@@ -58,23 +103,25 @@ export type ScrapeResult = {
 };
 
 export async function scrapeTool(url: string, supabase?: SupabaseClient): Promise<ScrapeResult> {
-  const key = await firecrawlKey(supabase);
-  const res = await fetch(`${FIRECRAWL_BASE}/scrape`, {
+  const base = firecrawlBase();
+  const local = isLocalFirecrawl(base);
+  const headers = await firecrawlHeaders(supabase);
+
+  const formats: unknown[] = ["markdown"];
+  if (!local) {
+    formats.push({
+      type: "json",
+      prompt: EXTRACT_PROMPT,
+      schema: TOOL_JSON_SCHEMA,
+    });
+  }
+
+  const res = await fetch(`${base}/scrape`, {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${key}`,
-      "Content-Type": "application/json",
-    },
+    headers,
     body: JSON.stringify({
       url,
-      formats: [
-        "markdown",
-        {
-          type: "json",
-          prompt: EXTRACT_PROMPT,
-          schema: TOOL_JSON_SCHEMA,
-        },
-      ],
+      formats,
       onlyMainContent: true,
     }),
   });
@@ -85,8 +132,11 @@ export async function scrapeTool(url: string, supabase?: SupabaseClient): Promis
   }
 
   const data = body?.data ?? body;
-  const extracted = (data?.json ?? data?.extract ?? {}) as ExtractedTool;
   const markdown = typeof data?.markdown === "string" ? data.markdown : null;
+  let extracted = (data?.json ?? data?.extract ?? {}) as ExtractedTool;
+  if ((!extracted || !extracted.name) && markdown) {
+    extracted = extractToolFromMarkdown(markdown, url);
+  }
   return { extracted, markdown };
 }
 
@@ -97,13 +147,11 @@ export async function searchNewTools(
   limit = 8,
   supabase?: SupabaseClient,
 ): Promise<SearchHit[]> {
-  const key = await firecrawlKey(supabase);
-  const res = await fetch(`${FIRECRAWL_BASE}/search`, {
+  const base = firecrawlBase();
+  const headers = await firecrawlHeaders(supabase);
+  const res = await fetch(`${base}/search`, {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${key}`,
-      "Content-Type": "application/json",
-    },
+    headers,
     body: JSON.stringify({
       query,
       limit,
