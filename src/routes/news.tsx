@@ -47,8 +47,7 @@ export const Route = createFileRoute("/news")({
       {
         meta: [
           {
-            title:
-              "AI News — model launches, agents, tools & industry briefings | AI Discov",
+            title: "AI News — model launches, agents & tools | AI Discov",
           },
           {
             name: "description",

@@ -87,7 +87,7 @@ function defaultMeta(path, base) {
     },
     "/news": {
       title:
-        "AI News — model launches, agents, tools & industry briefings | AI Discov",
+        "AI News — model launches, agents & tools | AI Discov",
       description:
         "AI Discov News: concise briefings on AI model releases, agents, developer tools, infrastructure, safety, and policy.",
     },
