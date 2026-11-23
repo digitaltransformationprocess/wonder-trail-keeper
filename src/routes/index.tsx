@@ -90,7 +90,7 @@ export const Route = createFileRoute("/")({
           {
             name: "description",
             content:
-              "Describe a job, get matched tools with reasons — or jump straight to a Top 10 list. Verified AI solutions with clear pricing and comparisons.",
+              "Describe a job, get matched AI tools with reasons — or open a Top 10 list. Verified pricing and comparisons.",
           },
         ],
       },

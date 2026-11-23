@@ -9,7 +9,13 @@ import { SiteShell } from "@/components/SiteShell";
 import { LATEST_KIND_LABELS, type LatestAdvanceKind } from "@/lib/latest";
 import { newsBySlugQuery } from "@/lib/news";
 import { fadeUp, staggerChildren } from "@/lib/motion";
-import { mergeHead, pageSeo } from "@/lib/seo";
+import {
+  articleJsonLd,
+  breadcrumbJsonLd,
+  clipMetaDescription,
+  mergeHead,
+  pageSeo,
+} from "@/lib/seo";
 
 export const Route = createFileRoute("/latest/$slug")({
   loader: async ({ context, params }) => {
@@ -24,8 +30,8 @@ export const Route = createFileRoute("/latest/$slug")({
   head: ({ loaderData, params }) => {
     const item = loaderData?.item;
     if (!item) return {};
-    const title = `${item.title} | AI Discov Latest`;
-    const description = item.summary;
+    const title = `${item.title} | AI Discov`;
+    const description = clipMetaDescription(item.summary || item.title, 155);
 
     return mergeHead(
       {

@@ -15,7 +15,7 @@ export const Route = createFileRoute("/admin/review")({
     await context.queryClient.ensureQueryData(pendingCandidatesQuery);
   },
   head: () => ({
-    meta: [{ title: "Review queue | AI Discovery Admin" }],
+    meta: [{ title: "Review queue | AI Discov Admin" }],
   }),
   component: AdminReview,
 });

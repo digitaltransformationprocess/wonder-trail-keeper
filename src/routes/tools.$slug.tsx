@@ -9,7 +9,9 @@ import {
   breadcrumbJsonLd,
   mergeHead,
   pageSeo,
+  toolFaqJsonLd,
   toolJsonLd,
+  toolMetaDescription,
   toolPageTitle,
 } from "@/lib/seo";
 import { displayApi, solutionQuery } from "@/lib/solutions";
@@ -36,7 +38,10 @@ export const Route = createFileRoute("/tools/$slug")({
     if (!loaderData?.solution) return {};
     const s = loaderData.solution;
     const title = toolPageTitle(s.name);
-    const description = s.summary;
+    const description = toolMetaDescription(s);
+    const primaryCat = s.categorySlugs[0]
+      ? { name: s.categories[0] ?? "Category", path: `/categories/${s.categorySlugs[0]}` }
+      : { name: "Explore", path: "/explore" };
 
     return mergeHead(
       {
@@ -52,12 +57,13 @@ export const Route = createFileRoute("/tools/$slug")({
       },
       pageSeo({
         path: `/tools/${params.slug}`,
-        image: s.logoUrl,
+        // Prefer site OG card — tool logos are often tiny favicons, poor as 1200×630 previews.
         jsonLd: [
           toolJsonLd(s, params.slug),
+          toolFaqJsonLd(s),
           breadcrumbJsonLd([
             { name: "Home", path: "/" },
-            { name: "Explore", path: "/explore" },
+            primaryCat,
             { name: s.name, path: `/tools/${params.slug}` },
           ]),
         ],
@@ -159,7 +165,7 @@ function Detail() {
         {s.logoUrl ? (
           <img
             src={s.logoUrl}
-            alt=""
+            alt={`${s.name} logo`}
             className="h-12 w-12 rounded-2xl object-cover"
             loading="lazy"
           />
@@ -214,19 +220,9 @@ function Detail() {
       </motion.h1>
       <motion.p variants={fadeUp} className="mt-2 text-[1rem] text-muted-foreground">
         by {s.publisher}
+        <span className="mx-2 text-muted-foreground/50">·</span>
+        Updated {s.verifiedAt}
       </motion.p>
-      <motion.div
-        variants={fadeUp}
-        className="type-body mt-6 max-w-2xl space-y-4 text-[1.125rem] text-foreground/90"
-      >
-        {s.description
-          .split(/\n\s*\n/)
-          .map((p) => p.trim())
-          .filter(Boolean)
-          .map((p) => (
-            <p key={p.slice(0, 48)}>{p}</p>
-          ))}
-      </motion.div>
 
       <motion.div variants={fadeUp} className="mt-8 flex flex-wrap gap-3">
         {deal ? (
@@ -296,104 +292,165 @@ function Detail() {
         </button>
       </motion.div>
 
+      <motion.section variants={fadeUp} className="mt-14 max-w-2xl">
+        <h2 className="type-title text-[1.75rem]">What is {s.name}?</h2>
+        <p className="type-body mt-3 text-[1.125rem] text-foreground/90">
+          {s.summary?.trim() ||
+            `${s.name} is an AI ${s.type || "solution"} from ${s.publisher}.`}
+        </p>
+        <div className="type-body mt-4 space-y-4 text-[1.05rem] text-foreground/85">
+          {s.description
+            .split(/\n\s*\n/)
+            .map((p) => p.trim())
+            .filter(Boolean)
+            .filter((p) => p !== s.summary?.trim())
+            .map((p) => (
+              <p key={p.slice(0, 48)}>{p}</p>
+            ))}
+        </div>
+      </motion.section>
+
       <motion.div
         variants={fadeUp}
         className="mt-14 grid gap-8 md:grid-cols-[minmax(0,1fr)_280px]"
       >
-        <dl className="glass rounded-3xl px-5 md:px-6">
-          <Row k="Pricing model" v={s.pricingModel} />
-          <Row k="Price" v={s.price} />
-          <Row k="Platforms" v={s.platforms.join(", ") || "To verify"} />
-          <Row k="API" v={displayApi(s.apiAvailable)} />
-          <Row k="Open source" v={s.openSource ? "Yes" : "No"} />
-          <Row k="License" v={s.license?.trim() || "Not disclosed"} />
-          <Row k="Local execution" v={s.local ? "Possible" : "Cloud only"} />
-          <Row k="Audience" v={s.audience.join(", ") || "To verify"} />
-          <Row
-            k="Capabilities"
-            v={
-              s.features.length ? (
-                <ul className="flex flex-wrap gap-2">
-                  {s.features.map((f) => (
-                    <li
-                      key={f.key}
-                      className="rounded-full bg-fill px-2.5 py-1 text-[0.75rem] text-muted-foreground"
-                      title={f.notes ?? undefined}
-                    >
-                      {f.label}
-                      {f.availability !== "available" ? ` · ${f.availability}` : ""}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                "To verify"
-              )
-            }
-          />
-          <Row
-            k="Strengths"
-            v={
-              s.strengths.length ? (
-                <ul className="space-y-1">
-                  {s.strengths.map((x) => (
-                    <li key={x}>{x}</li>
-                  ))}
-                </ul>
-              ) : (
-                "To verify"
-              )
-            }
-          />
-          <Row
-            k="Limitations"
-            v={
-              s.limits.length ? (
-                <ul className="space-y-1">
-                  {s.limits.map((x) => (
-                    <li key={x}>{x}</li>
-                  ))}
-                </ul>
-              ) : (
-                "To verify"
-              )
-            }
-          />
-          <Row
-            k="Pricing plans"
-            v={
-              s.pricingPlans.length > 0 ? (
-                <ul className="space-y-3">
-                  {s.pricingPlans.map((p) => (
-                    <li key={`${p.planName}-${p.billingPeriod ?? ""}`}>
-                      <p className="font-medium text-foreground">{p.planName}</p>
-                      <p className="text-[0.8125rem] text-muted-foreground">
-                        {[
-                          p.pricingModel,
-                          p.priceAmount != null
-                            ? `${p.currency ?? ""} ${p.priceAmount}`.trim()
-                            : null,
-                          p.billingPeriod,
-                          p.verifiedAt ? `verified ${p.verifiedAt}` : "To verify",
-                        ]
-                          .filter(Boolean)
-                          .join(" · ")}
-                      </p>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                "To verify"
-              )
-            }
-          />
-        </dl>
+        <div className="space-y-10">
+          <section className="glass rounded-3xl px-5 py-2 md:px-6">
+            <h2 className="type-title pt-5 text-[1.25rem]">Pricing</h2>
+            <p className="mt-2 text-[0.9375rem] text-muted-foreground">
+              {s.name} is listed as <span className="text-foreground">{s.pricingModel}</span>
+              {s.price?.trim() && !/to verify|not disclosed/i.test(s.price)
+                ? ` (${s.price.trim()})`
+                : ""}{" "}
+              on AI Discov.
+            </p>
+            <dl className="mt-2">
+              <Row k="Pricing model" v={s.pricingModel} />
+              <Row k="Price" v={s.price} />
+              <Row
+                k="Pricing plans"
+                v={
+                  s.pricingPlans.length > 0 ? (
+                    <ul className="space-y-3">
+                      {s.pricingPlans.map((p) => (
+                        <li key={`${p.planName}-${p.billingPeriod ?? ""}`}>
+                          <p className="font-medium text-foreground">{p.planName}</p>
+                          <p className="text-[0.8125rem] text-muted-foreground">
+                            {[
+                              p.pricingModel,
+                              p.priceAmount != null
+                                ? `${p.currency ?? ""} ${p.priceAmount}`.trim()
+                                : null,
+                              p.billingPeriod,
+                              p.verifiedAt ? `verified ${p.verifiedAt}` : "To verify",
+                            ]
+                              .filter(Boolean)
+                              .join(" · ")}
+                          </p>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    "To verify"
+                  )
+                }
+              />
+            </dl>
+          </section>
+
+          <section className="glass rounded-3xl px-5 py-2 md:px-6">
+            <h2 className="type-title pt-5 text-[1.25rem]">Platforms & API</h2>
+            <p className="mt-2 text-[0.9375rem] text-muted-foreground">
+              {s.name} runs on{" "}
+              <span className="text-foreground">
+                {s.platforms.join(", ") || "platforms to verify"}
+              </span>
+              . API: <span className="text-foreground">{displayApi(s.apiAvailable)}</span>
+              {s.openSource ? "; listed as open source" : ""}.
+            </p>
+            <dl className="mt-2">
+              <Row k="Platforms" v={s.platforms.join(", ") || "To verify"} />
+              <Row k="API" v={displayApi(s.apiAvailable)} />
+              <Row k="Open source" v={s.openSource ? "Yes" : "No"} />
+              <Row k="License" v={s.license?.trim() || "Not disclosed"} />
+              <Row k="Local execution" v={s.local ? "Possible" : "Cloud only"} />
+              <Row k="Audience" v={s.audience.join(", ") || "To verify"} />
+              <Row
+                k="Capabilities"
+                v={
+                  s.features.length ? (
+                    <ul className="flex flex-wrap gap-2">
+                      {s.features.map((f) => (
+                        <li
+                          key={f.key}
+                          className="rounded-full bg-fill px-2.5 py-1 text-[0.75rem] text-muted-foreground"
+                          title={f.notes ?? undefined}
+                        >
+                          {f.label}
+                          {f.availability !== "available" ? ` · ${f.availability}` : ""}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    "To verify"
+                  )
+                }
+              />
+            </dl>
+          </section>
+
+          <section className="glass rounded-3xl px-5 py-2 md:px-6">
+            <h2 className="type-title pt-5 text-[1.25rem]">Strengths & limitations</h2>
+            <p className="mt-2 text-[0.9375rem] text-muted-foreground">
+              {s.strengths.length
+                ? `${s.name}'s main strengths include ${s.strengths.slice(0, 2).join(" and ")}${s.strengths.length > 2 ? ", among others" : ""}.`
+                : `${s.name} strengths are marked to verify on AI Discov.`}
+              {s.limits.length
+                ? ` Key limitations: ${s.limits.slice(0, 2).join("; ")}.`
+                : ""}
+            </p>
+            <dl className="mt-2">
+              <Row
+                k="Strengths"
+                v={
+                  s.strengths.length ? (
+                    <ul className="space-y-1">
+                      {s.strengths.map((x) => (
+                        <li key={x}>{x}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    "To verify"
+                  )
+                }
+              />
+              <Row
+                k="Limitations"
+                v={
+                  s.limits.length ? (
+                    <ul className="space-y-1">
+                      {s.limits.map((x) => (
+                        <li key={x}>{x}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    "To verify"
+                  )
+                }
+              />
+            </dl>
+          </section>
+        </div>
 
         <aside className="glass h-fit rounded-3xl p-6">
           <h2 className="type-title text-[1.125rem]">Verification</h2>
           <p className="mt-3 text-[0.875rem] text-muted-foreground">
             {s.status === "Verified" ? "Verified" : "To verify"} — last checked {s.verifiedAt}
           </p>
-          <h3 className="mt-6 text-[0.8125rem] font-medium text-foreground">Sources</h3>
+          <h2 className="mt-6 type-title text-[1.125rem]">Sources</h2>
+          <p className="mt-2 text-[0.8125rem] text-muted-foreground">
+            Claims on this page are tied to the sources below.
+          </p>
           {s.sources.length === 0 ? (
             <p className="mt-2 text-[0.8125rem] italic text-muted-foreground">No source linked yet.</p>
           ) : (
@@ -424,7 +481,7 @@ function Detail() {
           )}
           <a
             className="mt-6 inline-block text-[0.75rem] text-muted-foreground underline-offset-2 hover:underline"
-            href={`mailto:corrections@aidiscovery.app?subject=Error in ${encodeURIComponent(s.name)}`}
+            href={`mailto:contact@aidiscov.com?subject=Error in ${encodeURIComponent(s.name)}`}
           >
             Report an error
           </a>
@@ -432,10 +489,13 @@ function Detail() {
       </motion.div>
 
       {linkedNews.length > 0 ? (
-        <>
+        <section>
           <motion.h2 variants={fadeUp} className="type-title mt-16 text-[1.75rem]">
             Related updates
           </motion.h2>
+          <p className="mt-2 max-w-2xl text-[0.9375rem] text-muted-foreground">
+            Recent product advances linked to {s.name} on AI Discov Latest.
+          </p>
           <motion.ul variants={staggerChildren} className="mt-5 space-y-3">
             {linkedNews.map((n) => (
               <motion.li key={n.slug} variants={fadeUp}>
@@ -453,14 +513,17 @@ function Detail() {
               </motion.li>
             ))}
           </motion.ul>
-        </>
+        </section>
       ) : null}
 
       {changeHistory.length > 0 ? (
-        <>
+        <section>
           <motion.h2 variants={fadeUp} className="type-title mt-16 text-[1.75rem]">
             Change history
           </motion.h2>
+          <p className="mt-2 max-w-2xl text-[0.9375rem] text-muted-foreground">
+            Field-level updates recorded for {s.name} in the catalog.
+          </p>
           <motion.ul variants={staggerChildren} className="mt-5 space-y-2">
             {changeHistory.map((c) => (
               <motion.li
@@ -477,14 +540,22 @@ function Detail() {
               </motion.li>
             ))}
           </motion.ul>
-        </>
+        </section>
       ) : null}
 
       {alts.length > 0 && (
-        <>
+        <section>
           <motion.h2 variants={fadeUp} className="type-title mt-16 text-[1.75rem]">
-            Alternatives
+            Alternatives to {s.name}
           </motion.h2>
+          <p className="mt-2 max-w-2xl text-[0.9375rem] text-muted-foreground">
+            Alternatives to {s.name} on AI Discov include{" "}
+            {alts
+              .slice(0, 3)
+              .map((a) => a.name)
+              .join(", ")}
+            {alts.length > 3 ? ", and more" : ""}.
+          </p>
           <motion.div variants={staggerChildren} className="mt-5 grid gap-4 md:grid-cols-3">
             {alts.map((a) => (
               <motion.div key={a.slug} variants={fadeUp} transition={springSoft}>
@@ -492,7 +563,7 @@ function Detail() {
               </motion.div>
             ))}
           </motion.div>
-        </>
+        </section>
       )}
     </motion.div>
   );

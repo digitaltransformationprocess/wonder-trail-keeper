@@ -5,9 +5,12 @@ export const LEGAL = {
   siteUrl:
     (typeof import.meta !== "undefined" && import.meta.env?.VITE_SITE_URL) ||
     "https://aidiscov.com",
-  contactEmail: "legal@aidiscov.com",
+  contactEmail: "contact@aidiscov.com",
+  legalEmail: "legal@aidiscov.com",
   privacyEmail: "privacy@aidiscov.com",
   supportEmail: "support@aidiscov.com",
+  xUrl: "https://x.com/Aidiscov",
+  xHandle: "@Aidiscov",
   effectiveDate: "November 13, 2026",
   governingLaw: "the State of Delaware, United States",
   arbitrationVenue: "Wilmington, Delaware",

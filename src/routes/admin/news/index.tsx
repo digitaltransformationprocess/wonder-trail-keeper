@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+﻿import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import {
@@ -19,7 +19,7 @@ export const Route = createFileRoute("/admin/news/")({
     );
   },
   head: () => ({
-    meta: [{ title: "Admin news | AI Discovery" }],
+    meta: [{ title: "Admin news | AI Discov" }],
   }),
   component: AdminNewsList,
 });

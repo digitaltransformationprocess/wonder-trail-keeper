@@ -22,7 +22,7 @@ export const Route = createFileRoute("/library")({
     mergeHead(
       {
         meta: [
-          { title: "My Library — Your saved AI solutions | AI Discovery" },
+          { title: "My Library — Your saved AI solutions | AI Discov" },
           { name: "description", content: "Find the AI solutions you have saved." },
         ],
       },

@@ -1,7 +1,17 @@
 import { LEGAL, type LegalDocId } from "@/lib/legal/config";
 
-const { productName, companyName, siteUrl, contactEmail, privacyEmail, supportEmail, effectiveDate, governingLaw, arbitrationVenue } =
-  LEGAL;
+const {
+  productName,
+  companyName,
+  siteUrl,
+  contactEmail,
+  legalEmail,
+  privacyEmail,
+  supportEmail,
+  effectiveDate,
+  governingLaw,
+  arbitrationVenue,
+} = LEGAL;
 
 const footer = `
 
@@ -81,16 +91,16 @@ These Terms are governed by the laws of ${governingLaw}, without regard to confl
 These Terms, the Privacy Policy, Cookie Notice, Acceptable Use Agreement, and Disclaimer are the entire agreement regarding the Site.
 
 ### 10.4 Contact
-${companyName} · ${contactEmail} · ${siteUrl}
+${companyName} · ${legalEmail} · ${siteUrl}
 
 ## 11. Dispute Resolution (Arbitration)
 Please read carefully. Except for (i) individual small-claims actions and (ii) IP equitable relief, you and Company agree to resolve disputes through **binding individual arbitration**, not court, and waive class actions and jury trials.
 
 ### 11.1 Informal Resolution
-Before arbitration, send written notice to ${contactEmail}. The parties will try in good faith to resolve the dispute within 60 days.
+Before arbitration, send written notice to ${legalEmail}. The parties will try in good faith to resolve the dispute within 60 days.
 
 ### 11.2 Opt-Out
-You may opt out of arbitration within **30 days** of first accepting these Terms by emailing ${contactEmail} with your name, address, and a clear opt-out statement.
+You may opt out of arbitration within **30 days** of first accepting these Terms by emailing ${legalEmail} with your name, address, and a clear opt-out statement.
 
 ### 11.3 Severability
 If any part of this Section 11 is unenforceable, it will be modified to the minimum extent necessary; the rest remains in effect.
@@ -284,7 +294,7 @@ The Service may change, break, or be unavailable. Catalog coverage is not exhaus
 To the fullest extent permitted by law, ${companyName} disclaims liability arising from your reliance on catalog content, rankings, or third-party tools. See the [Terms of Use](/legal/terms) for warranty disclaimers and liability caps.
 
 ## Contact
-${contactEmail}
+${legalEmail}
 ${footer}`,
   },
 };

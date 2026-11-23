@@ -7,7 +7,7 @@ export const Route = createFileRoute("/admin/")({
     await context.queryClient.ensureQueryData(adminDashboardQuery);
   },
   head: () => ({
-    meta: [{ title: "Admin dashboard | AI Discovery" }],
+    meta: [{ title: "Admin dashboard | AI Discov" }],
   }),
   component: AdminDashboard,
 });

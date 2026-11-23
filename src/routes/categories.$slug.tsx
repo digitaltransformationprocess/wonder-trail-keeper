@@ -29,7 +29,7 @@ export const Route = createFileRoute("/categories/$slug")({
     return mergeHead(
       {
         meta: [
-          { title: `${name} — AI category | AI Discovery` },
+          { title: `${name} — AI category | AI Discov` },
           {
             name: "description",
             content:

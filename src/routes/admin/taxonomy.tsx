@@ -20,7 +20,7 @@ export const Route = createFileRoute("/admin/taxonomy")({
       context.queryClient.ensureQueryData(adminFeaturesQuery),
     ]);
   },
-  head: () => ({ meta: [{ title: "Taxonomy | Admin | AI Discovery" }] }),
+  head: () => ({ meta: [{ title: "Taxonomy | Admin | AI Discov" }] }),
   component: TaxonomyPage,
 });
 

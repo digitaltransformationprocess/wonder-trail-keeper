@@ -14,7 +14,7 @@ export const Route = createFileRoute("/admin/changes")({
     await context.queryClient.ensureQueryData(pendingChangeEventsQuery);
   },
   head: () => ({
-    meta: [{ title: "Field changes | AI Discovery Admin" }],
+    meta: [{ title: "Field changes | AI Discov Admin" }],
   }),
   component: AdminChanges,
 });

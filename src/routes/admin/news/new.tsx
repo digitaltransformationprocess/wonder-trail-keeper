@@ -6,7 +6,7 @@ import { createAdminNews } from "@/lib/admin/news";
 
 export const Route = createFileRoute("/admin/news/new")({
   head: () => ({
-    meta: [{ title: "New news | Admin | AI Discovery" }],
+    meta: [{ title: "New news | Admin | AI Discov" }],
   }),
   component: NewNewsPage,
 });

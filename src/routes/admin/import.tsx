@@ -10,7 +10,7 @@ import {
 
 export const Route = createFileRoute("/admin/import")({
   head: () => ({
-    meta: [{ title: "Import & discovery | AI Discovery Admin" }],
+    meta: [{ title: "Import & discovery | AI Discov Admin" }],
   }),
   component: AdminImport,
 });

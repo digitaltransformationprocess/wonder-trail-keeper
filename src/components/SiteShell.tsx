@@ -7,6 +7,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { useCompare } from "@/lib/store";
 import type { Solution } from "@/lib/solutions";
 import { pressScale, springSnappy } from "@/lib/motion";
+import { SITE_CONTACT_EMAIL, SITE_X_HANDLE, SITE_X_URL } from "@/lib/seo";
 
 export function SiteShell({
   children,
@@ -158,7 +159,29 @@ export function SiteShell({
             Clarity over noise. Unverified information is marked “To verify”. Sponsored content is
             never mixed into recommendations.
           </p>
-          <nav className="flex flex-wrap gap-x-4 gap-y-2" aria-label="Legal">
+          <nav className="flex flex-wrap gap-x-4 gap-y-2" aria-label="Contact and legal">
+            <a
+              href={`mailto:${SITE_CONTACT_EMAIL}`}
+              className="transition-apple hover:text-foreground"
+            >
+              {SITE_CONTACT_EMAIL}
+            </a>
+            <a
+              href={SITE_X_URL}
+              target="_blank"
+              rel="noopener noreferrer me"
+              className="inline-flex items-center gap-1.5 transition-apple hover:text-foreground"
+              aria-label={`X ${SITE_X_HANDLE}`}
+            >
+              <svg
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+                className="size-3.5 shrink-0 fill-current"
+              >
+                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+              </svg>
+              {SITE_X_HANDLE}
+            </a>
             <Link to="/legal" className="transition-apple hover:text-foreground">
               Legal
             </Link>
@@ -228,7 +251,7 @@ export function SolutionCard({
           {s.logoUrl ? (
             <img
               src={s.logoUrl}
-              alt=""
+              alt={`${s.name} logo`}
               className="mt-0.5 h-9 w-9 shrink-0 rounded-xl object-cover"
               loading="lazy"
             />

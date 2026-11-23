@@ -12,7 +12,7 @@ export const Route = createFileRoute("/admin/tools/")({
     await context.queryClient.ensureQueryData(adminToolsQuery);
   },
   head: () => ({
-    meta: [{ title: "Admin tools | AI Discovery" }],
+    meta: [{ title: "Admin tools | AI Discov" }],
   }),
   component: AdminTools,
 });

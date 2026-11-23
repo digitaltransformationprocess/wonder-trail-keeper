@@ -11,7 +11,7 @@ export const Route = createFileRoute("/admin/sources")({
   loader: async ({ context }) => {
     await context.queryClient.ensureQueryData(adminSourcesQuery);
   },
-  head: () => ({ meta: [{ title: "Sources | Admin | AI Discovery" }] }),
+  head: () => ({ meta: [{ title: "Sources | Admin | AI Discov" }] }),
   component: SourcesPage,
 });
 

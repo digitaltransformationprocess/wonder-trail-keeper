@@ -13,10 +13,11 @@ export function CompanyMark({
   const letter = (name?.trim().charAt(0) || "?").toUpperCase();
 
   if (logoUrl) {
+    const label = name?.trim() ? `${name.trim()} logo` : "Company logo";
     return (
       <img
         src={logoUrl}
-        alt=""
+        alt={label}
         width={size === "lg" ? 44 : size === "sm" ? 28 : 36}
         height={size === "lg" ? 44 : size === "sm" ? 28 : 36}
         className={`${dim} ${radius} shrink-0 bg-fill object-contain p-1 ring-1 ring-black/5 dark:ring-white/10`}

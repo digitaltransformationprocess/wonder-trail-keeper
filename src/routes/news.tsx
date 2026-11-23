@@ -52,7 +52,7 @@ export const Route = createFileRoute("/news")({
           {
             name: "description",
             content:
-              "AI Discov News: concise briefings on AI model releases, agents, developer tools, infrastructure, safety, and policy — updated continuously with links to original publisher articles.",
+              "AI news briefings on models, agents, tools, infra, safety, and policy — with links to original publishers.",
           },
         ],
       },

@@ -5,7 +5,7 @@ import { signIn, signUp, useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/admin/login")({
   head: () => ({
-    meta: [{ title: "Admin login | AI Discovery" }],
+    meta: [{ title: "Admin login | AI Discov" }],
   }),
   component: AdminLogin,
 });

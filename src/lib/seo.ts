@@ -2,13 +2,17 @@ import type { Solution } from "@/lib/solutions";
 
 export const SITE_NAME = "AI Discov";
 export const SITE_LOCALE = "en_US";
+/** Public contact inbox (ImprovMX). */
+export const SITE_CONTACT_EMAIL = "contact@aidiscov.com";
+export const SITE_X_URL = "https://x.com/Aidiscov";
+export const SITE_X_HANDLE = "@Aidiscov";
 /** Social preview (1200×630) — landing hero with search, not the bare mark. */
 export const DEFAULT_OG_IMAGE_PATH = "/brand/aidiscov-og-home.jpg";
 export const DEFAULT_OG_IMAGE_WIDTH = "1200";
 export const DEFAULT_OG_IMAGE_HEIGHT = "630";
 export const SITE_TAGLINE = "Find the right AI solution for your use case.";
 export const SITE_DESCRIPTION =
-  "Describe a job, get matched tools with reasons — or jump straight to a Top 10 list. Verified AI solutions with clear pricing and comparisons.";
+  "Describe a job, get matched AI tools with reasons — or open a Top 10 list. Verified pricing and comparisons.";
 
 export function siteUrl(): string {
   const raw = import.meta.env.VITE_SITE_URL;
@@ -64,6 +68,8 @@ export function sitewideHead(): SeoHeadParts {
     { property: "og:image:height", content: DEFAULT_OG_IMAGE_HEIGHT },
     { property: "og:image:alt", content: `${SITE_NAME} — ${SITE_TAGLINE}` },
     { name: "twitter:card", content: "summary_large_image" },
+    { name: "twitter:site", content: SITE_X_HANDLE },
+    { name: "twitter:creator", content: SITE_X_HANDLE },
     { name: "twitter:title", content: `${SITE_NAME} — ${SITE_TAGLINE}` },
     { name: "twitter:description", content: SITE_DESCRIPTION },
     { name: "twitter:image", content: image },
@@ -169,12 +175,14 @@ export function organizationJsonLd(): Record<string, unknown> {
     name: SITE_NAME,
     url,
     logo: absoluteUrl("/brand/aidiscov-mark-dark.png"),
-    sameAs: [],
+    sameAs: [SITE_X_URL],
+    email: SITE_CONTACT_EMAIL,
     contactPoint: [
       {
         "@type": "ContactPoint",
-        email: "support@aidiscov.com",
+        email: SITE_CONTACT_EMAIL,
         contactType: "customer support",
+        url: SITE_X_URL,
       },
     ],
   };
@@ -245,8 +253,96 @@ export function breadcrumbJsonLd(items: Array<{ name: string; path: string }>): 
   };
 }
 
+/** Clip meta descriptions to a SERP-friendly length (Semrush ~105–155). */
+export function clipMetaDescription(text: string, max = 155): string {
+  const t = (text || "").replace(/\s+/g, " ").trim();
+  if (!t) return "";
+  if (t.length <= max) return t;
+  const budget = max - 1;
+  const slice = t.slice(0, budget);
+  const sp = slice.lastIndexOf(" ");
+  const base = sp > Math.floor(budget * 0.55) ? slice.slice(0, sp) : slice;
+  return `${base.replace(/[,:;.–—-]\s*$/u, "").trimEnd()}…`;
+}
+
+/** Prefer ≤60 characters; shorten mid-phrase for long tool names. */
 export function toolPageTitle(name: string): string {
-  return `${name} — overview, pricing, and alternatives | AI Discovery`;
+  const suffix = " | AI Discov";
+  const candidates = [
+    `${name}: pricing, features & alternatives${suffix}`,
+    `${name}: pricing & alternatives${suffix}`,
+    `${name} — pricing & alternatives${suffix}`,
+    `${name} overview${suffix}`,
+    `${name}${suffix}`,
+  ];
+  for (const c of candidates) {
+    if (c.length <= 60) return c;
+  }
+  const maxName = Math.max(8, 60 - suffix.length - 1);
+  return `${name.slice(0, maxName)}…${suffix}`;
+}
+
+export function toolMetaDescription(s: Solution): string {
+  const raw =
+    s.summary?.trim() ||
+    s.description?.trim() ||
+    `${s.name}: pricing, features, and alternatives on AI Discov.`;
+  return clipMetaDescription(raw, 155);
+}
+
+export function toolFaqJsonLd(s: Solution): Record<string, unknown> {
+  const priceHint =
+    s.price?.trim() && !/to verify|not disclosed|n\/a/i.test(s.price)
+      ? s.price.trim()
+      : null;
+  const apiText =
+    s.apiAvailable === true
+      ? `Yes — ${s.name} lists an API as available${s.apiDocsUrl ? ` (docs: ${s.apiDocsUrl})` : ""}.`
+      : s.apiAvailable === false
+        ? `No API is listed as available for ${s.name} on AI Discov.`
+        : `API availability for ${s.name} is not disclosed on AI Discov.`;
+
+  const faqs: Array<{ q: string; a: string }> = [
+    {
+      q: `What is ${s.name}?`,
+      a:
+        s.summary?.trim() ||
+        `${s.name} is an AI ${s.type || "solution"} from ${s.publisher}, listed on AI Discov.`,
+    },
+    {
+      q: `How much does ${s.name} cost?`,
+      a: priceHint
+        ? `${s.name} is listed as ${s.pricingModel} (${priceHint}) on AI Discov. Confirm current pricing on the official site.`
+        : `${s.name} is listed as ${s.pricingModel} on AI Discov. Confirm current pricing on the official site.`,
+    },
+    {
+      q: `Does ${s.name} have an API?`,
+      a: apiText,
+    },
+    {
+      q: `Is ${s.name} open source?`,
+      a: s.openSource
+        ? `Yes — ${s.name} is listed as open source${s.license?.trim() ? ` (${s.license.trim()})` : ""}.`
+        : `No — ${s.name} is not listed as open source on AI Discov.`,
+    },
+  ];
+
+  if (s.audience.length) {
+    faqs.push({
+      q: `Who is ${s.name} for?`,
+      a: `${s.name} is geared toward ${s.audience.join(", ")}.`,
+    });
+  }
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((f) => ({
+      "@type": "Question",
+      name: f.q,
+      acceptedAnswer: { "@type": "Answer", text: f.a },
+    })),
+  };
 }
 
 export function articleJsonLd(opts: {

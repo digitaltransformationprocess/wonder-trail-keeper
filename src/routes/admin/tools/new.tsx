@@ -14,7 +14,7 @@ export const Route = createFileRoute("/admin/tools/new")({
     ]);
   },
   head: () => ({
-    meta: [{ title: "New tool | Admin | AI Discovery" }],
+    meta: [{ title: "New tool | Admin | AI Discov" }],
   }),
   component: NewToolPage,
 });

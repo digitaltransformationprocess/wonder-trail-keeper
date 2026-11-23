@@ -71,9 +71,9 @@ function defaultMeta(path, base) {
   const url = path === "/" ? `${base}/` : `${base}${path}`;
   const map = {
     "/": {
-      title: "AI Discov — Find the right AI solution for your use case",
+      title: "AI Discov — Find the right AI solution for your use case.",
       description:
-        "Describe what you want to accomplish and find verified AI solutions with clear explanations and comparisons.",
+        "Describe a job, get matched AI tools with reasons — or open a Top 10 list. Verified pricing and comparisons.",
     },
     "/explore": {
       title: "Explore — AI solution catalog | AI Discov",
@@ -81,15 +81,14 @@ function defaultMeta(path, base) {
         "Browse AI tools, models, APIs, and agents by category, pricing, and platform.",
     },
     "/latest": {
-      title: "Latest — New AI tools, releases & versions | AI Discov",
+      title: "Latest — AI models, features & updates | AI Discov",
       description:
-        "Updates on new AI tools, model releases, version upgrades, pricing, and product launches.",
+        "What AI tools just shipped: models, features, versions, pricing and access changes. Headlines live on News.",
     },
     "/news": {
-      title:
-        "AI News — model launches, agents & tools | AI Discov",
+      title: "AI News — model launches, agents & tools | AI Discov",
       description:
-        "AI Discov News: concise briefings on AI model releases, agents, developer tools, infrastructure, safety, and policy.",
+        "AI news briefings on models, agents, tools, infra, safety, and policy — with links to original publishers.",
     },
     "/compare": {
       title: "Compare AI tools | AI Discov",
@@ -118,8 +117,20 @@ function defaultMeta(path, base) {
       .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
       .join(" ");
     return {
-      title: `${name} — overview, pricing, and alternatives | AI Discov`,
-      description: `Overview of ${name}: pricing, features, platforms, and alternatives on AI Discov.`,
+      title: (() => {
+        const suffix = " | AI Discov";
+        const candidates = [
+          `${name}: pricing, features & alternatives${suffix}`,
+          `${name}: pricing & alternatives${suffix}`,
+          `${name} overview${suffix}`,
+          `${name}${suffix}`,
+        ];
+        return candidates.find((c) => c.length <= 60) || `${name}${suffix}`.slice(0, 60);
+      })(),
+      description: `Overview of ${name}: pricing, features, platforms, and alternatives on AI Discov.`
+        .replace(/\s+/g, " ")
+        .trim()
+        .slice(0, 155),
       url,
       ogType: "website",
     };
@@ -440,8 +451,17 @@ async function main() {
       const row = toolMeta.get(slug);
       if (row?.name) {
         meta = {
-          title: `${row.name} — overview, pricing, and alternatives | AI Discov`,
-          description: (row.summary || meta.description).slice(0, 300),
+          title: (() => {
+            const suffix = " | AI Discov";
+            const candidates = [
+              `${row.name}: pricing, features & alternatives${suffix}`,
+              `${row.name}: pricing & alternatives${suffix}`,
+              `${row.name} overview${suffix}`,
+              `${row.name}${suffix}`,
+            ];
+            return candidates.find((c) => c.length <= 60) || `${row.name}${suffix}`.slice(0, 60);
+          })(),
+          description: (row.summary || meta.description).replace(/\s+/g, " ").trim().slice(0, 155),
           url: meta.url,
           ogType: "website",
         };

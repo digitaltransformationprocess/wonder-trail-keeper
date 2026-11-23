@@ -20,7 +20,7 @@ export const Route = createFileRoute("/admin/news/$id")({
     }
   },
   head: ({ params }) => ({
-    meta: [{ title: `Edit news ${params.id.slice(0, 8)}… | Admin | AI Discovery` }],
+    meta: [{ title: `Edit news ${params.id.slice(0, 8)}… | Admin | AI Discov` }],
   }),
   notFoundComponent: () => (
     <p className="text-muted-foreground">

@@ -29,7 +29,7 @@ export const Route = createFileRoute("/admin/tools/$slug")({
     }
   },
   head: ({ params }) => ({
-    meta: [{ title: `Edit ${params.slug} | Admin | AI Discovery` }],
+    meta: [{ title: `Edit ${params.slug} | Admin | AI Discov` }],
   }),
   notFoundComponent: () => (
     <p className="text-muted-foreground">

@@ -38,11 +38,11 @@ export const Route = createFileRoute("/latest")({
     mergeHead(
       {
         meta: [
-          { title: "Latest — New AI models, features & product updates | AI Discov" },
+          { title: "Latest — AI models, features & updates | AI Discov" },
           {
             name: "description",
             content:
-              "What AI tools just shipped: new models, features, versions, pricing and access changes from OpenAI, Google, Anthropic and more. Industry headlines live on News.",
+              "What AI tools just shipped: models, features, versions, pricing and access changes. Headlines live on News.",
           },
         ],
       },

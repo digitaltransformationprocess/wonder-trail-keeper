@@ -17,7 +17,7 @@ export const Route = createFileRoute("/compare")({
     mergeHead(
       {
         meta: [
-          { title: "Compare — AI solution comparison | AI Discovery" },
+          { title: "Compare — AI solution comparison | AI Discov" },
           {
             name: "description",
             content: "Compare up to 5 AI solutions by pricing, API access, platforms, and limitations.",

@@ -62,8 +62,8 @@ function LegalIndex() {
 
       <motion.p variants={fadeUp} className="mt-10 text-[0.75rem] text-muted-foreground">
         Questions:{" "}
-        <a href={`mailto:${LEGAL.contactEmail}`} className="text-primary hover:underline">
-          {LEGAL.contactEmail}
+        <a href={`mailto:${LEGAL.legalEmail}`} className="text-primary hover:underline">
+          {LEGAL.legalEmail}
         </a>
       </motion.p>
     </motion.div>
